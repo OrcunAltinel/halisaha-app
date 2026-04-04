@@ -17,19 +17,20 @@ export default async function ListingPage({
   searchParams: Promise<{ location?: string }>
 }) {
   const params = await searchParams
-  const location = params.location || ''
+  const location = (params.location || '').trim()
 
-  let query = supabase
+  const { data, error } = await supabase
     .from('astroturf_list_view')
     .select('*')
     .eq('is_active', true)
 
-  if (location) {
-    query = query.eq('location_name', location)
-  }
+  const allAstroturfs = (data ?? []) as Astroturf[]
 
-  const { data, error } = await query
-  const astroturfs = (data ?? []) as Astroturf[]
+  const astroturfs = location
+    ? allAstroturfs.filter(
+        (item) => (item.location_name || '').trim().toLowerCase() === location.toLowerCase()
+      )
+    : allAstroturfs
 
   return (
     <main className="min-h-screen bg-gray-50 px-6 py-12">
@@ -60,6 +61,9 @@ export default async function ListingPage({
         {!error && astroturfs.length === 0 && (
           <div className="rounded-2xl bg-white p-6 shadow-sm">
             <p className="text-gray-600">No astroturfs found for this location.</p>
+            <p className="mt-2 text-sm text-gray-500">
+              Loaded astroturfs: {allAstroturfs.length}
+            </p>
           </div>
         )}
       </div>
