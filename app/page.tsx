@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import LocationSelector from '@/components/LocationSelector'
 import { supabase } from '@/lib/supabase'
 

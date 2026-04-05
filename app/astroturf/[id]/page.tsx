@@ -1,13 +1,5 @@
 import { supabase } from '@/lib/supabase'
-import { bookSlot } from './actions'
-
-type Astroturf = {
-  id: string
-  name: string
-  address: string
-  description?: string | null
-  price_per_hour: number
-}
+import BookSlotButton from '@/components/BookSlotButton'
 
 type TimeSlot = {
   id: string
@@ -90,30 +82,12 @@ export default async function AstroturfDetailPage({
                     </p>
                   </div>
 
-                  {slot.is_available ? (
-                    <form action={bookSlot}>
-                      <input type="hidden" name="time_slot_id" value={slot.id} />
-                      <input type="hidden" name="astroturf_id" value={astroturf.id} />
-                      <input
-                        type="hidden"
-                        name="total_price"
-                        value={astroturf.price_per_hour}
-                      />
-                      <button
-                        type="submit"
-                        className="rounded-lg bg-green-600 px-4 py-2 text-white"
-                      >
-                        Book
-                      </button>
-                    </form>
-                  ) : (
-                    <button
-                      className="cursor-not-allowed rounded-lg bg-gray-400 px-4 py-2 text-white"
-                      disabled
-                    >
-                      Unavailable
-                    </button>
-                  )}
+                  <BookSlotButton
+                    timeSlotId={slot.id}
+                    astroturfId={astroturf.id}
+                    totalPrice={astroturf.price_per_hour}
+                    isAvailable={slot.is_available}
+                  />
                 </div>
               ))}
             </div>
