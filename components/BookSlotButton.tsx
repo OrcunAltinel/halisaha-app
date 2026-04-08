@@ -20,43 +20,29 @@ export default function BookSlotButton({
   const router = useRouter()
   const supabase = createSupabaseBrowserClient()
   const [loading, setLoading] = useState(false)
+  const [errorMsg, setErrorMsg] = useState('')
 
   const handleBook = async () => {
     if (!isAvailable || loading) return
-
     setLoading(true)
+    setErrorMsg('')
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
+    const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
       router.push('/login')
       return
     }
 
-    const { error: reservationError } = await supabase.from('reservations').insert({
-      user_id: user.id,
-      astroturf_id: astroturfId,
-      time_slot_id: timeSlotId,
-      total_price: totalPrice,
-      status: 'pending',
-      payment_status: 'unpaid',
+    const { error } = await supabase.rpc('book_slot', {
+      p_time_slot_id: timeSlotId,
+      p_astroturf_id: astroturfId,
+      p_user_id: user.id,
+      p_total_price: totalPrice,
     })
 
-    if (reservationError) {
-      alert(reservationError.message)
-      setLoading(false)
-      return
-    }
-
-    const { error: slotError } = await supabase
-      .from('time_slots')
-      .update({ is_available: false })
-      .eq('id', timeSlotId)
-
-    if (slotError) {
-      alert(slotError.message)
+    if (error) {
+      setErrorMsg(error.message)
       setLoading(false)
       return
     }
@@ -67,21 +53,26 @@ export default function BookSlotButton({
   if (!isAvailable) {
     return (
       <button
-        className="cursor-not-allowed rounded-lg bg-gray-400 px-4 py-2 text-white"
+        className="cursor-not-allowed rounded-lg bg-gray-200 px-4 py-2 text-sm text-gray-500"
         disabled
       >
-        Unavailable
+        Booked
       </button>
     )
   }
 
   return (
-    <button
-      onClick={handleBook}
-      disabled={loading}
-      className="rounded-lg bg-green-600 px-4 py-2 text-white"
-    >
-      {loading ? 'Booking...' : 'Book'}
-    </button>
+    <div className="flex flex-col items-end gap-1">
+      {errorMsg && (
+        <p className="text-xs text-red-600">{errorMsg}</p>
+      )}
+      <button
+        onClick={handleBook}
+        disabled={loading}
+        className="rounded-lg bg-green-600 px-4 py-2 text-sm text-white hover:bg-green-700 disabled:opacity-60"
+      >
+        {loading ? 'Booking...' : 'Book'}
+      </button>
+    </div>
   )
 }
