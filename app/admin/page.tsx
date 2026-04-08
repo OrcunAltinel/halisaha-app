@@ -1,0 +1,96 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { createSupabaseBrowserClient } from '@/lib/supabase-browser'
+import { getAdminTurfs, type AdminTurf } from '@/lib/admin'
+
+const supabase = createSupabaseBrowserClient()
+
+export default function AdminHomePage() {
+  const router = useRouter()
+  const [turfs, setTurfs] = useState<AdminTurf[]>([])
+  const [loading, setLoading] = useState(true)
+  const [errorMessage, setErrorMessage] = useState('')
+
+  useEffect(() => {
+    let mounted = true
+
+    const load = async () => {
+      const { data: { user }, error: userError } = await supabase.auth.getUser()
+
+      if (!mounted) return
+
+      if (userError || !user) {
+        router.push('/login')
+        return
+      }
+
+      const adminTurfs = await getAdminTurfs(user.id)
+
+      if (!mounted) return
+
+      if (adminTurfs.length === 0) {
+        setErrorMessage('You are not an admin of any turf.')
+        setLoading(false)
+        return
+      }
+
+      setTurfs(adminTurfs)
+      setLoading(false)
+    }
+
+    load()
+    return () => { mounted = false }
+  }, [router])
+
+  return (
+    <main className="min-h-screen px-6 py-10">
+      <div className="mx-auto max-w-5xl">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-gray-900">Admin Panel</h1>
+          <p className="mt-2 text-gray-600">Manage the turfs you own.</p>
+        </div>
+
+        {loading && (
+          <div className="rounded-2xl border bg-white p-6 shadow-sm">
+            <p className="text-base font-medium text-gray-700">Loading...</p>
+          </div>
+        )}
+
+        {!loading && errorMessage && (
+          <div className="rounded-2xl border border-red-200 bg-red-50 p-6 shadow-sm">
+            <p className="font-medium text-red-700">{errorMessage}</p>
+          </div>
+        )}
+
+        {!loading && !errorMessage && (
+          <div className="grid gap-4 md:grid-cols-2">
+            {turfs.map((t) => (
+              <Link
+                key={t.astroturf_id}
+                href={`/admin/${t.astroturf_id}`}
+                className="rounded-2xl border bg-white p-6 shadow-sm transition hover:shadow-md"
+              >
+                <h2 className="text-xl font-bold text-gray-900">
+                  {t.astroturfs?.name || 'Turf'}
+                </h2>
+                <p className="mt-1 text-sm text-gray-600">
+                  {t.astroturfs?.address || 'No address'}
+                </p>
+                <p className="mt-3 text-sm text-gray-800">
+                  <span className="font-semibold">Hourly price:</span>{' '}
+                  {t.astroturfs?.price_per_hour ?? '-'} TL
+                </p>
+                <p className="mt-1 text-xs uppercase tracking-wide text-gray-500">
+                  Role: {t.role}
+                </p>
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
+    </main>
+  )
+}

@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { createSupabaseBrowserClient } from '@/lib/supabase-browser'
+import { isUserAdmin } from '@/lib/admin'
 import { usePathname, useRouter } from 'next/navigation'
 
 type UserInfo = {
@@ -13,6 +14,7 @@ const supabase = createSupabaseBrowserClient()
 
 export default function Navbar() {
   const [user, setUser] = useState<UserInfo | null>(null)
+  const [isAdmin, setIsAdmin] = useState(false)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
   const pathname = usePathname()
@@ -29,8 +31,11 @@ export default function Navbar() {
 
       if (user) {
         setUser({ email: user.email })
+        const adminCheck = await isUserAdmin(user.id)
+        if (mounted) setIsAdmin(adminCheck)
       } else {
         setUser(null)
+        setIsAdmin(false)
       }
 
       setLoading(false)
@@ -40,13 +45,16 @@ export default function Navbar() {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (!mounted) return
 
       if (session?.user) {
         setUser({ email: session.user.email })
+        const adminCheck = await isUserAdmin(session.user.id)
+        if (mounted) setIsAdmin(adminCheck)
       } else {
         setUser(null)
+        setIsAdmin(false)
       }
     })
 
@@ -59,6 +67,7 @@ export default function Navbar() {
   const handleLogout = async () => {
     await supabase.auth.signOut()
     setUser(null)
+    setIsAdmin(false)
     router.push('/')
     router.refresh()
   }
@@ -98,6 +107,16 @@ export default function Navbar() {
             >
               My Reservations
             </Link>
+            {isAdmin && (
+              <Link
+                href="/admin"
+                className={`text-sm font-medium hover:text-black ${
+                  pathname.startsWith('/admin') ? 'text-black' : 'text-gray-700'
+                }`}
+              >
+                Admin
+              </Link>
+            )}
           </nav>
         </div>
 

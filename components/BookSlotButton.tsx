@@ -21,15 +21,18 @@ export default function BookSlotButton({
   const supabase = createSupabaseBrowserClient()
   const [loading, setLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
+  const [successMsg, setSuccessMsg] = useState('')
 
   const handleBook = async () => {
     if (!isAvailable || loading) return
     setLoading(true)
     setErrorMsg('')
+    setSuccessMsg('')
 
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
+      setLoading(false)
       router.push('/login')
       return
     }
@@ -47,6 +50,8 @@ export default function BookSlotButton({
       return
     }
 
+    setSuccessMsg('Request submitted. Awaiting admin approval.')
+    setLoading(false)
     router.refresh()
   }
 
@@ -56,22 +61,21 @@ export default function BookSlotButton({
         className="cursor-not-allowed rounded-lg bg-gray-200 px-4 py-2 text-sm text-gray-500"
         disabled
       >
-        Booked
+        Unavailable
       </button>
     )
   }
 
   return (
     <div className="flex flex-col items-end gap-1">
-      {errorMsg && (
-        <p className="text-xs text-red-600">{errorMsg}</p>
-      )}
+      {errorMsg && <p className="text-xs text-red-600">{errorMsg}</p>}
+      {successMsg && <p className="text-xs text-green-600">{successMsg}</p>}
       <button
         onClick={handleBook}
         disabled={loading}
         className="rounded-lg bg-green-600 px-4 py-2 text-sm text-white hover:bg-green-700 disabled:opacity-60"
       >
-        {loading ? 'Booking...' : 'Book'}
+        {loading ? 'Sending request...' : 'Request booking'}
       </button>
     </div>
   )

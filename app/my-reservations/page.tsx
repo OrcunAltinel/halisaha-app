@@ -10,6 +10,8 @@ type ReservationRow = {
   payment_status: string
   total_price: number
   created_at: string
+  cancelled_by: string | null
+  cancellation_reason: string | null
   astroturfs: { name: string; address: string } | null
   time_slots: { slot_date: string; start_time: string; end_time: string } | null
 }
@@ -43,6 +45,7 @@ export default function MyReservationsPage() {
         .from('reservations')
         .select(`
           id, status, payment_status, total_price, created_at,
+          cancelled_by, cancellation_reason,
           astroturfs ( name, address ),
           time_slots ( slot_date, start_time, end_time )
         `)
@@ -67,6 +70,8 @@ export default function MyReservationsPage() {
 
   const handleCancel = async (reservationId: string) => {
     if (!window.confirm('Are you sure you want to cancel this reservation?')) return
+    const reason = window.prompt('Reason? (optional)')
+    if (reason === null) return
 
     setCancellingId(reservationId)
 
@@ -80,6 +85,7 @@ export default function MyReservationsPage() {
     const { error } = await supabase.rpc('cancel_reservation', {
       p_reservation_id: reservationId,
       p_user_id: user.id,
+      p_reason: reason || null,
     })
 
     if (error) {
@@ -90,7 +96,9 @@ export default function MyReservationsPage() {
 
     setReservations((prev) =>
       prev.map((r) =>
-        r.id === reservationId ? { ...r, status: 'cancelled' } : r
+        r.id === reservationId
+          ? { ...r, status: 'cancelled', cancelled_by: 'user', cancellation_reason: reason || null }
+          : r
       )
     )
     setCancellingId(null)
@@ -98,7 +106,9 @@ export default function MyReservationsPage() {
 
   const statusColor = (status: string) => {
     if (status === 'confirmed') return 'bg-green-100 text-green-700'
+    if (status === 'pending') return 'bg-yellow-100 text-yellow-800'
     if (status === 'cancelled') return 'bg-red-100 text-red-700'
+    if (status === 'rejected') return 'bg-red-100 text-red-700'
     if (status === 'completed') return 'bg-gray-100 text-gray-600'
     return 'bg-blue-100 text-blue-700'
   }
@@ -147,6 +157,13 @@ export default function MyReservationsPage() {
                       <p><span className="font-semibold">Time:</span> {reservation.time_slots?.start_time || '-'} – {reservation.time_slots?.end_time || '-'}</p>
                       <p><span className="font-semibold">Price:</span> {reservation.total_price} TL</p>
                     </div>
+
+                    {reservation.status === 'cancelled' && reservation.cancelled_by && (
+                      <p className="mt-3 text-xs text-gray-500">
+                        Cancelled by {reservation.cancelled_by}
+                        {reservation.cancellation_reason ? ` — "${reservation.cancellation_reason}"` : ''}
+                      </p>
+                    )}
                   </div>
 
                   <div className="flex flex-col gap-2 items-end">
@@ -157,7 +174,7 @@ export default function MyReservationsPage() {
                       {reservation.payment_status}
                     </span>
 
-                    {reservation.status !== 'cancelled' && reservation.status !== 'completed' && (
+                    {reservation.status !== 'cancelled' && reservation.status !== 'completed' && reservation.status !== 'rejected' && (
                       <button
                         onClick={() => handleCancel(reservation.id)}
                         disabled={cancellingId === reservation.id}
