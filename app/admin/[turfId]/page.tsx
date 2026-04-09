@@ -11,8 +11,6 @@ import {
   formatTime,
 } from '@/lib/date-helpers'
 
-const supabase = createSupabaseBrowserClient()
-
 type AdminReservation = {
   id: string
   status: string
@@ -60,12 +58,15 @@ export default function AdminTurfPage() {
   const [generatorMessage, setGeneratorMessage] = useState('')
 
   const loadData = async () => {
+    const supabase = createSupabaseBrowserClient()
     setLoading(true)
     setErrorMessage('')
 
-    const { data: { user } } = await supabase.auth.getUser()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
     if (!user) {
-      router.push('/login')
+      router.push(`/login?redirect=/admin/${turfId}`)
       return
     }
     setUserId(user.id)
@@ -100,11 +101,13 @@ export default function AdminTurfPage() {
 
     const { data: resData, error: resError } = await supabase
       .from('reservations')
-      .select(`
+      .select(
+        `
         id, status, payment_status, total_price, created_at, user_id,
         cancelled_by, cancellation_reason,
         time_slots ( slot_date, start_time, end_time )
-      `)
+      `
+      )
       .eq('astroturf_id', turfId)
       .order('created_at', { ascending: false })
 
@@ -125,6 +128,7 @@ export default function AdminTurfPage() {
 
   const handleApprove = async (reservationId: string) => {
     if (!userId) return
+    const supabase = createSupabaseBrowserClient()
     setActingId(reservationId)
 
     const { error } = await supabase.rpc('approve_reservation', {
@@ -147,6 +151,7 @@ export default function AdminTurfPage() {
   const handleReject = async (reservationId: string) => {
     if (!userId) return
     if (!window.confirm('Reject this booking request?')) return
+    const supabase = createSupabaseBrowserClient()
     setActingId(reservationId)
 
     const { error } = await supabase.rpc('reject_reservation', {
@@ -170,6 +175,7 @@ export default function AdminTurfPage() {
     if (!userId) return
     const reason = window.prompt('Reason for cancellation? (optional)')
     if (reason === null) return
+    const supabase = createSupabaseBrowserClient()
     setActingId(reservationId)
 
     const { error } = await supabase.rpc('admin_cancel_reservation', {
@@ -187,7 +193,12 @@ export default function AdminTurfPage() {
     setReservations((prev) =>
       prev.map((r) =>
         r.id === reservationId
-          ? { ...r, status: 'cancelled', cancelled_by: 'admin', cancellation_reason: reason || null }
+          ? {
+              ...r,
+              status: 'cancelled',
+              cancelled_by: 'admin',
+              cancellation_reason: reason || null,
+            }
           : r
       )
     )
@@ -202,6 +213,7 @@ export default function AdminTurfPage() {
       return
     }
 
+    const supabase = createSupabaseBrowserClient()
     setSavingPrice(true)
     setPriceMessage('')
 
@@ -228,11 +240,22 @@ export default function AdminTurfPage() {
     const open = Number(openHour)
     const close = Number(closeHour)
 
-    if (isNaN(open) || isNaN(close) || open < 0 || open > 23 || close < 1 || close > 24 || open >= close) {
-      setGeneratorMessage('Opening hour must be 0-23, closing hour must be 1-24, and opening < closing.')
+    if (
+      isNaN(open) ||
+      isNaN(close) ||
+      open < 0 ||
+      open > 23 ||
+      close < 1 ||
+      close > 24 ||
+      open >= close
+    ) {
+      setGeneratorMessage(
+        'Opening hour must be 0-23, closing hour must be 1-24, and opening < closing.'
+      )
       return
     }
 
+    const supabase = createSupabaseBrowserClient()
     setGenerating(true)
     setGeneratorMessage('')
 
@@ -287,13 +310,11 @@ export default function AdminTurfPage() {
     return 'bg-blue-100 text-blue-700'
   }
 
-  // Pending = all of them, any date
   const pendingReservations = useMemo(
     () => reservations.filter((r) => r.status === 'pending'),
     [reservations]
   )
 
-  // Non-pending reservations, bucketed by date
   const bucketed = useMemo(() => {
     const past: AdminReservation[] = []
     const today: AdminReservation[] = []
@@ -320,10 +341,14 @@ export default function AdminTurfPage() {
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="text-sm text-gray-800">
             <p>
-              <span className="font-semibold">{formatDateLabel(r.time_slots?.slot_date || '')}</span>{' '}
+              <span className="font-semibold">
+                {formatDateLabel(r.time_slots?.slot_date || '')}
+              </span>{' '}
               {formatTime(r.time_slots?.start_time)} – {formatTime(r.time_slots?.end_time)}
             </p>
-            <p className="text-gray-600">{r.total_price} TL · user {r.user_id.slice(0, 8)}...</p>
+            <p className="text-gray-600">
+              {r.total_price} TL · user {r.user_id.slice(0, 8)}...
+            </p>
             {r.status === 'cancelled' && r.cancelled_by && (
               <p className="mt-1 text-xs text-gray-500">
                 Cancelled by {r.cancelled_by}
@@ -332,7 +357,11 @@ export default function AdminTurfPage() {
             )}
           </div>
           <div className="flex items-center gap-2">
-            <span className={`rounded-full px-4 py-2 text-sm font-semibold ${statusColor(displayStatus)}`}>
+            <span
+              className={`rounded-full px-4 py-2 text-sm font-semibold ${statusColor(
+                displayStatus
+              )}`}
+            >
               {displayStatus}
             </span>
             {r.status === 'confirmed' && dateBucket(r.time_slots?.slot_date) !== 'past' && (
@@ -498,7 +527,9 @@ export default function AdminTurfPage() {
                 </div>
               </div>
 
-              {generatorMessage && <p className="mt-4 text-sm text-gray-700">{generatorMessage}</p>}
+              {generatorMessage && (
+                <p className="mt-4 text-sm text-gray-700">{generatorMessage}</p>
+              )}
             </section>
 
             {/* Pending requests (all) */}
@@ -540,17 +571,25 @@ export default function AdminTurfPage() {
                             </p>
                             <p>
                               <span className="font-semibold">Time:</span>{' '}
-                              {formatTime(r.time_slots?.start_time)} – {formatTime(r.time_slots?.end_time)}
+                              {formatTime(r.time_slots?.start_time)} –{' '}
+                              {formatTime(r.time_slots?.end_time)}
                             </p>
                             <p>
-                              <span className="font-semibold">Price:</span> {r.total_price} TL
+                              <span className="font-semibold">Price:</span>{' '}
+                              {r.total_price} TL
                             </p>
-                            <p className="text-xs text-gray-500">User: {r.user_id.slice(0, 8)}...</p>
+                            <p className="text-xs text-gray-500">
+                              User: {r.user_id.slice(0, 8)}...
+                            </p>
                           </div>
                         </div>
 
                         <div className="flex flex-col gap-2 items-end">
-                          <span className={`rounded-full px-4 py-2 text-sm font-semibold ${statusColor(r.status)}`}>
+                          <span
+                            className={`rounded-full px-4 py-2 text-sm font-semibold ${statusColor(
+                              r.status
+                            )}`}
+                          >
                             {r.status}
                           </span>
                           <div className="flex gap-2">

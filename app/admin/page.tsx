@@ -6,8 +6,6 @@ import Link from 'next/link'
 import { createSupabaseBrowserClient } from '@/lib/supabase-browser'
 import { getAdminTurfs, type AdminTurf } from '@/lib/admin'
 
-const supabase = createSupabaseBrowserClient()
-
 export default function AdminHomePage() {
   const router = useRouter()
   const [turfs, setTurfs] = useState<AdminTurf[]>([])
@@ -15,15 +13,19 @@ export default function AdminHomePage() {
   const [errorMessage, setErrorMessage] = useState('')
 
   useEffect(() => {
+    const supabase = createSupabaseBrowserClient()
     let mounted = true
 
     const load = async () => {
-      const { data: { user }, error: userError } = await supabase.auth.getUser()
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser()
 
       if (!mounted) return
 
       if (userError || !user) {
-        router.push('/login')
+        router.push('/login?redirect=/admin')
         return
       }
 
@@ -42,7 +44,9 @@ export default function AdminHomePage() {
     }
 
     load()
-    return () => { mounted = false }
+    return () => {
+      mounted = false
+    }
   }, [router])
 
   return (
