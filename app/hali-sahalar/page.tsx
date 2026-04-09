@@ -1,5 +1,6 @@
 import AstroturfCard from '@/components/AstroturfCard'
-import { supabase } from '@/lib/supabase'
+import TurfFilterBar from '@/components/TurfFilterBar'
+import { createSupabaseServerClient } from '@/lib/supabase'
 
 type Astroturf = {
   id: string
@@ -11,47 +12,107 @@ type Astroturf = {
   is_active: boolean
 }
 
+type Location = {
+  id: string
+  name: string
+}
+
+type SearchParams = {
+  q?: string
+  location?: string
+  minPrice?: string
+  maxPrice?: string
+}
+
 export default async function ListingPage({
   searchParams,
 }: {
-  searchParams: Promise<{ location?: string }>
+  searchParams: Promise<SearchParams>
 }) {
+  const supabase = await createSupabaseServerClient()
   const params = await searchParams
-  const location = (params.location || '').trim()
 
-  const { data, error } = await supabase
+  const q = (params.q || '').trim()
+  const location = (params.location || '').trim()
+  const minPrice = params.minPrice ? Number(params.minPrice) : null
+  const maxPrice = params.maxPrice ? Number(params.maxPrice) : null
+
+  // Fetch available locations for the dropdown
+  const { data: locationsData } = await supabase
+    .from('locations')
+    .select('id, name')
+    .order('name', { ascending: true })
+
+  const locations = (locationsData ?? []) as Location[]
+
+  // Build the astroturf query with filters applied in the database
+  let query = supabase
     .from('astroturf_list_view')
     .select('*')
     .eq('is_active', true)
 
-  const allAstroturfs = (data ?? []) as Astroturf[]
+  if (location) {
+    query = query.eq('location_name', location)
+  }
 
-  const astroturfs = location
-    ? allAstroturfs.filter(
-        (item) => (item.location_name || '').trim().toLowerCase() === location.toLowerCase()
-      )
-    : allAstroturfs
+  if (minPrice !== null && !Number.isNaN(minPrice)) {
+    query = query.gte('price_per_hour', minPrice)
+  }
+
+  if (maxPrice !== null && !Number.isNaN(maxPrice)) {
+    query = query.lte('price_per_hour', maxPrice)
+  }
+
+  if (q) {
+    // Case-insensitive search across name, address, and description
+    const escaped = q.replace(/[%,]/g, '')
+    query = query.or(
+      `name.ilike.%${escaped}%,address.ilike.%${escaped}%,description.ilike.%${escaped}%`
+    )
+  }
+
+  query = query.order('name', { ascending: true })
+
+  const { data, error } = await query
+  const astroturfs = (data ?? []) as Astroturf[]
+
+  const hasActiveFilters = Boolean(q || location || minPrice !== null || maxPrice !== null)
 
   return (
-    <main className="min-h-screen bg-gray-50 px-6 py-12">
+    <main className="min-h-screen bg-gray-50 px-4 py-10 sm:px-6 sm:py-12">
       <div className="mx-auto max-w-6xl">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold md:text-4xl">Astroturfs</h1>
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-gray-900 md:text-4xl">Astroturfs</h1>
           <p className="mt-2 text-gray-600">
-            {location
-              ? `Showing astroturfs in ${location}`
-              : 'Showing all available astroturfs'}
+            Browse and book astroturf pitches across the island.
           </p>
         </div>
 
+        <TurfFilterBar
+          locations={locations}
+          initialQuery={q}
+          initialLocation={location}
+          initialMinPrice={params.minPrice || ''}
+          initialMaxPrice={params.maxPrice || ''}
+        />
+
         {error && (
-          <div className="mb-6 rounded-xl bg-red-100 p-4 text-red-700">
-            Failed to load astroturfs.
+          <div className="mb-6 rounded-xl bg-red-50 p-4 text-sm text-red-700 ring-1 ring-red-200">
+            Failed to load astroturfs. Please try again.
+          </div>
+        )}
+
+        {!error && (
+          <div className="mb-4 flex items-center justify-between">
+            <p className="text-sm text-gray-600">
+              {astroturfs.length} {astroturfs.length === 1 ? 'result' : 'results'}
+              {hasActiveFilters ? ' matching your filters' : ''}
+            </p>
           </div>
         )}
 
         {!error && astroturfs.length > 0 && (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {astroturfs.map((field) => (
               <AstroturfCard key={field.id} field={field} />
             ))}
@@ -59,10 +120,12 @@ export default async function ListingPage({
         )}
 
         {!error && astroturfs.length === 0 && (
-          <div className="rounded-2xl bg-white p-6 shadow-sm">
-            <p className="text-gray-600">No astroturfs found for this location.</p>
-            <p className="mt-2 text-sm text-gray-500">
-              Loaded astroturfs: {allAstroturfs.length}
+          <div className="rounded-2xl bg-white p-8 text-center shadow-sm ring-1 ring-gray-100">
+            <p className="text-base font-medium text-gray-900">No astroturfs found</p>
+            <p className="mt-1 text-sm text-gray-600">
+              {hasActiveFilters
+                ? 'Try adjusting your filters or clearing them to see more results.'
+                : 'There are no astroturfs available right now.'}
             </p>
           </div>
         )}

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import LocationSelector from '@/components/LocationSelector'
-import { supabase } from '@/lib/supabase'
+import { createSupabaseServerClient } from '@/lib/supabase'
+
 
 type Astroturf = {
   id: string
@@ -12,6 +13,7 @@ type Astroturf = {
 }
 
 export default async function HomePage() {
+  const supabase = await createSupabaseServerClient()
   const { data } = await supabase
     .from('astroturf_list_view')
     .select('*')

@@ -1,15 +1,20 @@
 'use client'
 
 import { useState } from 'react'
-import { supabase } from '@/lib/supabase'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { createSupabaseBrowserClient } from '@/lib/supabase-browser'
 
 export default function LoginForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const supabase = createSupabaseBrowserClient()
+
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
+
+  const redirectTo = searchParams.get('redirect') || '/'
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -28,7 +33,11 @@ export default function LoginForm() {
     }
 
     setLoading(false)
-    router.push('/')
+    // Only allow internal redirects to prevent open-redirect attacks
+    const safeRedirect = redirectTo.startsWith('/') && !redirectTo.startsWith('//')
+      ? redirectTo
+      : '/'
+    router.push(safeRedirect)
     router.refresh()
   }
 
