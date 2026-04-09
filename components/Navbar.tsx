@@ -13,6 +13,7 @@ export default function Navbar() {
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -24,23 +25,38 @@ export default function Navbar() {
         if (session?.user) {
           setEmail(session.user.email ?? null);
 
-          // Inline admin check — no external dependency that could fail silently
-          const { data, error } = await supabase
+          // Check turf admin status
+          const { data: adminRows, error: adminError } = await supabase
             .from("astroturf_admins")
             .select("id")
             .eq("user_id", session.user.id)
             .limit(1);
 
-          if (error) {
-            console.error("[Navbar] admin check error:", error);
+          if (adminError) {
+            console.error("[Navbar] admin check error:", adminError);
             if (mounted) setIsAdmin(false);
           } else {
-            if (mounted) setIsAdmin((data?.length ?? 0) > 0);
+            if (mounted) setIsAdmin((adminRows?.length ?? 0) > 0);
+          }
+
+          // Check super admin status
+          const { data: superRows, error: superError } = await supabase
+            .from("super_admins")
+            .select("user_id")
+            .eq("user_id", session.user.id)
+            .limit(1);
+
+          if (superError) {
+            console.error("[Navbar] super admin check error:", superError);
+            if (mounted) setIsSuperAdmin(false);
+          } else {
+            if (mounted) setIsSuperAdmin((superRows?.length ?? 0) > 0);
           }
         } else {
           if (mounted) {
             setEmail(null);
             setIsAdmin(false);
+            setIsSuperAdmin(false);
           }
         }
       } catch (err) {
@@ -48,6 +64,7 @@ export default function Navbar() {
         if (mounted) {
           setEmail(session?.user?.email ?? null);
           setIsAdmin(false);
+          setIsSuperAdmin(false);
         }
       } finally {
         if (mounted) setLoading(false);
@@ -96,6 +113,7 @@ export default function Navbar() {
     await supabase.auth.signOut();
     setEmail(null);
     setIsAdmin(false);
+    setIsSuperAdmin(false);
     router.push("/");
     router.refresh();
   }
@@ -132,9 +150,25 @@ export default function Navbar() {
                   My Reservations
                 </Link>
               )}
+              {email && (
+                <Link
+                  href="/my-applications"
+                  className={linkClass("/my-applications")}
+                >
+                  My Applications
+                </Link>
+              )}
               {email && isAdmin && (
                 <Link href="/admin" className={linkClass("/admin")}>
                   Admin
+                </Link>
+              )}
+              {email && isSuperAdmin && (
+                <Link
+                  href="/admin/applications"
+                  className={linkClass("/admin/applications")}
+                >
+                  Review Applications
                 </Link>
               )}
             </div>
@@ -214,9 +248,25 @@ export default function Navbar() {
                 My Reservations
               </Link>
             )}
+            {email && (
+              <Link
+                href="/my-applications"
+                className={linkClass("/my-applications")}
+              >
+                My Applications
+              </Link>
+            )}
             {email && isAdmin && (
               <Link href="/admin" className={linkClass("/admin")}>
                 Admin
+              </Link>
+            )}
+            {email && isSuperAdmin && (
+              <Link
+                href="/admin/applications"
+                className={linkClass("/admin/applications")}
+              >
+                Review Applications
               </Link>
             )}
             <div className="pt-2 border-t border-gray-100 mt-2">
