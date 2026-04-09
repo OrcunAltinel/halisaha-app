@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase'
-import BookSlotButton from '@/components/BookSlotButton'
+import TurfCalendar from '@/components/TurfCalendar'
 
 type TimeSlot = {
   id: string
@@ -68,34 +68,11 @@ export default async function AstroturfDetailPage({
             </div>
           )}
 
-          {safeSlots.length > 0 ? (
-            <div className="grid gap-4">
-              {safeSlots.map((slot) => (
-                <div
-                  key={slot.id}
-                  className="flex items-center justify-between rounded-xl bg-white p-4 shadow-sm"
-                >
-                  <div>
-                    <p className="font-medium">{slot.slot_date}</p>
-                    <p className="text-sm text-gray-500">
-                      {slot.start_time} - {slot.end_time}
-                    </p>
-                  </div>
-
-                  <BookSlotButton
-                    timeSlotId={slot.id}
-                    astroturfId={astroturf.id}
-                    totalPrice={astroturf.price_per_hour}
-                    isAvailable={slot.is_available}
-                  />
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="rounded-2xl bg-white p-6 shadow-sm">
-              <p className="text-gray-600">No slots yet for this astroturf.</p>
-            </div>
-          )}
+          <TurfCalendar
+            astroturfId={astroturf.id}
+            pricePerHour={astroturf.price_per_hour}
+            slots={safeSlots}
+          />
         </div>
       </div>
     </main>

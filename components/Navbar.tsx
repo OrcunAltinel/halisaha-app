@@ -1,159 +1,259 @@
-'use client'
+"use client";
 
-import Link from 'next/link'
-import { useEffect, useState } from 'react'
-import { createSupabaseBrowserClient } from '@/lib/supabase-browser'
-import { isUserAdmin } from '@/lib/admin'
-import { usePathname, useRouter } from 'next/navigation'
-
-type UserInfo = {
-  email?: string
-}
-
-const supabase = createSupabaseBrowserClient()
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
+import type { Session, AuthChangeEvent } from "@supabase/supabase-js";
+import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 
 export default function Navbar() {
-  const [user, setUser] = useState<UserInfo | null>(null)
-  const [isAdmin, setIsAdmin] = useState(false)
-  const [loading, setLoading] = useState(true)
-  const router = useRouter()
-  const pathname = usePathname()
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const [loading, setLoading] = useState(true);
+  const [email, setEmail] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
-    let mounted = true
+    const supabase = createSupabaseBrowserClient();
+    let mounted = true;
 
-    const loadUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
+    async function resolveSession(session: Session | null) {
+      try {
+        if (session?.user) {
+          setEmail(session.user.email ?? null);
 
-      if (!mounted) return
+          // Inline admin check — no external dependency that could fail silently
+          const { data, error } = await supabase
+            .from("astroturf_admins")
+            .select("id")
+            .eq("user_id", session.user.id)
+            .limit(1);
 
-      if (user) {
-        setUser({ email: user.email })
-        const adminCheck = await isUserAdmin(user.id)
-        if (mounted) setIsAdmin(adminCheck)
-      } else {
-        setUser(null)
-        setIsAdmin(false)
+          if (error) {
+            console.error("[Navbar] admin check error:", error);
+            if (mounted) setIsAdmin(false);
+          } else {
+            if (mounted) setIsAdmin((data?.length ?? 0) > 0);
+          }
+        } else {
+          if (mounted) {
+            setEmail(null);
+            setIsAdmin(false);
+          }
+        }
+      } catch (err) {
+        console.error("[Navbar] resolveSession error:", err);
+        if (mounted) {
+          setEmail(session?.user?.email ?? null);
+          setIsAdmin(false);
+        }
+      } finally {
+        if (mounted) setLoading(false);
       }
-
-      setLoading(false)
     }
 
-    loadUser()
+    // Initial session fetch
+    (async () => {
+      try {
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession();
+        if (error) console.error("[Navbar] getSession error:", error);
+        if (!mounted) return;
+        await resolveSession(session);
+      } catch (err) {
+        console.error("[Navbar] initial fetch error:", err);
+        if (mounted) setLoading(false);
+      }
+    })();
 
+    // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (!mounted) return
-
-      if (session?.user) {
-        setUser({ email: session.user.email })
-        const adminCheck = await isUserAdmin(session.user.id)
-        if (mounted) setIsAdmin(adminCheck)
-      } else {
-        setUser(null)
-        setIsAdmin(false)
+    } = supabase.auth.onAuthStateChange(
+      (_event: AuthChangeEvent, session: Session | null) => {
+        if (!mounted) return;
+        resolveSession(session);
       }
-    })
+    );
 
     return () => {
-      mounted = false
-      subscription.unsubscribe()
-    }
-  }, [])
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
-    setUser(null)
-    setIsAdmin(false)
-    router.push('/')
-    router.refresh()
+  // Close mobile menu on route change
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
+
+  async function handleLogout() {
+    const supabase = createSupabaseBrowserClient();
+    await supabase.auth.signOut();
+    setEmail(null);
+    setIsAdmin(false);
+    router.push("/");
+    router.refresh();
   }
 
-  const displayName = user?.email ? user.email.split('@')[0] : 'User'
+  const linkClass = (href: string) =>
+    `text-sm transition-colors ${
+      pathname === href
+        ? "text-gray-900 font-medium"
+        : "text-gray-600 hover:text-gray-900"
+    }`;
 
   return (
-    <header className="border-b bg-white">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-        <div className="flex items-center gap-6">
-          <Link href="/" className="text-xl font-bold text-black">
-            Halisaha
-          </Link>
+    <nav className="bg-white border-b border-gray-200 sticky top-0 z-40">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
+        <div className="flex items-center justify-between h-14">
+          {/* Left: Logo + primary links */}
+          <div className="flex items-center gap-6">
+            <Link href="/" className="text-lg font-bold text-gray-900">
+              Halisaha
+            </Link>
 
-          <nav className="flex items-center gap-4">
-            <Link
-              href="/"
-              className={`text-sm font-medium hover:text-black ${
-                pathname === '/' ? 'text-black' : 'text-gray-700'
-              }`}
+            <div className="hidden md:flex items-center gap-5">
+              <Link href="/" className={linkClass("/")}>
+                Home
+              </Link>
+              <Link href="/hali-sahalar" className={linkClass("/hali-sahalar")}>
+                Astroturfs
+              </Link>
+              {email && (
+                <Link
+                  href="/my-reservations"
+                  className={linkClass("/my-reservations")}
+                >
+                  My Reservations
+                </Link>
+              )}
+              {email && isAdmin && (
+                <Link href="/admin" className={linkClass("/admin")}>
+                  Admin
+                </Link>
+              )}
+            </div>
+          </div>
+
+          {/* Right: Auth area */}
+          <div className="hidden md:flex items-center gap-3">
+            {loading ? (
+              <div className="h-8 w-20 bg-gray-100 rounded animate-pulse" />
+            ) : email ? (
+              <>
+                <span className="text-sm text-gray-600 max-w-[160px] truncate">
+                  {email}
+                </span>
+                <button
+                  onClick={handleLogout}
+                  className="text-sm px-3 py-1.5 rounded-md border border-gray-300 hover:bg-gray-50 transition-colors"
+                >
+                  Log out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="text-sm px-3 py-1.5 text-gray-700 hover:text-gray-900"
+                >
+                  Log in
+                </Link>
+                <Link
+                  href="/signup"
+                  className="text-sm px-3 py-1.5 rounded-md bg-gray-900 text-white hover:bg-gray-800 transition-colors"
+                >
+                  Sign up
+                </Link>
+              </>
+            )}
+          </div>
+
+          {/* Mobile hamburger */}
+          <button
+            className="md:hidden p-2 text-gray-700"
+            onClick={() => setMenuOpen((v) => !v)}
+            aria-label="Toggle menu"
+          >
+            <svg
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
             >
+              {menuOpen ? (
+                <path d="M6 6l12 12M6 18L18 6" />
+              ) : (
+                <path d="M3 6h18M3 12h18M3 18h18" />
+              )}
+            </svg>
+          </button>
+        </div>
+
+        {/* Mobile menu */}
+        {menuOpen && (
+          <div className="md:hidden pb-3 flex flex-col gap-2 border-t border-gray-100 pt-3">
+            <Link href="/" className={linkClass("/")}>
               Home
             </Link>
-            <Link
-              href="/hali-sahalar"
-              className={`text-sm font-medium hover:text-black ${
-                pathname.startsWith('/hali-sahalar') ? 'text-black' : 'text-gray-700'
-              }`}
-            >
+            <Link href="/hali-sahalar" className={linkClass("/hali-sahalar")}>
               Astroturfs
             </Link>
-            <Link
-              href="/my-reservations"
-              className={`text-sm font-medium hover:text-black ${
-                pathname.startsWith('/my-reservations') ? 'text-black' : 'text-gray-700'
-              }`}
-            >
-              My Reservations
-            </Link>
-            {isAdmin && (
+            {email && (
               <Link
-                href="/admin"
-                className={`text-sm font-medium hover:text-black ${
-                  pathname.startsWith('/admin') ? 'text-black' : 'text-gray-700'
-                }`}
+                href="/my-reservations"
+                className={linkClass("/my-reservations")}
               >
+                My Reservations
+              </Link>
+            )}
+            {email && isAdmin && (
+              <Link href="/admin" className={linkClass("/admin")}>
                 Admin
               </Link>
             )}
-          </nav>
-        </div>
-
-        <div className="flex items-center gap-3">
-          {loading ? (
-            <div className="text-sm text-gray-500">Loading...</div>
-          ) : user ? (
-            <>
-              <div className="flex items-center gap-2 rounded-full border bg-gray-50 px-4 py-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-black text-sm font-bold text-white">
-                  U
+            <div className="pt-2 border-t border-gray-100 mt-2">
+              {loading ? (
+                <div className="h-8 w-24 bg-gray-100 rounded animate-pulse" />
+              ) : email ? (
+                <div className="flex flex-col gap-2">
+                  <span className="text-sm text-gray-600 truncate">
+                    {email}
+                  </span>
+                  <button
+                    onClick={handleLogout}
+                    className="text-sm px-3 py-1.5 rounded-md border border-gray-300 hover:bg-gray-50 w-fit"
+                  >
+                    Log out
+                  </button>
                 </div>
-                <div className="text-sm font-medium text-gray-800">{displayName}</div>
-              </div>
-
-              <button
-                onClick={handleLogout}
-                className="rounded-xl border px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
-              >
-                Log out
-              </button>
-            </>
-          ) : (
-            <>
-              <Link href="/login" className="rounded-xl border px-4 py-2 text-sm font-medium">
-                Log in
-              </Link>
-              <Link
-                href="/signup"
-                className="rounded-xl bg-black px-4 py-2 text-sm font-medium text-white"
-              >
-                Sign up
-              </Link>
-            </>
-          )}
-        </div>
+              ) : (
+                <div className="flex gap-2">
+                  <Link
+                    href="/login"
+                    className="text-sm px-3 py-1.5 text-gray-700"
+                  >
+                    Log in
+                  </Link>
+                  <Link
+                    href="/signup"
+                    className="text-sm px-3 py-1.5 rounded-md bg-gray-900 text-white"
+                  >
+                    Sign up
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
-    </header>
-  )
+    </nav>
+  );
 }

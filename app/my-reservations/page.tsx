@@ -1,8 +1,14 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { createSupabaseBrowserClient } from '@/lib/supabase-browser'
 import { useRouter } from 'next/navigation'
+import {
+  dateBucket,
+  effectiveStatus,
+  formatDateLabel,
+  formatTime,
+} from '@/lib/date-helpers'
 
 type ReservationRow = {
   id: string
@@ -16,6 +22,8 @@ type ReservationRow = {
   time_slots: { slot_date: string; start_time: string; end_time: string } | null
 }
 
+type TabKey = 'upcoming' | 'past'
+
 const supabase = createSupabaseBrowserClient()
 
 export default function MyReservationsPage() {
@@ -24,6 +32,7 @@ export default function MyReservationsPage() {
   const [loading, setLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState('')
   const [cancellingId, setCancellingId] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<TabKey>('upcoming')
 
   useEffect(() => {
     let mounted = true
@@ -113,6 +122,33 @@ export default function MyReservationsPage() {
     return 'bg-blue-100 text-blue-700'
   }
 
+  const { past, upcoming } = useMemo(() => {
+    const past: ReservationRow[] = []
+    const upcoming: ReservationRow[] = []
+    for (const r of reservations) {
+      const bucket = dateBucket(r.time_slots?.slot_date)
+      if (bucket === 'past') past.push(r)
+      else upcoming.push(r) // today + upcoming
+    }
+    return { past, upcoming }
+  }, [reservations])
+
+  const visibleList = activeTab === 'past' ? past : upcoming
+
+  const tabButton = (key: TabKey, label: string, count: number) => {
+    const isActive = activeTab === key
+    return (
+      <button
+        onClick={() => setActiveTab(key)}
+        className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
+          isActive ? 'bg-gray-900 text-white' : 'border text-gray-700 hover:bg-gray-100'
+        }`}
+      >
+        {label} ({count})
+      </button>
+    )
+  }
+
   return (
     <main className="min-h-screen px-6 py-10">
       <div className="mx-auto max-w-5xl">
@@ -140,54 +176,83 @@ export default function MyReservationsPage() {
         )}
 
         {!loading && !errorMessage && reservations.length > 0 && (
-          <div className="grid gap-4">
-            {reservations.map((reservation) => (
-              <div key={reservation.id} className="rounded-2xl border bg-white p-6 shadow-sm">
-                <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
-                  <div>
-                    <h2 className="text-xl font-bold text-gray-900">
-                      {reservation.astroturfs?.name || 'Astroturf'}
-                    </h2>
-                    <p className="mt-1 text-sm text-gray-600">
-                      {reservation.astroturfs?.address || 'No address'}
-                    </p>
+          <>
+            <div className="mb-4 flex flex-wrap gap-2">
+              {tabButton('upcoming', 'Upcoming', upcoming.length)}
+              {tabButton('past', 'Past', past.length)}
+            </div>
 
-                    <div className="mt-4 space-y-2 text-sm text-gray-800">
-                      <p><span className="font-semibold">Date:</span> {reservation.time_slots?.slot_date || '-'}</p>
-                      <p><span className="font-semibold">Time:</span> {reservation.time_slots?.start_time || '-'} – {reservation.time_slots?.end_time || '-'}</p>
-                      <p><span className="font-semibold">Price:</span> {reservation.total_price} TL</p>
-                    </div>
-
-                    {reservation.status === 'cancelled' && reservation.cancelled_by && (
-                      <p className="mt-3 text-xs text-gray-500">
-                        Cancelled by {reservation.cancelled_by}
-                        {reservation.cancellation_reason ? ` — "${reservation.cancellation_reason}"` : ''}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="flex flex-col gap-2 items-end">
-                    <span className={`rounded-full px-4 py-2 text-sm font-semibold ${statusColor(reservation.status)}`}>
-                      {reservation.status}
-                    </span>
-                    <span className="rounded-full bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-700">
-                      {reservation.payment_status}
-                    </span>
-
-                    {reservation.status !== 'cancelled' && reservation.status !== 'completed' && reservation.status !== 'rejected' && (
-                      <button
-                        onClick={() => handleCancel(reservation.id)}
-                        disabled={cancellingId === reservation.id}
-                        className="mt-2 rounded-xl border border-red-300 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"
-                      >
-                        {cancellingId === reservation.id ? 'Cancelling...' : 'Cancel'}
-                      </button>
-                    )}
-                  </div>
-                </div>
+            {visibleList.length === 0 ? (
+              <div className="rounded-2xl border bg-white p-6 shadow-sm">
+                <p className="text-gray-700">Nothing to show here.</p>
               </div>
-            ))}
-          </div>
+            ) : (
+              <div className="grid gap-4">
+                {visibleList.map((reservation) => {
+                  const displayStatus = effectiveStatus(reservation.status, reservation.time_slots?.slot_date)
+                  const isPast = dateBucket(reservation.time_slots?.slot_date) === 'past'
+
+                  return (
+                    <div key={reservation.id} className="rounded-2xl border bg-white p-6 shadow-sm">
+                      <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
+                        <div>
+                          <h2 className="text-xl font-bold text-gray-900">
+                            {reservation.astroturfs?.name || 'Astroturf'}
+                          </h2>
+                          <p className="mt-1 text-sm text-gray-600">
+                            {reservation.astroturfs?.address || 'No address'}
+                          </p>
+
+                          <div className="mt-4 space-y-2 text-sm text-gray-800">
+                            <p>
+                              <span className="font-semibold">Date:</span>{' '}
+                              {formatDateLabel(reservation.time_slots?.slot_date || '')}
+                            </p>
+                            <p>
+                              <span className="font-semibold">Time:</span>{' '}
+                              {formatTime(reservation.time_slots?.start_time)} – {formatTime(reservation.time_slots?.end_time)}
+                            </p>
+                            <p>
+                              <span className="font-semibold">Price:</span> {reservation.total_price} TL
+                            </p>
+                          </div>
+
+                          {reservation.status === 'cancelled' && reservation.cancelled_by && (
+                            <p className="mt-3 text-xs text-gray-500">
+                              Cancelled by {reservation.cancelled_by}
+                              {reservation.cancellation_reason ? ` — "${reservation.cancellation_reason}"` : ''}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="flex flex-col gap-2 items-end">
+                          <span className={`rounded-full px-4 py-2 text-sm font-semibold ${statusColor(displayStatus)}`}>
+                            {displayStatus}
+                          </span>
+                          <span className="rounded-full bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-700">
+                            {reservation.payment_status}
+                          </span>
+
+                          {!isPast &&
+                            reservation.status !== 'cancelled' &&
+                            reservation.status !== 'completed' &&
+                            reservation.status !== 'rejected' && (
+                              <button
+                                onClick={() => handleCancel(reservation.id)}
+                                disabled={cancellingId === reservation.id}
+                                className="mt-2 rounded-xl border border-red-300 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"
+                              >
+                                {cancellingId === reservation.id ? 'Cancelling...' : 'Cancel'}
+                              </button>
+                            )}
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </>
         )}
       </div>
     </main>
