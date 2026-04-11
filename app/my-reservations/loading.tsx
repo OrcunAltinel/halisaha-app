@@ -1,3 +1,5 @@
+import FootballLoader from '@/components/FootballLoader'
+
 export default function Loading() {
   return (
     <main className="min-h-screen px-6 py-10">
@@ -6,9 +8,7 @@ export default function Loading() {
           <h1 className="text-4xl font-bold text-gray-900">My Reservations</h1>
           <p className="mt-2 text-gray-600">See all the slots you have booked.</p>
         </div>
-        <div className="rounded-2xl border bg-white p-6 shadow-sm">
-          <p className="text-base font-medium text-gray-700">Loading reservations...</p>
-        </div>
+        <FootballLoader message="Loading your reservations…" />
       </div>
     </main>
   )

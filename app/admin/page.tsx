@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createSupabaseBrowserClient } from '@/lib/supabase-browser'
 import { getAdminTurfs, type AdminTurf } from '@/lib/admin'
+import FootballLoader from '@/components/FootballLoader'
 
 export default function AdminHomePage() {
   const router = useRouter()
@@ -57,11 +58,7 @@ export default function AdminHomePage() {
           <p className="mt-2 text-gray-600">Manage the turfs you own.</p>
         </div>
 
-        {loading && (
-          <div className="rounded-2xl border bg-white p-6 shadow-sm">
-            <p className="text-base font-medium text-gray-700">Loading...</p>
-          </div>
-        )}
+        {loading && <FootballLoader message="Loading your pitches…" />}
 
         {!loading && errorMessage && (
           <div className="rounded-2xl border border-red-200 bg-red-50 p-6 shadow-sm">

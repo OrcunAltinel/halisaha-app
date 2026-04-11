@@ -12,6 +12,7 @@ import {
 } from '@/lib/date-helpers'
 import ConfirmModal from '@/components/ConfirmModal'
 import { useToast } from '@/components/ToastProvider'
+import FootballLoader from '@/components/FootballLoader'
 
 type AdminReservation = {
   id: string
@@ -444,7 +445,7 @@ export default function AdminTurfPage() {
 
         {loading && (
           <div className="mt-6 rounded-2xl border bg-white p-6 shadow-sm">
-            <p className="text-base font-medium text-gray-700">Loading...</p>
+            <FootballLoader message="Loading pitch data…" />
           </div>
         )}
 
