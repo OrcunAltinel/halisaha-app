@@ -3,25 +3,20 @@
 import { useState } from 'react'
 import { createSupabaseBrowserClient } from '@/lib/supabase-browser'
 
-export default function SignupForm() {
+export default function ForgotPasswordForm() {
   const supabase = createSupabaseBrowserClient()
   const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
   const [message, setMessage] = useState<{ text: string; isError: boolean } | null>(null)
   const [loading, setLoading] = useState(false)
-  const [done, setDone] = useState(false)
+  const [sent, setSent] = useState(false)
 
-  const handleSignup = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setMessage(null)
 
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-      },
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
     })
 
     if (error) {
@@ -30,28 +25,34 @@ export default function SignupForm() {
       return
     }
 
-    setDone(true)
+    setSent(true)
     setLoading(false)
   }
 
-  if (done) {
+  if (sent) {
     return (
       <div className="mx-auto max-w-md rounded-2xl bg-white p-6 shadow-sm text-center">
         <div className="mb-4 text-4xl">📬</div>
         <h1 className="mb-2 text-2xl font-bold">Check your email</h1>
         <p className="text-gray-600">
-          We sent a confirmation link to <strong>{email}</strong>. Click it to activate your account, then log in.
+          If <strong>{email}</strong> is registered, you&apos;ll receive a password reset link shortly.
         </p>
+        <a href="/login" className="mt-6 inline-block text-sm text-gray-500 hover:text-black">
+          Back to login
+        </a>
       </div>
     )
   }
 
   return (
     <form
-      onSubmit={handleSignup}
+      onSubmit={handleSubmit}
       className="mx-auto max-w-md rounded-2xl bg-white p-6 shadow-sm"
     >
-      <h1 className="mb-6 text-2xl font-bold">Sign up</h1>
+      <h1 className="mb-2 text-2xl font-bold">Reset your password</h1>
+      <p className="mb-6 text-sm text-gray-500">
+        Enter your email and we&apos;ll send you a link to set a new password.
+      </p>
 
       <div className="mb-4">
         <label className="mb-2 block text-sm font-medium">Email</label>
@@ -59,17 +60,6 @@ export default function SignupForm() {
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none"
-          required
-        />
-      </div>
-
-      <div className="mb-4">
-        <label className="mb-2 block text-sm font-medium">Password</label>
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
           className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none"
           required
         />
@@ -86,8 +76,14 @@ export default function SignupForm() {
         disabled={loading}
         className="w-full rounded-xl bg-black px-4 py-3 text-white"
       >
-        {loading ? 'Creating account...' : 'Sign up'}
+        {loading ? 'Sending...' : 'Send reset link'}
       </button>
+
+      <p className="mt-4 text-center text-sm text-gray-500">
+        <a href="/login" className="hover:text-black">
+          Back to login
+        </a>
+      </p>
     </form>
   )
 }

@@ -72,6 +72,12 @@ export default function LoginForm() {
 
       {message && <p className="mb-4 text-sm text-red-600">{message}</p>}
 
+      <div className="mb-4 text-right">
+        <a href="/forgot-password" className="text-sm text-gray-500 hover:text-black">
+          Forgot password?
+        </a>
+      </div>
+
       <button
         type="submit"
         disabled={loading}
