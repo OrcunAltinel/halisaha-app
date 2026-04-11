@@ -9,6 +9,8 @@ import {
   formatDateLabel,
   formatTime,
 } from '@/lib/date-helpers'
+import ConfirmModal from '@/components/ConfirmModal'
+import { useToast } from '@/components/ToastProvider'
 
 type ReservationRow = {
   id: string
@@ -33,6 +35,8 @@ export default function MyReservationsPage() {
   const [errorMessage, setErrorMessage] = useState('')
   const [cancellingId, setCancellingId] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<TabKey>('upcoming')
+  const [cancelModal, setCancelModal] = useState<string | null>(null) // reservationId
+  const { showToast } = useToast()
 
   useEffect(() => {
     let mounted = true
@@ -77,11 +81,14 @@ export default function MyReservationsPage() {
     return () => { mounted = false }
   }, [router])
 
-  const handleCancel = async (reservationId: string) => {
-    if (!window.confirm('Are you sure you want to cancel this reservation?')) return
-    const reason = window.prompt('Reason? (optional)')
-    if (reason === null) return
+  const handleCancel = (reservationId: string) => {
+    setCancelModal(reservationId)
+  }
 
+  const confirmCancel = async (reason?: string) => {
+    if (!cancelModal) return
+    const reservationId = cancelModal
+    setCancelModal(null)
     setCancellingId(reservationId)
 
     const { data: { user } } = await supabase.auth.getUser()
@@ -98,7 +105,7 @@ export default function MyReservationsPage() {
     })
 
     if (error) {
-      alert(error.message)
+      showToast(error.message, 'error')
       setCancellingId(null)
       return
     }
@@ -111,6 +118,7 @@ export default function MyReservationsPage() {
       )
     )
     setCancellingId(null)
+    showToast('Reservation cancelled.')
   }
 
   const statusColor = (status: string) => {
@@ -150,6 +158,20 @@ export default function MyReservationsPage() {
   }
 
   return (
+    <>
+    {cancelModal && (
+      <ConfirmModal
+        title="Cancel reservation?"
+        message="Are you sure you want to cancel this reservation?"
+        confirmLabel="Cancel reservation"
+        variant="danger"
+        withReason
+        reasonPlaceholder="Reason (optional)"
+        loading={cancellingId === cancelModal}
+        onConfirm={confirmCancel}
+        onClose={() => setCancelModal(null)}
+      />
+    )}
     <main className="min-h-screen px-6 py-10">
       <div className="mx-auto max-w-5xl">
         <div className="mb-8">
@@ -256,5 +278,6 @@ export default function MyReservationsPage() {
         )}
       </div>
     </main>
+    </>
   )
 }

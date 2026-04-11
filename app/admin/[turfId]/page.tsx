@@ -10,6 +10,8 @@ import {
   formatDateLabel,
   formatTime,
 } from '@/lib/date-helpers'
+import ConfirmModal from '@/components/ConfirmModal'
+import { useToast } from '@/components/ToastProvider'
 
 type AdminReservation = {
   id: string
@@ -44,6 +46,8 @@ export default function AdminTurfPage() {
   const [errorMessage, setErrorMessage] = useState('')
   const [actingId, setActingId] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<TabKey>('today')
+  const [modal, setModal] = useState<{ type: 'reject' | 'cancel'; reservationId: string } | null>(null)
+  const { showToast } = useToast()
 
   // Price editing
   const [newPrice, setNewPrice] = useState<string>('')
@@ -137,7 +141,7 @@ export default function AdminTurfPage() {
     })
 
     if (error) {
-      alert(error.message)
+      showToast(error.message, 'error')
       setActingId(null)
       return
     }
@@ -148,9 +152,13 @@ export default function AdminTurfPage() {
     setActingId(null)
   }
 
-  const handleReject = async (reservationId: string) => {
-    if (!userId) return
-    if (!window.confirm('Reject this booking request?')) return
+  const handleReject = (reservationId: string) => {
+    setModal({ type: 'reject', reservationId })
+  }
+
+  const confirmReject = async () => {
+    if (!modal || !userId) return
+    const { reservationId } = modal
     const supabase = createSupabaseBrowserClient()
     setActingId(reservationId)
 
@@ -159,8 +167,10 @@ export default function AdminTurfPage() {
       p_admin_user_id: userId,
     })
 
+    setModal(null)
+
     if (error) {
-      alert(error.message)
+      showToast(error.message, 'error')
       setActingId(null)
       return
     }
@@ -169,12 +179,16 @@ export default function AdminTurfPage() {
       prev.map((r) => (r.id === reservationId ? { ...r, status: 'rejected' } : r))
     )
     setActingId(null)
+    showToast('Booking rejected.')
   }
 
-  const handleAdminCancel = async (reservationId: string) => {
-    if (!userId) return
-    const reason = window.prompt('Reason for cancellation? (optional)')
-    if (reason === null) return
+  const handleAdminCancel = (reservationId: string) => {
+    setModal({ type: 'cancel', reservationId })
+  }
+
+  const confirmAdminCancel = async (reason?: string) => {
+    if (!modal || !userId) return
+    const { reservationId } = modal
     const supabase = createSupabaseBrowserClient()
     setActingId(reservationId)
 
@@ -184,8 +198,10 @@ export default function AdminTurfPage() {
       p_reason: reason || null,
     })
 
+    setModal(null)
+
     if (error) {
-      alert(error.message)
+      showToast(error.message, 'error')
       setActingId(null)
       return
     }
@@ -203,6 +219,7 @@ export default function AdminTurfPage() {
       )
     )
     setActingId(null)
+    showToast('Reservation cancelled.')
   }
 
   const handleSavePrice = async () => {
@@ -394,6 +411,31 @@ export default function AdminTurfPage() {
   }
 
   return (
+    <>
+    {modal?.type === 'reject' && (
+      <ConfirmModal
+        title="Reject booking request?"
+        message="This will reject the reservation and free up the time slot."
+        confirmLabel="Reject"
+        variant="danger"
+        loading={actingId === modal.reservationId}
+        onConfirm={confirmReject}
+        onClose={() => setModal(null)}
+      />
+    )}
+    {modal?.type === 'cancel' && (
+      <ConfirmModal
+        title="Cancel reservation?"
+        message="This will cancel the confirmed reservation and free up the time slot."
+        confirmLabel="Cancel reservation"
+        variant="danger"
+        withReason
+        reasonPlaceholder="Reason for cancellation (optional)"
+        loading={actingId === modal.reservationId}
+        onConfirm={confirmAdminCancel}
+        onClose={() => setModal(null)}
+      />
+    )}
     <main className="min-h-screen px-6 py-10">
       <div className="mx-auto max-w-5xl">
         <Link href="/admin" className="text-sm text-gray-600 hover:text-gray-900">
@@ -638,5 +680,6 @@ export default function AdminTurfPage() {
         )}
       </div>
     </main>
+    </>
   )
 }

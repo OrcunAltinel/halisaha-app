@@ -1,5 +1,6 @@
 import './globals.css'
 import Navbar from '@/components/Navbar'
+import ToastProvider from '@/components/ToastProvider'
 
 export const metadata = {
   title: 'Halisaha App',
@@ -14,8 +15,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="bg-gray-50 text-black">
-        <Navbar />
-        {children}
+        <ToastProvider>
+          <Navbar />
+          {children}
+        </ToastProvider>
       </body>
     </html>
   )
