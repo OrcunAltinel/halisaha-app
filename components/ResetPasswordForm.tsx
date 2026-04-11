@@ -44,10 +44,10 @@ export default function ResetPasswordForm() {
 
   if (done) {
     return (
-      <div className="mx-auto max-w-md rounded-2xl bg-white p-6 shadow-sm text-center">
+      <div className="mx-auto max-w-md rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-sm text-center">
         <div className="mb-4 text-4xl">✅</div>
         <h1 className="mb-2 text-2xl font-bold">Password updated</h1>
-        <p className="text-gray-600">Your password has been changed. Redirecting you to login…</p>
+        <p className="text-gray-600 dark:text-gray-400">Your password has been changed. Redirecting you to login…</p>
       </div>
     )
   }
@@ -55,7 +55,7 @@ export default function ResetPasswordForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="mx-auto max-w-md rounded-2xl bg-white p-6 shadow-sm"
+      className="mx-auto max-w-md rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-sm"
     >
       <h1 className="mb-6 text-2xl font-bold">Set a new password</h1>
 
@@ -65,7 +65,7 @@ export default function ResetPasswordForm() {
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none"
+          className="w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-3 text-gray-900 dark:text-white outline-none"
           minLength={8}
           required
         />
@@ -77,14 +77,14 @@ export default function ResetPasswordForm() {
           type="password"
           value={confirm}
           onChange={(e) => setConfirm(e.target.value)}
-          className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none"
+          className="w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-3 text-gray-900 dark:text-white outline-none"
           minLength={8}
           required
         />
       </div>
 
       {message && (
-        <p className={`mb-4 text-sm ${message.isError ? 'text-red-600' : 'text-green-600'}`}>
+        <p className={`mb-4 text-sm ${message.isError ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
           {message.text}
         </p>
       )}
@@ -92,7 +92,7 @@ export default function ResetPasswordForm() {
       <button
         type="submit"
         disabled={loading}
-        className="w-full rounded-xl bg-black px-4 py-3 text-white"
+        className="w-full rounded-xl bg-black dark:bg-white px-4 py-3 text-white dark:text-black"
       >
         {loading ? 'Updating...' : 'Update password'}
       </button>

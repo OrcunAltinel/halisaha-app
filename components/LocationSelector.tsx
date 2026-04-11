@@ -15,12 +15,12 @@ export default function LocationSelector() {
   }
 
   return (
-    <div className="w-full max-w-xl rounded-2xl bg-white p-4 shadow-lg">
+    <div className="w-full max-w-xl rounded-2xl bg-white dark:bg-gray-900 p-4 shadow-lg">
       <div className="flex flex-col gap-3 md:flex-row">
         <select
           value={location}
           onChange={(e) => setLocation(e.target.value)}
-          className="flex-1 rounded-xl border border-gray-300 px-4 py-3 outline-none text-black"
+          className="flex-1 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-3 outline-none text-black dark:text-white"
         >
           <option value="">Choose location</option>
           {LOCATIONS.map((loc) => (
@@ -32,7 +32,7 @@ export default function LocationSelector() {
 
         <button
           onClick={handleSearch}
-          className="rounded-xl bg-black px-6 py-3 text-white transition hover:opacity-90"
+          className="rounded-xl bg-black dark:bg-white px-6 py-3 text-white dark:text-black transition hover:opacity-90"
         >
           Search
         </button>

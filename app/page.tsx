@@ -23,7 +23,7 @@ export default async function HomePage() {
   const astroturfs = (data ?? []) as Astroturf[]
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-gray-50 dark:bg-gray-950">
       <section className="bg-gradient-to-b from-green-700 to-green-900 px-6 py-20 text-white">
         <div className="mx-auto max-w-6xl">
           <div className="max-w-3xl">
@@ -43,25 +43,25 @@ export default async function HomePage() {
 
       <section className="px-6 py-16">
         <div className="mx-auto max-w-6xl">
-          <h2 className="mb-8 text-2xl font-bold md:text-3xl">
+          <h2 className="mb-8 text-2xl font-bold md:text-3xl dark:text-white">
             Featured astroturfs
           </h2>
 
           {astroturfs.length > 0 ? (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {astroturfs.map((field) => (
-                <div key={field.id} className="rounded-2xl bg-white p-5 shadow-sm">
-                  <h3 className="text-xl font-semibold">{field.name}</h3>
-                  <p className="text-sm text-gray-500">
+                <div key={field.id} className="rounded-2xl bg-white dark:bg-gray-900 p-5 shadow-sm">
+                  <h3 className="text-xl font-semibold dark:text-white">{field.name}</h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
                     {field.location_name || 'Unknown location'}
                   </p>
-                  <p className="text-sm text-gray-600">{field.address}</p>
-                  <p className="mt-2 font-semibold">{field.price_per_hour} TL</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{field.address}</p>
+                  <p className="mt-2 font-semibold dark:text-white">{field.price_per_hour} TL</p>
                 </div>
               ))}
             </div>
           ) : (
-            <p>No astroturfs yet</p>
+            <p className="dark:text-gray-400">No astroturfs yet</p>
           )}
         </div>
       </section>

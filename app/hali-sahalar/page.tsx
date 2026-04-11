@@ -79,11 +79,11 @@ export default async function ListingPage({
   const hasActiveFilters = Boolean(q || location || minPrice !== null || maxPrice !== null)
 
   return (
-    <main className="min-h-screen bg-gray-50 px-4 py-10 sm:px-6 sm:py-12">
+    <main className="min-h-screen bg-gray-50 dark:bg-gray-950 px-4 py-10 sm:px-6 sm:py-12">
       <div className="mx-auto max-w-6xl">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 md:text-4xl">Astroturfs</h1>
-          <p className="mt-2 text-gray-600">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white md:text-4xl">Astroturfs</h1>
+          <p className="mt-2 text-gray-600 dark:text-gray-400">
             Browse and book astroturf pitches across the island.
           </p>
         </div>
@@ -97,14 +97,14 @@ export default async function ListingPage({
         />
 
         {error && (
-          <div className="mb-6 rounded-xl bg-red-50 p-4 text-sm text-red-700 ring-1 ring-red-200">
+          <div className="mb-6 rounded-xl bg-red-50 dark:bg-red-900/20 p-4 text-sm text-red-700 dark:text-red-400 ring-1 ring-red-200 dark:ring-red-800">
             Failed to load astroturfs. Please try again.
           </div>
         )}
 
         {!error && (
           <div className="mb-4 flex items-center justify-between">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
               {astroturfs.length} {astroturfs.length === 1 ? 'result' : 'results'}
               {hasActiveFilters ? ' matching your filters' : ''}
             </p>
@@ -120,9 +120,9 @@ export default async function ListingPage({
         )}
 
         {!error && astroturfs.length === 0 && (
-          <div className="rounded-2xl bg-white p-8 text-center shadow-sm ring-1 ring-gray-100">
-            <p className="text-base font-medium text-gray-900">No astroturfs found</p>
-            <p className="mt-1 text-sm text-gray-600">
+          <div className="rounded-2xl bg-white dark:bg-gray-900 p-8 text-center shadow-sm ring-1 ring-gray-100 dark:ring-gray-800">
+            <p className="text-base font-medium text-gray-900 dark:text-white">No astroturfs found</p>
+            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
               {hasActiveFilters
                 ? 'Try adjusting your filters or clearing them to see more results.'
                 : 'There are no astroturfs available right now.'}

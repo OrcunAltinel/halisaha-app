@@ -33,7 +33,6 @@ export default function TurfFilterBar({
   const [minPrice, setMinPrice] = useState(initialMinPrice)
   const [maxPrice, setMaxPrice] = useState(initialMaxPrice)
 
-  // Keep local state in sync if URL changes externally (e.g. back button)
   useEffect(() => {
     setQuery(searchParams.get('q') || '')
     setLocation(searchParams.get('location') || '')
@@ -43,17 +42,9 @@ export default function TurfFilterBar({
 
   function buildUrl(overrides: Partial<Record<string, string>>) {
     const params = new URLSearchParams()
-    const next = {
-      q: query,
-      location,
-      minPrice,
-      maxPrice,
-      ...overrides,
-    }
+    const next = { q: query, location, minPrice, maxPrice, ...overrides }
     for (const [key, value] of Object.entries(next)) {
-      if (value && value.trim() !== '') {
-        params.set(key, value.trim())
-      }
+      if (value && value.trim() !== '') params.set(key, value.trim())
     }
     const qs = params.toString()
     return qs ? `${pathname}?${qs}` : pathname
@@ -61,29 +52,21 @@ export default function TurfFilterBar({
 
   function applyFilters(e?: React.FormEvent) {
     e?.preventDefault()
-    // Validate price range
     const min = minPrice ? Number(minPrice) : null
     const max = maxPrice ? Number(maxPrice) : null
     if (min !== null && max !== null && min > max) {
-      // Swap silently so the query is still sensible
       const tmp = minPrice
       setMinPrice(maxPrice)
       setMaxPrice(tmp)
-      startTransition(() => {
-        router.push(buildUrl({ minPrice: maxPrice, maxPrice: tmp }))
-      })
+      startTransition(() => { router.push(buildUrl({ minPrice: maxPrice, maxPrice: tmp })) })
       return
     }
-    startTransition(() => {
-      router.push(buildUrl({}))
-    })
+    startTransition(() => { router.push(buildUrl({})) })
   }
 
   function handleLocationChange(value: string) {
     setLocation(value)
-    startTransition(() => {
-      router.push(buildUrl({ location: value }))
-    })
+    startTransition(() => { router.push(buildUrl({ location: value })) })
   }
 
   function clearFilters() {
@@ -91,22 +74,20 @@ export default function TurfFilterBar({
     setLocation('')
     setMinPrice('')
     setMaxPrice('')
-    startTransition(() => {
-      router.push(pathname)
-    })
+    startTransition(() => { router.push(pathname) })
   }
 
   const hasActiveFilters = Boolean(query || location || minPrice || maxPrice)
+  const inputClass = 'w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-gray-900 dark:focus:border-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-900 dark:focus:ring-gray-400'
 
   return (
     <form
       onSubmit={applyFilters}
-      className="mb-6 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-100 sm:p-5"
+      className="mb-6 rounded-2xl bg-white dark:bg-gray-900 p-4 shadow-sm ring-1 ring-gray-100 dark:ring-gray-800 sm:p-5"
     >
       <div className="grid gap-3 sm:grid-cols-12">
-        {/* Search */}
         <div className="sm:col-span-5">
-          <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
             Search
           </label>
           <input
@@ -114,32 +95,28 @@ export default function TurfFilterBar({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Name, address, keyword…"
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900"
+            className={inputClass}
           />
         </div>
 
-        {/* Location */}
         <div className="sm:col-span-3">
-          <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
             Location
           </label>
           <select
             value={location}
             onChange={(e) => handleLocationChange(e.target.value)}
-            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900"
+            className={inputClass}
           >
             <option value="">All locations</option>
             {locations.map((loc) => (
-              <option key={loc.id} value={loc.name}>
-                {loc.name}
-              </option>
+              <option key={loc.id} value={loc.name}>{loc.name}</option>
             ))}
           </select>
         </div>
 
-        {/* Min price */}
         <div className="sm:col-span-2">
-          <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
             Min ₺
           </label>
           <input
@@ -149,13 +126,12 @@ export default function TurfFilterBar({
             value={minPrice}
             onChange={(e) => setMinPrice(e.target.value)}
             placeholder="0"
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900"
+            className={inputClass}
           />
         </div>
 
-        {/* Max price */}
         <div className="sm:col-span-2">
-          <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
             Max ₺
           </label>
           <input
@@ -165,13 +141,13 @@ export default function TurfFilterBar({
             value={maxPrice}
             onChange={(e) => setMaxPrice(e.target.value)}
             placeholder="Any"
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900"
+            className={inputClass}
           />
         </div>
       </div>
 
       <div className="mt-4 flex items-center justify-between gap-3">
-        <div className="text-xs text-gray-500">
+        <div className="text-xs text-gray-500 dark:text-gray-400">
           {isPending ? 'Updating…' : hasActiveFilters ? 'Filters active' : 'No filters'}
         </div>
         <div className="flex gap-2">
@@ -179,14 +155,14 @@ export default function TurfFilterBar({
             <button
               type="button"
               onClick={clearFilters}
-              className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
             >
               Clear
             </button>
           )}
           <button
             type="submit"
-            className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-800"
+            className="rounded-lg bg-gray-900 dark:bg-white px-4 py-2 text-sm font-semibold text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100"
           >
             Apply filters
           </button>

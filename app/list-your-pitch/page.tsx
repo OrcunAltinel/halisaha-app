@@ -147,24 +147,26 @@ export default function ListYourPitchPage() {
 
   if (authLoading) {
     return (
-      <main className="min-h-screen bg-gray-50 px-4 py-12">
+      <main className="min-h-screen bg-gray-50 dark:bg-gray-950 px-4 py-12">
         <div className="mx-auto max-w-2xl">
-          <div className="rounded-2xl bg-white p-6 shadow-sm">
-            <p className="text-gray-600">Loading…</p>
+          <div className="rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-sm">
+            <p className="text-gray-600 dark:text-gray-400">Loading…</p>
           </div>
         </div>
       </main>
     )
   }
 
+  const inputClass = "w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-gray-900 dark:focus:border-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-900 dark:focus:ring-gray-400"
+
   return (
-    <main className="min-h-screen bg-gray-50 px-4 py-10 sm:px-6 sm:py-12">
+    <main className="min-h-screen bg-gray-50 dark:bg-gray-950 px-4 py-10 sm:px-6 sm:py-12">
       <div className="mx-auto max-w-2xl">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 md:text-4xl">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white md:text-4xl">
             List your pitch
           </h1>
-          <p className="mt-2 text-gray-600">
+          <p className="mt-2 text-gray-600 dark:text-gray-400">
             Tell us about your astroturf and we will review your application.
             Approved pitches go live on the platform so players can book them
             directly.
@@ -173,11 +175,11 @@ export default function ListYourPitchPage() {
 
         <form
           onSubmit={handleSubmit}
-          className="space-y-6 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100 sm:p-8"
+          className="space-y-6 rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-sm ring-1 ring-gray-100 dark:ring-gray-800 sm:p-8"
         >
           {/* Name */}
           <div>
-            <label className="mb-1 block text-sm font-semibold text-gray-900">
+            <label className="mb-1 block text-sm font-semibold text-gray-900 dark:text-white">
               Pitch name <span className="text-red-500">*</span>
             </label>
             <input
@@ -185,19 +187,19 @@ export default function ListYourPitchPage() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Mersin Spor Halı Saha"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900"
+              className={inputClass}
             />
           </div>
 
           {/* Location */}
           <div>
-            <label className="mb-1 block text-sm font-semibold text-gray-900">
+            <label className="mb-1 block text-sm font-semibold text-gray-900 dark:text-white">
               City / Area <span className="text-red-500">*</span>
             </label>
             <select
               value={locationId}
               onChange={(e) => setLocationId(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900"
+              className={inputClass}
             >
               <option value="">Select a location</option>
               {locations.map((loc) => (
@@ -210,7 +212,7 @@ export default function ListYourPitchPage() {
 
           {/* Address */}
           <div>
-            <label className="mb-1 block text-sm font-semibold text-gray-900">
+            <label className="mb-1 block text-sm font-semibold text-gray-900 dark:text-white">
               Full address <span className="text-red-500">*</span>
             </label>
             <input
@@ -218,13 +220,13 @@ export default function ListYourPitchPage() {
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               placeholder="Street, neighborhood, landmarks…"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900"
+              className={inputClass}
             />
           </div>
 
           {/* Price */}
           <div>
-            <label className="mb-1 block text-sm font-semibold text-gray-900">
+            <label className="mb-1 block text-sm font-semibold text-gray-900 dark:text-white">
               Price per hour (₺) <span className="text-red-500">*</span>
             </label>
             <input
@@ -235,13 +237,13 @@ export default function ListYourPitchPage() {
               value={pricePerHour}
               onChange={(e) => setPricePerHour(e.target.value)}
               placeholder="e.g. 500"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900"
+              className={inputClass}
             />
           </div>
 
           {/* Phone */}
           <div>
-            <label className="mb-1 block text-sm font-semibold text-gray-900">
+            <label className="mb-1 block text-sm font-semibold text-gray-900 dark:text-white">
               Contact phone
             </label>
             <input
@@ -249,16 +251,16 @@ export default function ListYourPitchPage() {
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="+90 ..."
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900"
+              className={inputClass}
             />
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
               Optional. Shown to players who book your pitch.
             </p>
           </div>
 
           {/* Description */}
           <div>
-            <label className="mb-1 block text-sm font-semibold text-gray-900">
+            <label className="mb-1 block text-sm font-semibold text-gray-900 dark:text-white">
               Description
             </label>
             <textarea
@@ -266,13 +268,13 @@ export default function ListYourPitchPage() {
               onChange={(e) => setDescription(e.target.value)}
               rows={4}
               placeholder="Surface type, facilities (showers, parking, lighting), any rules…"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900"
+              className={inputClass}
             />
           </div>
 
           {/* Images */}
           <div>
-            <label className="mb-2 block text-sm font-semibold text-gray-900">
+            <label className="mb-2 block text-sm font-semibold text-gray-900 dark:text-white">
               Photos <span className="text-red-500">*</span>
             </label>
             {userId && (
@@ -288,28 +290,28 @@ export default function ListYourPitchPage() {
 
           {/* Messages */}
           {errorMsg && (
-            <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700 ring-1 ring-red-200">
+            <div className="rounded-lg bg-red-50 dark:bg-red-900/20 p-3 text-sm text-red-700 dark:text-red-400 ring-1 ring-red-200 dark:ring-red-800">
               {errorMsg}
             </div>
           )}
           {successMsg && (
-            <div className="rounded-lg bg-green-50 p-3 text-sm text-green-700 ring-1 ring-green-200">
+            <div className="rounded-lg bg-green-50 dark:bg-green-900/20 p-3 text-sm text-green-700 dark:text-green-400 ring-1 ring-green-200 dark:ring-green-800">
               {successMsg}
             </div>
           )}
 
           {/* Actions */}
-          <div className="flex flex-col-reverse gap-3 border-t border-gray-100 pt-4 sm:flex-row sm:justify-between">
+          <div className="flex flex-col-reverse gap-3 border-t border-gray-100 dark:border-gray-800 pt-4 sm:flex-row sm:justify-between">
             <Link
               href="/"
-              className="text-sm font-medium text-gray-600 hover:text-gray-900"
+              className="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
             >
               Cancel
             </Link>
             <button
               type="submit"
               disabled={submitting}
-              className="rounded-lg bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-60"
+              className="rounded-lg bg-gray-900 dark:bg-white px-5 py-2.5 text-sm font-semibold text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {submitting ? 'Submitting…' : 'Submit application'}
             </button>

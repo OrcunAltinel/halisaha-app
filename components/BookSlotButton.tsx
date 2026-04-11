@@ -58,7 +58,7 @@ export default function BookSlotButton({
   if (!isAvailable) {
     return (
       <button
-        className="cursor-not-allowed rounded-lg bg-gray-200 px-4 py-2 text-sm text-gray-500"
+        className="cursor-not-allowed rounded-lg bg-gray-200 dark:bg-gray-700 px-4 py-2 text-sm text-gray-500 dark:text-gray-400"
         disabled
       >
         Unavailable
@@ -68,8 +68,8 @@ export default function BookSlotButton({
 
   return (
     <div className="flex flex-col items-end gap-1">
-      {errorMsg && <p className="text-xs text-red-600">{errorMsg}</p>}
-      {successMsg && <p className="text-xs text-green-600">{successMsg}</p>}
+      {errorMsg && <p className="text-xs text-red-600 dark:text-red-400">{errorMsg}</p>}
+      {successMsg && <p className="text-xs text-green-600 dark:text-green-400">{successMsg}</p>}
       <button
         onClick={handleBook}
         disabled={loading}

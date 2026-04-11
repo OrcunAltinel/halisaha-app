@@ -25,9 +25,9 @@ function formatDate(iso: string) {
 
 function StatusBadge({ status }: { status: Application['status'] }) {
   const styles = {
-    pending: 'bg-yellow-50 text-yellow-800 ring-yellow-200',
-    approved: 'bg-green-50 text-green-800 ring-green-200',
-    rejected: 'bg-red-50 text-red-800 ring-red-200',
+    pending: 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-400 ring-yellow-200 dark:ring-yellow-800',
+    approved: 'bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-400 ring-green-200 dark:ring-green-800',
+    rejected: 'bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-400 ring-red-200 dark:ring-red-800',
   }[status]
 
   const label = {
@@ -67,14 +67,14 @@ export default async function MyApplicationsPage() {
   const applications = (data ?? []) as Application[]
 
   return (
-    <main className="min-h-screen bg-gray-50 px-4 py-10 sm:px-6 sm:py-12">
+    <main className="min-h-screen bg-gray-50 dark:bg-gray-950 px-4 py-10 sm:px-6 sm:py-12">
       <div className="mx-auto max-w-3xl">
         <div className="mb-6 flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 md:text-4xl">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white md:text-4xl">
               My applications
             </h1>
-            <p className="mt-2 text-gray-600">
+            <p className="mt-2 text-gray-600 dark:text-gray-400">
               Track the status of the pitches you have submitted for review.
             </p>
           </div>
@@ -87,22 +87,22 @@ export default async function MyApplicationsPage() {
         </div>
 
         {error && (
-          <div className="mb-6 rounded-xl bg-red-50 p-4 text-sm text-red-700 ring-1 ring-red-200">
+          <div className="mb-6 rounded-xl bg-red-50 dark:bg-red-900/20 p-4 text-sm text-red-700 dark:text-red-400 ring-1 ring-red-200 dark:ring-red-800">
             Failed to load your applications. Please refresh the page.
           </div>
         )}
 
         {!error && applications.length === 0 && (
-          <div className="rounded-2xl bg-white p-8 text-center shadow-sm ring-1 ring-gray-100">
-            <p className="text-base font-medium text-gray-900">
+          <div className="rounded-2xl bg-white dark:bg-gray-900 p-8 text-center shadow-sm ring-1 ring-gray-100 dark:ring-gray-800">
+            <p className="text-base font-medium text-gray-900 dark:text-white">
               No applications yet
             </p>
-            <p className="mt-1 text-sm text-gray-600">
+            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
               Submit your first pitch to get listed on the platform.
             </p>
             <Link
               href="/list-your-pitch"
-              className="mt-4 inline-block rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-800"
+              className="mt-4 inline-block rounded-lg bg-gray-900 dark:bg-white px-4 py-2 text-sm font-semibold text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100"
             >
               List your pitch
             </Link>
@@ -116,11 +116,11 @@ export default async function MyApplicationsPage() {
               return (
                 <div
                   key={app.id}
-                  className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100"
+                  className="overflow-hidden rounded-2xl bg-white dark:bg-gray-900 shadow-sm ring-1 ring-gray-100 dark:ring-gray-800"
                 >
                   <div className="flex flex-col sm:flex-row">
                     {primaryImage ? (
-                      <div className="h-40 w-full shrink-0 bg-gray-100 sm:h-auto sm:w-48">
+                      <div className="h-40 w-full shrink-0 bg-gray-100 dark:bg-gray-800 sm:h-auto sm:w-48">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={primaryImage}
@@ -129,7 +129,7 @@ export default async function MyApplicationsPage() {
                         />
                       </div>
                     ) : (
-                      <div className="flex h-40 w-full shrink-0 items-center justify-center bg-gray-100 text-xs text-gray-400 sm:h-auto sm:w-48">
+                      <div className="flex h-40 w-full shrink-0 items-center justify-center bg-gray-100 dark:bg-gray-800 text-xs text-gray-400 dark:text-gray-500 sm:h-auto sm:w-48">
                         No image
                       </div>
                     )}
@@ -137,39 +137,39 @@ export default async function MyApplicationsPage() {
                     <div className="flex flex-1 flex-col justify-between p-5">
                       <div>
                         <div className="flex items-start justify-between gap-3">
-                          <h3 className="text-lg font-bold text-gray-900">
+                          <h3 className="text-lg font-bold text-gray-900 dark:text-white">
                             {app.name}
                           </h3>
                           <StatusBadge status={app.status} />
                         </div>
-                        <p className="mt-1 text-sm text-gray-600">
+                        <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
                           {app.address}
                         </p>
-                        <p className="mt-2 text-sm font-semibold text-gray-900">
+                        <p className="mt-2 text-sm font-semibold text-gray-900 dark:text-white">
                           ₺{app.price_per_hour} / hour
                         </p>
 
                         {app.status === 'rejected' && app.review_notes && (
-                          <div className="mt-3 rounded-lg bg-red-50 p-3 text-sm text-red-800 ring-1 ring-red-200">
+                          <div className="mt-3 rounded-lg bg-red-50 dark:bg-red-900/20 p-3 text-sm text-red-800 dark:text-red-400 ring-1 ring-red-200 dark:ring-red-800">
                             <p className="font-semibold">Reviewer notes</p>
                             <p className="mt-1">{app.review_notes}</p>
                           </div>
                         )}
 
                         {app.status === 'approved' && app.review_notes && (
-                          <div className="mt-3 rounded-lg bg-green-50 p-3 text-sm text-green-800 ring-1 ring-green-200">
+                          <div className="mt-3 rounded-lg bg-green-50 dark:bg-green-900/20 p-3 text-sm text-green-800 dark:text-green-400 ring-1 ring-green-200 dark:ring-green-800">
                             <p className="font-semibold">Reviewer notes</p>
                             <p className="mt-1">{app.review_notes}</p>
                           </div>
                         )}
                       </div>
 
-                      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-gray-100 pt-3 text-xs text-gray-500">
+                      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-gray-100 dark:border-gray-800 pt-3 text-xs text-gray-500 dark:text-gray-400">
                         <span>Submitted {formatDate(app.created_at)}</span>
                         {app.status === 'approved' && app.approved_turf_id && (
                           <Link
                             href={`/astroturf/${app.approved_turf_id}`}
-                            className="font-semibold text-gray-900 hover:underline"
+                            className="font-semibold text-gray-900 dark:text-white hover:underline"
                           >
                             View live pitch →
                           </Link>

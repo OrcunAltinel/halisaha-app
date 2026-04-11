@@ -132,7 +132,7 @@ export default function ImageUploader({
         {value.map((url) => (
           <div
             key={url}
-            className="group relative aspect-square overflow-hidden rounded-xl bg-gray-100 ring-1 ring-gray-200"
+            className="group relative aspect-square overflow-hidden rounded-xl bg-gray-100 dark:bg-gray-800 ring-1 ring-gray-200 dark:ring-gray-700"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -157,7 +157,7 @@ export default function ImageUploader({
             type="button"
             onClick={() => inputRef.current?.click()}
             disabled={uploading}
-            className="flex aspect-square flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 text-gray-600 transition hover:border-gray-400 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60"
+            className="flex aspect-square flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300 transition hover:border-gray-400 dark:hover:border-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {uploading ? (
               <span className="text-xs font-medium">Uploading…</span>
@@ -174,7 +174,7 @@ export default function ImageUploader({
                   <path d="M12 5v14M5 12h14" />
                 </svg>
                 <span className="text-xs font-medium">Add photo</span>
-                <span className="text-[10px] text-gray-500">
+                <span className="text-[10px] text-gray-500 dark:text-gray-400">
                   {value.length}/{maxImages}
                 </span>
               </>
@@ -193,10 +193,10 @@ export default function ImageUploader({
       />
 
       {error && (
-        <p className="mt-2 text-sm text-red-600">{error}</p>
+        <p className="mt-2 text-sm text-red-600 dark:text-red-400">{error}</p>
       )}
 
-      <p className="mt-2 text-xs text-gray-500">
+      <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
         Up to {maxImages} photos. JPEG, PNG, or WebP. Images are automatically
         resized to keep upload sizes small.
       </p>

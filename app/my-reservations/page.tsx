@@ -122,12 +122,12 @@ export default function MyReservationsPage() {
   }
 
   const statusColor = (status: string) => {
-    if (status === 'confirmed') return 'bg-green-100 text-green-700'
-    if (status === 'pending') return 'bg-yellow-100 text-yellow-800'
-    if (status === 'cancelled') return 'bg-red-100 text-red-700'
-    if (status === 'rejected') return 'bg-red-100 text-red-700'
-    if (status === 'completed') return 'bg-gray-100 text-gray-600'
-    return 'bg-blue-100 text-blue-700'
+    if (status === 'confirmed') return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+    if (status === 'pending') return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400'
+    if (status === 'cancelled') return 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
+    if (status === 'rejected') return 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
+    if (status === 'completed') return 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
+    return 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
   }
 
   const { past, upcoming } = useMemo(() => {
@@ -149,7 +149,7 @@ export default function MyReservationsPage() {
       <button
         onClick={() => setActiveTab(key)}
         className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
-          isActive ? 'bg-gray-900 text-white' : 'border text-gray-700 hover:bg-gray-100'
+          isActive ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900' : 'border dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
         }`}
       >
         {label} ({count})
@@ -172,28 +172,28 @@ export default function MyReservationsPage() {
         onClose={() => setCancelModal(null)}
       />
     )}
-    <main className="min-h-screen px-6 py-10">
+    <main className="min-h-screen bg-gray-50 dark:bg-gray-950 px-6 py-10">
       <div className="mx-auto max-w-5xl">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900">My Reservations</h1>
-          <p className="mt-2 text-gray-600">See all the slots you have booked.</p>
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white">My Reservations</h1>
+          <p className="mt-2 text-gray-600 dark:text-gray-400">See all the slots you have booked.</p>
         </div>
 
         {loading && (
-          <div className="rounded-2xl border bg-white p-6 shadow-sm">
-            <p className="text-base font-medium text-gray-700">Loading reservations...</p>
+          <div className="rounded-2xl border dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm">
+            <p className="text-base font-medium text-gray-700 dark:text-gray-300">Loading reservations...</p>
           </div>
         )}
 
         {!loading && errorMessage && (
-          <div className="rounded-2xl border border-red-200 bg-red-50 p-6 shadow-sm">
-            <p className="font-medium text-red-700">{errorMessage}</p>
+          <div className="rounded-2xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 p-6 shadow-sm">
+            <p className="font-medium text-red-700 dark:text-red-400">{errorMessage}</p>
           </div>
         )}
 
         {!loading && !errorMessage && reservations.length === 0 && (
-          <div className="rounded-2xl border bg-white p-6 shadow-sm">
-            <p className="text-gray-700">You do not have any reservations yet.</p>
+          <div className="rounded-2xl border dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm">
+            <p className="text-gray-700 dark:text-gray-300">You do not have any reservations yet.</p>
           </div>
         )}
 
@@ -205,8 +205,8 @@ export default function MyReservationsPage() {
             </div>
 
             {visibleList.length === 0 ? (
-              <div className="rounded-2xl border bg-white p-6 shadow-sm">
-                <p className="text-gray-700">Nothing to show here.</p>
+              <div className="rounded-2xl border dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm">
+                <p className="text-gray-700 dark:text-gray-300">Nothing to show here.</p>
               </div>
             ) : (
               <div className="grid gap-4">
@@ -215,17 +215,17 @@ export default function MyReservationsPage() {
                   const isPast = dateBucket(reservation.time_slots?.slot_date) === 'past'
 
                   return (
-                    <div key={reservation.id} className="rounded-2xl border bg-white p-6 shadow-sm">
+                    <div key={reservation.id} className="rounded-2xl border dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm">
                       <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
                         <div>
-                          <h2 className="text-xl font-bold text-gray-900">
+                          <h2 className="text-xl font-bold text-gray-900 dark:text-white">
                             {reservation.astroturfs?.name || 'Astroturf'}
                           </h2>
-                          <p className="mt-1 text-sm text-gray-600">
+                          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
                             {reservation.astroturfs?.address || 'No address'}
                           </p>
 
-                          <div className="mt-4 space-y-2 text-sm text-gray-800">
+                          <div className="mt-4 space-y-2 text-sm text-gray-800 dark:text-gray-200">
                             <p>
                               <span className="font-semibold">Date:</span>{' '}
                               {formatDateLabel(reservation.time_slots?.slot_date || '')}
@@ -240,7 +240,7 @@ export default function MyReservationsPage() {
                           </div>
 
                           {reservation.status === 'cancelled' && reservation.cancelled_by && (
-                            <p className="mt-3 text-xs text-gray-500">
+                            <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
                               Cancelled by {reservation.cancelled_by}
                               {reservation.cancellation_reason ? ` — "${reservation.cancellation_reason}"` : ''}
                             </p>
@@ -251,7 +251,7 @@ export default function MyReservationsPage() {
                           <span className={`rounded-full px-4 py-2 text-sm font-semibold ${statusColor(displayStatus)}`}>
                             {displayStatus}
                           </span>
-                          <span className="rounded-full bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-700">
+                          <span className="rounded-full bg-gray-100 dark:bg-gray-800 px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
                             {reservation.payment_status}
                           </span>
 
@@ -262,7 +262,7 @@ export default function MyReservationsPage() {
                               <button
                                 onClick={() => handleCancel(reservation.id)}
                                 disabled={cancellingId === reservation.id}
-                                className="mt-2 rounded-xl border border-red-300 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"
+                                className="mt-2 rounded-xl border border-red-300 dark:border-red-800 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50"
                               >
                                 {cancellingId === reservation.id ? 'Cancelling...' : 'Cancel'}
                               </button>

@@ -66,19 +66,19 @@ export default async function AstroturfDetailPage({
   const slots = (slotsData ?? []) as TimeSlot[]
 
   return (
-    <main className="min-h-screen bg-gray-50 px-4 py-10 sm:px-6 sm:py-12">
+    <main className="min-h-screen bg-gray-50 dark:bg-gray-950 px-4 py-10 sm:px-6 sm:py-12">
       <div className="mx-auto max-w-5xl">
         <Link
           href="/hali-sahalar"
-          className="mb-4 inline-block text-sm font-medium text-gray-600 hover:text-gray-900"
+          className="mb-4 inline-block text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
         >
           ← Back to astroturfs
         </Link>
 
         {/* Header */}
-        <div className="mb-6 overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100">
+        <div className="mb-6 overflow-hidden rounded-2xl bg-white dark:bg-gray-900 shadow-sm ring-1 ring-gray-100 dark:ring-gray-800">
           {turf.image_url && (
-            <div className="aspect-[16/7] w-full bg-gray-100">
+            <div className="aspect-[16/7] w-full bg-gray-100 dark:bg-gray-800">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={turf.image_url}
@@ -88,21 +88,21 @@ export default async function AstroturfDetailPage({
             </div>
           )}
           <div className="p-6 sm:p-8">
-            <h1 className="text-3xl font-bold text-gray-900 md:text-4xl">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white md:text-4xl">
               {turf.name}
             </h1>
-            <p className="mt-2 text-gray-600">{turf.address}</p>
-            <p className="mt-4 text-lg font-semibold text-gray-900">
+            <p className="mt-2 text-gray-600 dark:text-gray-400">{turf.address}</p>
+            <p className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">
               ₺{turf.price_per_hour} / hour
             </p>
             {turf.description && (
-              <p className="mt-4 whitespace-pre-wrap text-sm text-gray-700">
+              <p className="mt-4 whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-300">
                 {turf.description}
               </p>
             )}
             {turf.phone && (
-              <p className="mt-3 text-sm text-gray-600">
-                Contact: <span className="font-medium text-gray-900">{turf.phone}</span>
+              <p className="mt-3 text-sm text-gray-600 dark:text-gray-400">
+                Contact: <span className="font-medium text-gray-900 dark:text-white">{turf.phone}</span>
               </p>
             )}
           </div>
@@ -110,7 +110,7 @@ export default async function AstroturfDetailPage({
 
         {/* Booking calendar */}
         <div>
-          <h2 className="mb-4 text-2xl font-bold text-gray-900">Available Time Slots</h2>
+          <h2 className="mb-4 text-2xl font-bold text-gray-900 dark:text-white">Available Time Slots</h2>
           <TurfCalendar
             astroturfId={turf.id}
             pricePerHour={turf.price_per_hour}

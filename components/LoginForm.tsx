@@ -44,7 +44,7 @@ export default function LoginForm() {
   return (
     <form
       onSubmit={handleLogin}
-      className="mx-auto max-w-md rounded-2xl bg-white p-6 shadow-sm"
+      className="mx-auto max-w-md rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-sm"
     >
       <h1 className="mb-6 text-2xl font-bold">Log in</h1>
 
@@ -54,7 +54,7 @@ export default function LoginForm() {
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none"
+          className="w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-3 text-gray-900 dark:text-white outline-none"
           required
         />
       </div>
@@ -65,15 +65,15 @@ export default function LoginForm() {
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none"
+          className="w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-3 text-gray-900 dark:text-white outline-none"
           required
         />
       </div>
 
-      {message && <p className="mb-4 text-sm text-red-600">{message}</p>}
+      {message && <p className="mb-4 text-sm text-red-600 dark:text-red-400">{message}</p>}
 
       <div className="mb-4 text-right">
-        <a href="/forgot-password" className="text-sm text-gray-500 hover:text-black">
+        <a href="/forgot-password" className="text-sm text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white">
           Forgot password?
         </a>
       </div>
@@ -81,7 +81,7 @@ export default function LoginForm() {
       <button
         type="submit"
         disabled={loading}
-        className="w-full rounded-xl bg-black px-4 py-3 text-white"
+        className="w-full rounded-xl bg-black dark:bg-white px-4 py-3 text-white dark:text-black"
       >
         {loading ? 'Logging in...' : 'Log in'}
       </button>

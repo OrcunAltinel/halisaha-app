@@ -36,10 +36,10 @@ export default function SignupForm() {
 
   if (done) {
     return (
-      <div className="mx-auto max-w-md rounded-2xl bg-white p-6 shadow-sm text-center">
+      <div className="mx-auto max-w-md rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-sm text-center">
         <div className="mb-4 text-4xl">📬</div>
         <h1 className="mb-2 text-2xl font-bold">Check your email</h1>
-        <p className="text-gray-600">
+        <p className="text-gray-600 dark:text-gray-400">
           We sent a confirmation link to <strong>{email}</strong>. Click it to activate your account, then log in.
         </p>
       </div>
@@ -49,7 +49,7 @@ export default function SignupForm() {
   return (
     <form
       onSubmit={handleSignup}
-      className="mx-auto max-w-md rounded-2xl bg-white p-6 shadow-sm"
+      className="mx-auto max-w-md rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-sm"
     >
       <h1 className="mb-6 text-2xl font-bold">Sign up</h1>
 
@@ -59,7 +59,7 @@ export default function SignupForm() {
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none"
+          className="w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-3 text-gray-900 dark:text-white outline-none"
           required
         />
       </div>
@@ -70,13 +70,13 @@ export default function SignupForm() {
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none"
+          className="w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-3 text-gray-900 dark:text-white outline-none"
           required
         />
       </div>
 
       {message && (
-        <p className={`mb-4 text-sm ${message.isError ? 'text-red-600' : 'text-green-600'}`}>
+        <p className={`mb-4 text-sm ${message.isError ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
           {message.text}
         </p>
       )}
@@ -84,7 +84,7 @@ export default function SignupForm() {
       <button
         type="submit"
         disabled={loading}
-        className="w-full rounded-xl bg-black px-4 py-3 text-white"
+        className="w-full rounded-xl bg-black dark:bg-white px-4 py-3 text-white dark:text-black"
       >
         {loading ? 'Creating account...' : 'Sign up'}
       </button>

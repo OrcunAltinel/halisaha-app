@@ -67,7 +67,7 @@ export default function ApplicationActions({ applicationId }: Props) {
         <button
           type="button"
           onClick={() => openModal('reject')}
-          className="rounded-lg border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-50"
+          className="rounded-lg border border-red-200 dark:border-red-800 bg-white dark:bg-gray-900 px-4 py-2 text-sm font-semibold text-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
         >
           Reject
         </button>
@@ -88,20 +88,20 @@ export default function ApplicationActions({ applicationId }: Props) {
           aria-modal="true"
         >
           <div
-            className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
+            className="w-full max-w-md rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-lg font-bold text-gray-900">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white">
               {mode === 'approve' ? 'Approve application' : 'Reject application'}
             </h3>
-            <p className="mt-2 text-sm text-gray-600">
+            <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
               {mode === 'approve'
                 ? 'This will create a live pitch on the platform and assign the applicant as its owner. The owner will need to add time slots before players can book.'
                 : 'The applicant will see the reason for rejection on their "My applications" page.'}
             </p>
 
             <div className="mt-4">
-              <label className="mb-1 block text-sm font-semibold text-gray-900">
+              <label className="mb-1 block text-sm font-semibold text-gray-900 dark:text-white">
                 {mode === 'approve' ? 'Notes (optional)' : 'Reason (optional)'}
               </label>
               <textarea
@@ -114,12 +114,12 @@ export default function ApplicationActions({ applicationId }: Props) {
                     ? 'Any notes you want the owner to see…'
                     : 'Let the applicant know why this was rejected…'
                 }
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900"
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-gray-900 dark:focus:border-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-900 dark:focus:ring-gray-400"
               />
             </div>
 
             {error && (
-              <div className="mt-3 rounded-lg bg-red-50 p-3 text-sm text-red-700 ring-1 ring-red-200">
+              <div className="mt-3 rounded-lg bg-red-50 dark:bg-red-900/20 p-3 text-sm text-red-700 dark:text-red-400 ring-1 ring-red-200 dark:ring-red-800">
                 {error}
               </div>
             )}
@@ -129,7 +129,7 @@ export default function ApplicationActions({ applicationId }: Props) {
                 type="button"
                 onClick={closeModal}
                 disabled={submitting}
-                className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50"
               >
                 Cancel
               </button>

@@ -20,7 +20,6 @@ export default function TurfImageGallery({ images, alt }: Props) {
     )
   }, [images.length])
 
-  // Keyboard navigation in lightbox
   useEffect(() => {
     if (lightboxIndex === null) return
     function handleKey(e: KeyboardEvent) {
@@ -32,26 +31,23 @@ export default function TurfImageGallery({ images, alt }: Props) {
     return () => window.removeEventListener('keydown', handleKey)
   }, [lightboxIndex, close, next, prev])
 
-  // Lock body scroll when lightbox is open
   useEffect(() => {
     if (lightboxIndex !== null) {
       document.body.style.overflow = 'hidden'
-      return () => {
-        document.body.style.overflow = ''
-      }
+      return () => { document.body.style.overflow = '' }
     }
   }, [lightboxIndex])
 
   if (images.length === 0) {
     return (
-      <div className="flex aspect-[16/9] items-center justify-center rounded-2xl bg-gray-100 text-sm text-gray-400">
+      <div className="flex aspect-[16/9] items-center justify-center rounded-2xl bg-gray-100 dark:bg-gray-800 text-sm text-gray-400 dark:text-gray-500">
         No photos available
       </div>
     )
   }
 
   const primary = images[0]
-  const tiles = images.slice(1, 5) // up to 4 secondary tiles
+  const tiles = images.slice(1, 5)
 
   return (
     <>
@@ -63,18 +59,14 @@ export default function TurfImageGallery({ images, alt }: Props) {
               key={url}
               type="button"
               onClick={() => setLightboxIndex(idx)}
-              className="aspect-[4/3] min-w-[85%] shrink-0 snap-center overflow-hidden rounded-2xl bg-gray-100"
+              className="aspect-[4/3] min-w-[85%] shrink-0 snap-center overflow-hidden rounded-2xl bg-gray-100 dark:bg-gray-800"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={url}
-                alt={`${alt} - photo ${idx + 1}`}
-                className="h-full w-full object-cover"
-              />
+              <img src={url} alt={`${alt} - photo ${idx + 1}`} className="h-full w-full object-cover" />
             </button>
           ))}
         </div>
-        <p className="mt-2 text-center text-xs text-gray-500">
+        <p className="mt-2 text-center text-xs text-gray-500 dark:text-gray-400">
           {images.length} {images.length === 1 ? 'photo' : 'photos'} — swipe to view
         </p>
       </div>
@@ -82,36 +74,24 @@ export default function TurfImageGallery({ images, alt }: Props) {
       {/* Desktop: collage grid */}
       <div className="hidden sm:block">
         <div
-          className={`grid gap-2 overflow-hidden rounded-2xl ${
-            tiles.length > 0 ? 'grid-cols-2' : 'grid-cols-1'
-          }`}
+          className={`grid gap-2 overflow-hidden rounded-2xl ${tiles.length > 0 ? 'grid-cols-2' : 'grid-cols-1'}`}
           style={{ aspectRatio: '16 / 9' }}
         >
-          {/* Primary image */}
           <button
             type="button"
             onClick={() => setLightboxIndex(0)}
-            className="group relative h-full w-full overflow-hidden bg-gray-100"
+            className="group relative h-full w-full overflow-hidden bg-gray-100 dark:bg-gray-800"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={primary}
-              alt={`${alt} - main photo`}
-              className="h-full w-full object-cover transition group-hover:brightness-95"
-            />
+            <img src={primary} alt={`${alt} - main photo`} className="h-full w-full object-cover transition group-hover:brightness-95" />
           </button>
 
-          {/* Secondary tiles in a 2×2 sub-grid */}
           {tiles.length > 0 && (
-            <div
-              className={`grid gap-2 ${
-                tiles.length === 1
-                  ? 'grid-cols-1 grid-rows-1'
-                  : tiles.length === 2
-                  ? 'grid-cols-1 grid-rows-2'
-                  : 'grid-cols-2 grid-rows-2'
-              }`}
-            >
+            <div className={`grid gap-2 ${
+              tiles.length === 1 ? 'grid-cols-1 grid-rows-1'
+              : tiles.length === 2 ? 'grid-cols-1 grid-rows-2'
+              : 'grid-cols-2 grid-rows-2'
+            }`}>
               {tiles.map((url, idx) => {
                 const actualIndex = idx + 1
                 const isLastTile = idx === tiles.length - 1
@@ -121,14 +101,10 @@ export default function TurfImageGallery({ images, alt }: Props) {
                     key={url}
                     type="button"
                     onClick={() => setLightboxIndex(actualIndex)}
-                    className="group relative h-full w-full overflow-hidden bg-gray-100"
+                    className="group relative h-full w-full overflow-hidden bg-gray-100 dark:bg-gray-800"
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={url}
-                      alt={`${alt} - photo ${actualIndex + 1}`}
-                      className="h-full w-full object-cover transition group-hover:brightness-95"
-                    />
+                    <img src={url} alt={`${alt} - photo ${actualIndex + 1}`} className="h-full w-full object-cover transition group-hover:brightness-95" />
                     {isLastTile && hasMore && (
                       <div className="absolute inset-0 flex items-center justify-center bg-black/50 text-base font-semibold text-white">
                         +{images.length - 5} more
@@ -144,7 +120,7 @@ export default function TurfImageGallery({ images, alt }: Props) {
         <button
           type="button"
           onClick={() => setLightboxIndex(0)}
-          className="mt-3 text-sm font-semibold text-gray-700 hover:text-gray-900"
+          className="mt-3 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
         >
           View all {images.length} photos →
         </button>
@@ -173,10 +149,7 @@ export default function TurfImageGallery({ images, alt }: Props) {
             <>
               <button
                 type="button"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  prev()
-                }}
+                onClick={(e) => { e.stopPropagation(); prev() }}
                 className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white transition hover:bg-white/20"
                 aria-label="Previous photo"
               >
@@ -186,10 +159,7 @@ export default function TurfImageGallery({ images, alt }: Props) {
               </button>
               <button
                 type="button"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  next()
-                }}
+                onClick={(e) => { e.stopPropagation(); next() }}
                 className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white transition hover:bg-white/20"
                 aria-label="Next photo"
               >
@@ -200,10 +170,7 @@ export default function TurfImageGallery({ images, alt }: Props) {
             </>
           )}
 
-          <div
-            className="max-h-full max-w-5xl"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className="max-h-full max-w-5xl" onClick={(e) => e.stopPropagation()}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={images[lightboxIndex]}

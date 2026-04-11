@@ -35,11 +35,11 @@ export default function ConfirmModal({
       aria-modal="true"
     >
       <div
-        className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
+        className="w-full max-w-md rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className="text-lg font-bold text-gray-900">{title}</h3>
-        <p className="mt-2 text-sm text-gray-600">{message}</p>
+        <h3 className="text-lg font-bold text-gray-900 dark:text-white">{title}</h3>
+        <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">{message}</p>
 
         {withReason && (
           <div className="mt-4">
@@ -49,7 +49,7 @@ export default function ConfirmModal({
               rows={3}
               maxLength={500}
               placeholder={reasonPlaceholder}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900"
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-gray-900 dark:focus:border-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-900 dark:focus:ring-gray-400"
             />
           </div>
         )}
@@ -59,7 +59,7 @@ export default function ConfirmModal({
             type="button"
             onClick={onClose}
             disabled={loading}
-            className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+            className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50"
           >
             Cancel
           </button>
@@ -70,7 +70,7 @@ export default function ConfirmModal({
             className={`rounded-lg px-4 py-2 text-sm font-semibold text-white disabled:opacity-60 ${
               variant === 'danger'
                 ? 'bg-red-600 hover:bg-red-700'
-                : 'bg-gray-900 hover:bg-gray-700'
+                : 'bg-gray-900 hover:bg-gray-700 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100'
             }`}
           >
             {loading ? 'Working…' : confirmLabel}
