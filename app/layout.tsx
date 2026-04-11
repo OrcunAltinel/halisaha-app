@@ -1,5 +1,6 @@
 import './globals.css'
 import Navbar from '@/components/Navbar'
+import Footer from '@/components/Footer'
 import ToastProvider from '@/components/ToastProvider'
 
 export const metadata = {
@@ -18,6 +19,7 @@ export default function RootLayout({
         <ToastProvider>
           <Navbar />
           {children}
+          <Footer />
         </ToastProvider>
       </body>
     </html>
