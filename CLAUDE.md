@@ -20,6 +20,8 @@ No test suite exists yet.
 
 Before committing any change, always run the dev server (`npm run dev`) and verify the affected pages look and work correctly in the browser at **http://localhost:3000**. Only commit after confirming the change is visible and correct.
 
+**Always show a summary of all changes to the user before committing or pushing.** List every new file, every modified file, and a plain-English description of what each does. Wait for explicit user approval before running `git commit` or `git push`.
+
 Commit and push to GitHub at every logical checkpoint — after each feature, fix, or self-contained change. Never batch unrelated changes into one commit. Commit messages must be clean and human-written in style: conventional commit format (`feat:`, `fix:`, `refactor:`, etc.), no mention of AI tools, no "Co-authored-by" lines. Push immediately after committing so work is never only local.
 
 ## Architecture

@@ -146,6 +146,8 @@ export default function Navbar() {
               <Link href="/hali-sahalar" className={linkClass("/hali-sahalar")}>Astroturfs</Link>
               {email && <Link href="/my-reservations" className={linkClass("/my-reservations")}>My Reservations</Link>}
               {email && <Link href="/my-applications" className={linkClass("/my-applications")}>My Applications</Link>}
+              <Link href="/teams" className={linkClass("/teams")}>Teams</Link>
+              {email && <Link href="/my-team" className={linkClass("/my-team")}>My Team</Link>}
               {email && isAdmin && <Link href="/admin" className={linkClass("/admin")}>Admin</Link>}
               {email && isSuperAdmin && <Link href="/admin/applications" className={linkClass("/admin/applications")}>Review Applications</Link>}
             </div>
@@ -204,6 +206,8 @@ export default function Navbar() {
             <Link href="/hali-sahalar" className={linkClass("/hali-sahalar")}>Astroturfs</Link>
             {email && <Link href="/my-reservations" className={linkClass("/my-reservations")}>My Reservations</Link>}
             {email && <Link href="/my-applications" className={linkClass("/my-applications")}>My Applications</Link>}
+            <Link href="/teams" className={linkClass("/teams")}>Teams</Link>
+            {email && <Link href="/my-team" className={linkClass("/my-team")}>My Team</Link>}
             {email && isAdmin && <Link href="/admin" className={linkClass("/admin")}>Admin</Link>}
             {email && isSuperAdmin && <Link href="/admin/applications" className={linkClass("/admin/applications")}>Review Applications</Link>}
 
