@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { createSupabaseServerClient } from '@/lib/supabase'
 import TeamCard from '@/components/TeamCard'
+import TeamSearchBar from '@/components/TeamSearchBar'
 
 type TeamRow = {
   id: string
@@ -10,17 +11,31 @@ type TeamRow = {
   member_count: number
 }
 
-export default async function TeamsPage() {
+export default async function TeamsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>
+}) {
   const supabase = await createSupabaseServerClient()
+  const { q } = await searchParams
+  const query = (q || '').trim()
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  // Fetch all teams
-  const { data: teamsData } = await supabase
+  // Fetch teams with optional search filter
+  let teamsQuery = supabase
     .from('teams')
     .select('id, name, description, captain_id')
     .order('created_at', { ascending: false })
 
+  if (query) {
+    const escaped = query.replace(/[%]/g, '')
+    teamsQuery = teamsQuery.or(
+      `name.ilike.%${escaped}%,description.ilike.%${escaped}%`
+    )
+  }
+
+  const { data: teamsData } = await teamsQuery
   const teams = (teamsData ?? []) as Omit<TeamRow, 'member_count'>[]
 
   // Fetch member counts
@@ -52,7 +67,7 @@ export default async function TeamsPage() {
   return (
     <main className="min-h-screen bg-gray-50 dark:bg-gray-950 px-4 py-10 sm:px-6">
       <div className="mx-auto max-w-6xl">
-        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-4xl font-bold text-gray-900 dark:text-white">Teams</h1>
             <p className="mt-2 text-gray-600 dark:text-gray-400">
@@ -61,42 +76,38 @@ export default async function TeamsPage() {
           </div>
 
           {user && !currentUserTeamId && (
-            <Link
-              href="/teams/create"
-              className="rounded-xl bg-black dark:bg-white px-5 py-2.5 text-sm font-semibold text-white dark:text-black transition hover:opacity-90 w-fit"
-            >
+            <Link href="/teams/create" className="rounded-xl bg-black dark:bg-white px-5 py-2.5 text-sm font-semibold text-white dark:text-black transition hover:opacity-90 w-fit">
               Create a team
             </Link>
           )}
           {user && currentUserTeamId && (
-            <Link
-              href="/my-team"
-              className="rounded-xl border border-gray-300 dark:border-gray-700 px-5 py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-300 transition hover:bg-gray-100 dark:hover:bg-gray-800 w-fit"
-            >
+            <Link href="/my-team" className="rounded-xl border border-gray-300 dark:border-gray-700 px-5 py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-300 transition hover:bg-gray-100 dark:hover:bg-gray-800 w-fit">
               Go to My Team
             </Link>
           )}
           {!user && (
-            <Link
-              href="/login"
-              className="rounded-xl bg-black dark:bg-white px-5 py-2.5 text-sm font-semibold text-white dark:text-black transition hover:opacity-90 w-fit"
-            >
+            <Link href="/login" className="rounded-xl bg-black dark:bg-white px-5 py-2.5 text-sm font-semibold text-white dark:text-black transition hover:opacity-90 w-fit">
               Log in to create a team
             </Link>
           )}
         </div>
 
+        <TeamSearchBar initialQuery={query} />
+
         {teamsWithCount.length === 0 ? (
           <div className="rounded-2xl bg-white dark:bg-gray-900 p-10 text-center shadow-sm ring-1 ring-gray-100 dark:ring-gray-800">
-            <p className="text-lg font-semibold text-gray-900 dark:text-white">No teams yet</p>
+            <p className="text-lg font-semibold text-gray-900 dark:text-white">
+              {query ? `No teams found for "${query}"` : 'No teams yet'}
+            </p>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              Be the first to create a team!
+              {query ? 'Try a different search term.' : 'Be the first to create a team!'}
             </p>
           </div>
         ) : (
           <>
             <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
               {teamsWithCount.length} {teamsWithCount.length === 1 ? 'team' : 'teams'}
+              {query && ` matching "${query}"`}
             </p>
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {teamsWithCount.map((team) => (
