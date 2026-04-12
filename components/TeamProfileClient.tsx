@@ -10,7 +10,7 @@ import { formatDateLabel, formatTime } from '@/lib/date-helpers'
 
 type Member = {
   user_id: string
-  email: string
+  display_name: string
   joined_at: string
 }
 
@@ -38,6 +38,7 @@ type Props = {
   currentUserId: string | null
   currentUserTeamId: string | null
   currentUserCaptainTeamId: string | null
+  currentUserJoinRequestStatus: string | null
 }
 
 const supabase = createSupabaseBrowserClient()
@@ -56,49 +57,47 @@ export default function TeamProfileClient({
   currentUserId,
   currentUserTeamId,
   currentUserCaptainTeamId,
+  currentUserJoinRequestStatus: initialRequestStatus,
 }: Props) {
   const router = useRouter()
   const { showToast } = useToast()
-  const [joinLoading, setJoinLoading] = useState(false)
-  const [joinModal, setJoinModal] = useState(false)
+  const [requestStatus, setRequestStatus] = useState(initialRequestStatus)
+  const [requestLoading, setRequestLoading] = useState(false)
+  const [requestModal, setRequestModal] = useState(false)
 
   const isOwnTeam = currentUserTeamId === team.id
-  const canJoin = currentUserId && !currentUserTeamId
-  // Captain of a different team can challenge
-  const canChallenge =
-    currentUserCaptainTeamId &&
-    currentUserCaptainTeamId !== team.id
+  const canRequest = currentUserId && !currentUserTeamId && !isOwnTeam
+  const canChallenge = currentUserCaptainTeamId && currentUserCaptainTeamId !== team.id
 
-  async function handleJoin() {
-    setJoinModal(false)
-    setJoinLoading(true)
-    const { error } = await supabase.rpc('join_team', { p_team_id: team.id })
-    setJoinLoading(false)
+  async function handleRequest() {
+    setRequestModal(false)
+    setRequestLoading(true)
+    const { error } = await supabase.rpc('request_to_join_team', { p_team_id: team.id })
+    setRequestLoading(false)
     if (error) {
       showToast(
-        error.message === 'already_in_a_team'
-          ? 'You are already in a team.'
-          : error.message,
+        error.message === 'already_in_a_team' ? 'You are already in a team.' :
+        error.message === 'request_already_pending' ? 'You already have a pending request.' :
+        error.message,
         'error'
       )
       return
     }
-    showToast('You joined the team!', 'success')
-    router.push('/my-team')
-    router.refresh()
+    setRequestStatus('pending')
+    showToast('Join request sent! Waiting for captain approval.', 'success')
   }
 
   return (
     <>
-      {joinModal && (
+      {requestModal && (
         <ConfirmModal
-          title={`Join ${team.name}?`}
-          message="You will become a member of this team. You can only be in one team at a time."
-          confirmLabel="Join team"
+          title={`Request to join ${team.name}?`}
+          message="Your request will be sent to the team captain for approval."
+          confirmLabel="Send request"
           variant="default"
-          loading={joinLoading}
-          onConfirm={handleJoin}
-          onClose={() => setJoinModal(false)}
+          loading={requestLoading}
+          onConfirm={handleRequest}
+          onClose={() => setRequestModal(false)}
         />
       )}
 
@@ -118,7 +117,7 @@ export default function TeamProfileClient({
                 </p>
               </div>
 
-              <div className="flex gap-2 shrink-0">
+              <div className="flex gap-2 shrink-0 flex-wrap">
                 {isOwnTeam && (
                   <Link
                     href="/my-team"
@@ -127,15 +126,27 @@ export default function TeamProfileClient({
                     My Team
                   </Link>
                 )}
-                {canJoin && (
-                  <button
-                    onClick={() => setJoinModal(true)}
-                    disabled={joinLoading}
-                    className="rounded-xl bg-gray-900 dark:bg-white px-4 py-2 text-sm font-semibold text-white dark:text-gray-900 hover:opacity-90 disabled:opacity-50 transition"
-                  >
-                    {joinLoading ? 'Joining…' : 'Join team'}
-                  </button>
+
+                {canRequest && (
+                  requestStatus === 'pending' ? (
+                    <span className="rounded-xl border border-yellow-300 dark:border-yellow-700 px-4 py-2 text-sm font-semibold text-yellow-700 dark:text-yellow-400">
+                      Request pending
+                    </span>
+                  ) : requestStatus === 'rejected' ? (
+                    <span className="rounded-xl border border-red-300 dark:border-red-700 px-4 py-2 text-sm font-semibold text-red-600 dark:text-red-400">
+                      Request rejected
+                    </span>
+                  ) : (
+                    <button
+                      onClick={() => setRequestModal(true)}
+                      disabled={requestLoading}
+                      className="rounded-xl bg-gray-900 dark:bg-white px-4 py-2 text-sm font-semibold text-white dark:text-gray-900 hover:opacity-90 disabled:opacity-50 transition"
+                    >
+                      Request to join
+                    </button>
+                  )
                 )}
+
                 {canChallenge && (
                   <Link
                     href={`/teams/${team.id}/challenge`}
@@ -154,7 +165,7 @@ export default function TeamProfileClient({
             <div className="divide-y dark:divide-gray-800">
               {members.map((member) => (
                 <div key={member.user_id} className="flex items-center justify-between py-3">
-                  <p className="text-sm text-gray-900 dark:text-white">{member.email}</p>
+                  <p className="text-sm text-gray-900 dark:text-white">{member.display_name}</p>
                   {member.user_id === team.captain_id && (
                     <span className="text-xs font-medium text-yellow-600 dark:text-yellow-400">
                       Captain

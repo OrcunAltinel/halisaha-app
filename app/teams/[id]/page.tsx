@@ -4,7 +4,7 @@ import TeamProfileClient from '@/components/TeamProfileClient'
 
 type Member = {
   user_id: string
-  email: string
+  display_name: string
   joined_at: string
 }
 
@@ -46,7 +46,7 @@ export default async function TeamProfilePage({
     .eq('team_id', id)
     .order('joined_at', { ascending: true })
 
-  const members = (membersData ?? []) as Member[]
+  const members = (membersData ?? []) as unknown as Member[]
 
   // Fetch challenges for this team
   const { data: challengesData } = await supabase
@@ -87,24 +87,20 @@ export default async function TeamProfilePage({
     created_at: c.created_at,
   }))
 
-  // Current user's team membership
+  // Current user's team membership + request status
   let currentUserTeamId: string | null = null
   let currentUserCaptainTeamId: string | null = null
+  let currentUserJoinRequestStatus: string | null = null
 
   if (user) {
-    const { data: membership } = await supabase
-      .from('team_members')
-      .select('team_id')
-      .eq('user_id', user.id)
-      .maybeSingle()
+    const [{ data: membership }, { data: captainTeam }, { data: joinRequest }] = await Promise.all([
+      supabase.from('team_members').select('team_id').eq('user_id', user.id).maybeSingle(),
+      supabase.from('teams').select('id').eq('captain_id', user.id).maybeSingle(),
+      supabase.from('team_join_requests').select('status').eq('team_id', id).eq('user_id', user.id).maybeSingle(),
+    ])
     currentUserTeamId = membership?.team_id ?? null
-
-    const { data: captainTeam } = await supabase
-      .from('teams')
-      .select('id')
-      .eq('captain_id', user.id)
-      .maybeSingle()
     currentUserCaptainTeamId = captainTeam?.id ?? null
+    currentUserJoinRequestStatus = joinRequest?.status ?? null
   }
 
   return (
@@ -115,6 +111,7 @@ export default async function TeamProfilePage({
       currentUserId={user?.id ?? null}
       currentUserTeamId={currentUserTeamId}
       currentUserCaptainTeamId={currentUserCaptainTeamId}
+      currentUserJoinRequestStatus={currentUserJoinRequestStatus}
     />
   )
 }

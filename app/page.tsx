@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import LocationSelector from '@/components/LocationSelector'
+import AstroturfCard from '@/components/AstroturfCard'
 import { createSupabaseServerClient } from '@/lib/supabase'
 
 
@@ -50,14 +51,7 @@ export default async function HomePage() {
           {astroturfs.length > 0 ? (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {astroturfs.map((field) => (
-                <div key={field.id} className="rounded-2xl bg-white dark:bg-gray-900 p-5 shadow-sm">
-                  <h3 className="text-xl font-semibold dark:text-white">{field.name}</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {field.location_name || 'Unknown location'}
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">{field.address}</p>
-                  <p className="mt-2 font-semibold dark:text-white">{field.price_per_hour} TL</p>
-                </div>
+                <AstroturfCard key={field.id} field={field} />
               ))}
             </div>
           ) : (

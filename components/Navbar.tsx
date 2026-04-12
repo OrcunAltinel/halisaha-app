@@ -28,6 +28,7 @@ export default function Navbar() {
 
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState<string | null>(null);
+  const [displayName, setDisplayName] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -40,6 +41,13 @@ export default function Navbar() {
       try {
         if (session?.user) {
           setEmail(session.user.email ?? null);
+
+          const { data: profile } = await supabase
+            .from('user_profiles')
+            .select('username')
+            .eq('user_id', session.user.id)
+            .maybeSingle();
+          if (mounted) setDisplayName(profile?.username ?? session.user.email ?? null);
 
           const { data: adminRows, error: adminError } = await supabase
             .from("astroturf_admins")
@@ -69,6 +77,7 @@ export default function Navbar() {
         } else {
           if (mounted) {
             setEmail(null);
+            setDisplayName(null);
             setIsAdmin(false);
             setIsSuperAdmin(false);
           }
@@ -77,6 +86,7 @@ export default function Navbar() {
         console.error("[Navbar] resolveSession error:", err);
         if (mounted) {
           setEmail(session?.user?.email ?? null);
+          setDisplayName(session?.user?.email ?? null);
           setIsAdmin(false);
           setIsSuperAdmin(false);
         }
@@ -118,6 +128,7 @@ export default function Navbar() {
     const supabase = createSupabaseBrowserClient();
     await supabase.auth.signOut();
     setEmail(null);
+    setDisplayName(null);
     setIsAdmin(false);
     setIsSuperAdmin(false);
     router.push("/");
@@ -160,7 +171,7 @@ export default function Navbar() {
               <div className="h-8 w-20 bg-gray-100 dark:bg-gray-800 rounded animate-pulse" />
             ) : email ? (
               <>
-                <span className="text-sm text-gray-600 dark:text-gray-400 max-w-[160px] truncate">{email}</span>
+                <Link href="/profile" className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white max-w-[160px] truncate transition-colors">{displayName}</Link>
                 <button
                   onClick={handleLogout}
                   className="text-sm px-3 py-1.5 rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
@@ -216,7 +227,7 @@ export default function Navbar() {
                 <div className="h-8 w-24 bg-gray-100 dark:bg-gray-800 rounded animate-pulse" />
               ) : email ? (
                 <div className="flex flex-col gap-2">
-                  <span className="text-sm text-gray-600 dark:text-gray-400 truncate">{email}</span>
+                  <Link href="/profile" className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white truncate transition-colors">{displayName}</Link>
                   <button
                     onClick={handleLogout}
                     className="text-sm px-3 py-1.5 rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 w-fit"

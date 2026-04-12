@@ -5,7 +5,7 @@ import Link from 'next/link'
 
 type Member = {
   user_id: string
-  email: string
+  display_name: string
   joined_at: string
 }
 
@@ -22,15 +22,24 @@ type ChallengeEntry = {
   created_at: string
 }
 
+type JoinRequest = {
+  id: string
+  user_id: string
+  display_name: string
+  created_at: string
+}
+
+type InviteLink = {
+  id: string
+  token: string
+}
+
 export default async function MyTeamPage() {
   const supabase = await createSupabaseServerClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  if (!user) {
-    redirect('/login?redirect=/my-team')
-  }
+  if (!user) redirect('/login?redirect=/my-team')
 
-  // Find user's team membership
   const { data: membership } = await supabase
     .from('team_members')
     .select('team_id')
@@ -38,7 +47,6 @@ export default async function MyTeamPage() {
     .maybeSingle()
 
   if (!membership) {
-    // No team — show a friendly empty state
     return (
       <main className="min-h-screen bg-gray-50 dark:bg-gray-950 px-4 py-10 sm:px-6">
         <div className="mx-auto max-w-lg text-center">
@@ -47,16 +55,10 @@ export default async function MyTeamPage() {
             You are not part of any team yet.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link
-              href="/teams/create"
-              className="rounded-xl bg-gray-900 dark:bg-white px-6 py-3 text-sm font-semibold text-white dark:text-gray-900 hover:opacity-90 transition"
-            >
+            <Link href="/teams/create" className="rounded-xl bg-gray-900 dark:bg-white px-6 py-3 text-sm font-semibold text-white dark:text-gray-900 hover:opacity-90 transition">
               Create a team
             </Link>
-            <Link
-              href="/teams"
-              className="rounded-xl border border-gray-300 dark:border-gray-700 px-6 py-3 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
-            >
+            <Link href="/teams" className="rounded-xl border border-gray-300 dark:border-gray-700 px-6 py-3 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition">
               Browse teams
             </Link>
           </div>
@@ -67,7 +69,6 @@ export default async function MyTeamPage() {
 
   const teamId = membership.team_id
 
-  // Fetch team info
   const { data: team } = await supabase
     .from('teams')
     .select('id, name, description, captain_id')
@@ -78,16 +79,15 @@ export default async function MyTeamPage() {
 
   const isCaptain = team.captain_id === user.id
 
-  // Fetch members with emails via view
   const { data: membersData } = await supabase
     .from('team_members_view')
-    .select('user_id, email, joined_at')
+    .select('user_id, display_name, joined_at')
     .eq('team_id', teamId)
     .order('joined_at', { ascending: true })
 
-  const members = (membersData ?? []) as Member[]
+  const members = (membersData ?? []) as unknown as Member[]
 
-  // Fetch challenges — both incoming and outgoing
+  // Challenges
   const { data: challengesData } = await supabase
     .from('challenges')
     .select(`
@@ -99,7 +99,6 @@ export default async function MyTeamPage() {
     .or(`challenger_team_id.eq.${teamId},challenged_team_id.eq.${teamId}`)
     .order('created_at', { ascending: false })
 
-  // Fetch team names for challenge display
   const allTeamIds = new Set<string>()
   for (const c of challengesData ?? []) {
     allTeamIds.add(c.challenger_team_id)
@@ -129,11 +128,30 @@ export default async function MyTeamPage() {
       message: c.message,
       created_at: c.created_at,
     }
-    if (c.challenged_team_id === teamId && c.status === 'pending') {
-      incoming.push(entry)
-    } else if (c.challenger_team_id === teamId) {
-      outgoing.push(entry)
-    }
+    if (c.challenged_team_id === teamId) incoming.push(entry)
+    else if (c.challenger_team_id === teamId) outgoing.push(entry)
+  }
+
+  // Join requests (captain only)
+  let joinRequests: JoinRequest[] = []
+  let inviteLinks: InviteLink[] = []
+
+  if (isCaptain) {
+    const [{ data: requestsData }, { data: linksData }] = await Promise.all([
+      supabase
+        .from('join_requests_view')
+        .select('id, user_id, display_name, created_at')
+        .eq('team_id', teamId)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: true }),
+      supabase
+        .from('team_invite_links')
+        .select('id, token')
+        .eq('team_id', teamId)
+        .order('created_at', { ascending: false }),
+    ])
+    joinRequests = (requestsData ?? []) as JoinRequest[]
+    inviteLinks = (linksData ?? []) as InviteLink[]
   }
 
   return (
@@ -144,6 +162,8 @@ export default async function MyTeamPage() {
       currentUserId={user.id}
       incomingChallenges={incoming}
       outgoingChallenges={outgoing}
+      joinRequests={joinRequests}
+      inviteLinks={inviteLinks}
     />
   )
 }
