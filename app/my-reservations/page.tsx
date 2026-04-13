@@ -11,9 +11,12 @@ import {
 } from '@/lib/date-helpers'
 import ConfirmModal from '@/components/ConfirmModal'
 import { useToast } from '@/components/ToastProvider'
+import ReviewForm from '@/components/ReviewForm'
+import StarRating from '@/components/StarRating'
 
 type ReservationRow = {
   id: string
+  astroturf_id: string
   status: string
   payment_status: string
   total_price: number
@@ -22,6 +25,11 @@ type ReservationRow = {
   cancellation_reason: string | null
   astroturfs: { name: string; address: string } | null
   time_slots: { slot_date: string; start_time: string; end_time: string } | null
+}
+
+type SubmittedReview = {
+  rating: number
+  comment: string
 }
 
 type TabKey = 'upcoming' | 'past'
@@ -36,6 +44,9 @@ export default function MyReservationsPage() {
   const [cancellingId, setCancellingId] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<TabKey>('upcoming')
   const [cancelModal, setCancelModal] = useState<string | null>(null) // reservationId
+  const [reviewingId, setReviewingId] = useState<string | null>(null) // reservation showing form
+  const [submittedReviews, setSubmittedReviews] = useState<Record<string, SubmittedReview>>({}) // reservationId -> review
+  const [reviewedIds, setReviewedIds] = useState<Set<string>>(new Set()) // already-reviewed reservation IDs
   const { showToast } = useToast()
 
   useEffect(() => {
@@ -57,7 +68,7 @@ export default function MyReservationsPage() {
       const { data, error } = await supabase
         .from('reservations')
         .select(`
-          id, status, payment_status, total_price, created_at,
+          id, astroturf_id, status, payment_status, total_price, created_at,
           cancelled_by, cancellation_reason,
           astroturfs ( name, address ),
           time_slots ( slot_date, start_time, end_time )
@@ -73,7 +84,23 @@ export default function MyReservationsPage() {
         return
       }
 
-      setReservations((data || []) as unknown as ReservationRow[])
+      const rows = (data || []) as unknown as ReservationRow[]
+      setReservations(rows)
+
+      // Fetch which reservations already have a review from this user
+      const reservationIds = rows.map((r) => r.id)
+      if (reservationIds.length > 0) {
+        const { data: existingReviews } = await supabase
+          .from('reviews')
+          .select('reservation_id')
+          .in('reservation_id', reservationIds)
+          .eq('user_id', user.id)
+
+        if (mounted && existingReviews) {
+          setReviewedIds(new Set(existingReviews.map((r) => r.reservation_id)))
+        }
+      }
+
       setLoading(false)
     }
 
@@ -119,6 +146,13 @@ export default function MyReservationsPage() {
     )
     setCancellingId(null)
     showToast('Reservation cancelled.')
+  }
+
+  const handleReviewSuccess = (reservationId: string, rating: number, comment: string) => {
+    setSubmittedReviews((prev) => ({ ...prev, [reservationId]: { rating, comment } }))
+    setReviewedIds((prev) => new Set([...prev, reservationId]))
+    setReviewingId(null)
+    showToast('Review submitted!')
   }
 
   const statusColor = (status: string) => {
@@ -217,7 +251,7 @@ export default function MyReservationsPage() {
                   return (
                     <div key={reservation.id} className="rounded-2xl border dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm">
                       <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
-                        <div>
+                        <div className="flex-1 min-w-0">
                           <h2 className="text-xl font-bold text-gray-900 dark:text-white">
                             {reservation.astroturfs?.name || 'Astroturf'}
                           </h2>
@@ -245,6 +279,52 @@ export default function MyReservationsPage() {
                               {reservation.cancellation_reason ? ` — "${reservation.cancellation_reason}"` : ''}
                             </p>
                           )}
+
+                          {/* Review section — only for past confirmed reservations */}
+                          {isPast && reservation.status === 'confirmed' && (() => {
+                            const submitted = submittedReviews[reservation.id]
+                            const alreadyReviewed = reviewedIds.has(reservation.id)
+
+                            if (submitted) {
+                              return (
+                                <div className="mt-4 border-t dark:border-gray-700 pt-4">
+                                  <p className="text-sm font-semibold text-green-600 dark:text-green-400 mb-1">Review submitted</p>
+                                  <StarRating value={submitted.rating} size="sm" />
+                                  {submitted.comment && (
+                                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{submitted.comment}</p>
+                                  )}
+                                </div>
+                              )
+                            }
+
+                            if (alreadyReviewed) {
+                              return (
+                                <p className="mt-4 text-sm text-gray-500 dark:text-gray-400 border-t dark:border-gray-700 pt-4">
+                                  You have already reviewed this visit.
+                                </p>
+                              )
+                            }
+
+                            if (reviewingId === reservation.id) {
+                              return (
+                                <ReviewForm
+                                  reservationId={reservation.id}
+                                  astroturfId={reservation.astroturf_id}
+                                  onSuccess={(rating, comment) => handleReviewSuccess(reservation.id, rating, comment)}
+                                  onCancel={() => setReviewingId(null)}
+                                />
+                              )
+                            }
+
+                            return (
+                              <button
+                                onClick={() => setReviewingId(reservation.id)}
+                                className="mt-4 rounded-xl border dark:border-gray-700 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+                              >
+                                Leave a review
+                              </button>
+                            )
+                          })()}
                         </div>
 
                         <div className="flex flex-col gap-2 items-end">

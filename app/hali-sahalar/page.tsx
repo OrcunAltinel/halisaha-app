@@ -10,6 +10,13 @@ type Astroturf = {
   description?: string | null
   price_per_hour: number
   is_active: boolean
+  avgRating?: number | null
+  reviewCount?: number
+}
+
+type RatingRow = {
+  astroturf_id: string
+  rating: number
 }
 
 type Location = {
@@ -73,8 +80,23 @@ export default async function ListingPage({
 
   query = query.order('name', { ascending: true })
 
-  const { data, error } = await query
-  const astroturfs = (data ?? []) as Astroturf[]
+  const [{ data, error }, { data: ratingsData }] = await Promise.all([
+    query,
+    supabase.from('reviews').select('astroturf_id, rating'),
+  ])
+
+  // Compute avg rating per turf
+  const ratingMap: Record<string, { sum: number; count: number }> = {}
+  for (const row of (ratingsData ?? []) as RatingRow[]) {
+    if (!ratingMap[row.astroturf_id]) ratingMap[row.astroturf_id] = { sum: 0, count: 0 }
+    ratingMap[row.astroturf_id].sum += row.rating
+    ratingMap[row.astroturf_id].count += 1
+  }
+
+  const astroturfs = ((data ?? []) as Astroturf[]).map((t) => {
+    const r = ratingMap[t.id]
+    return r ? { ...t, avgRating: r.sum / r.count, reviewCount: r.count } : t
+  })
 
   const hasActiveFilters = Boolean(q || location || minPrice !== null || maxPrice !== null)
 

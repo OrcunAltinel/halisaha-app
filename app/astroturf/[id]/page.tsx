@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import TurfCalendar from '@/components/TurfCalendar'
+import ReviewsList from '@/components/ReviewsList'
 import { createSupabaseServerClient } from '@/lib/supabase'
 
 type Astroturf = {
@@ -21,6 +22,14 @@ type TimeSlot = {
   start_time: string
   end_time: string
   is_available: boolean
+}
+
+type Review = {
+  id: string
+  rating: number
+  comment: string | null
+  created_at: string
+  user_profiles: { username: string | null } | null
 }
 
 export default async function AstroturfDetailPage({
@@ -65,6 +74,19 @@ export default async function AstroturfDetailPage({
 
   const slots = (slotsData ?? []) as TimeSlot[]
 
+  const { data: reviewsData } = await supabase
+    .from('reviews')
+    .select('id, rating, comment, created_at, user_profiles(username)')
+    .eq('astroturf_id', turf.id)
+    .order('created_at', { ascending: false })
+
+  const reviews = (reviewsData ?? []) as Review[]
+
+  const avgRating =
+    reviews.length > 0
+      ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+      : null
+
   return (
     <main className="min-h-screen bg-gray-50 dark:bg-gray-950 px-4 py-10 sm:px-6 sm:py-12">
       <div className="mx-auto max-w-5xl">
@@ -92,6 +114,14 @@ export default async function AstroturfDetailPage({
               {turf.name}
             </h1>
             <p className="mt-2 text-gray-600 dark:text-gray-400">{turf.address}</p>
+            {avgRating !== null && (
+              <div className="mt-3 flex items-center gap-2">
+                <span className="text-yellow-400 text-lg">{'★'.repeat(Math.round(avgRating))}{'☆'.repeat(5 - Math.round(avgRating))}</span>
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {avgRating.toFixed(1)} ({reviews.length} {reviews.length === 1 ? 'review' : 'reviews'})
+                </span>
+              </div>
+            )}
             <p className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">
               ₺{turf.price_per_hour} / hour
             </p>
@@ -116,6 +146,12 @@ export default async function AstroturfDetailPage({
             pricePerHour={turf.price_per_hour}
             slots={slots}
           />
+        </div>
+
+        {/* Reviews */}
+        <div className="mt-10">
+          <h2 className="mb-6 text-2xl font-bold text-gray-900 dark:text-white">Reviews</h2>
+          <ReviewsList reviews={reviews} />
         </div>
       </div>
     </main>

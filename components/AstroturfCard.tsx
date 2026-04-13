@@ -7,6 +7,8 @@ type Astroturf = {
   address: string
   description?: string | null
   price_per_hour: number
+  avgRating?: number | null
+  reviewCount?: number
 }
 
 export default function AstroturfCard({ field }: { field: Astroturf }) {
@@ -20,6 +22,16 @@ export default function AstroturfCard({ field }: { field: Astroturf }) {
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             {field.location_name || 'Unknown location'}
           </p>
+          {field.avgRating != null && (
+            <div className="mt-1 flex items-center gap-1.5">
+              <span className="text-yellow-400 text-sm leading-none">
+                {'★'.repeat(Math.round(field.avgRating))}{'☆'.repeat(5 - Math.round(field.avgRating))}
+              </span>
+              <span className="text-xs text-gray-500 dark:text-gray-400">
+                {field.avgRating.toFixed(1)} ({field.reviewCount})
+              </span>
+            </div>
+          )}
         </div>
 
         <div className="rounded-full bg-green-100 dark:bg-green-900/30 px-3 py-1 text-sm font-medium text-green-700 dark:text-green-400">
