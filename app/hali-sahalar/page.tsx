@@ -103,10 +103,10 @@ export default async function ListingPage({
   const hasActiveFilters = Boolean(q || location || minPrice !== null || maxPrice !== null)
 
   return (
-    <main className="min-h-screen bg-gray-50 dark:bg-gray-950 px-4 py-10 sm:px-6 sm:py-12">
+    <main className="min-h-screen bg-gray-200 dark:bg-gray-950 px-4 py-10 sm:px-6 sm:py-12">
       <div className="mx-auto max-w-6xl">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white md:text-4xl">Astroturfs</h1>
+          <h1 className="text-3xl font-black tracking-tight text-gray-900 dark:text-white md:text-4xl">Astroturfs</h1>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
             Browse and book astroturf pitches across the island.
           </p>

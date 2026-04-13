@@ -14,7 +14,7 @@ export default function Error({
   }, [error])
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-950 px-4">
+    <main className="flex min-h-screen items-center justify-center bg-gray-200 dark:bg-gray-950 px-4">
       <div className="mx-auto max-w-md rounded-2xl bg-white dark:bg-gray-900 p-8 shadow-sm text-center">
         <div className="mb-4 text-4xl">⚠️</div>
         <h1 className="mb-2 text-2xl font-bold">Something went wrong</h1>
@@ -24,13 +24,13 @@ export default function Error({
         <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
           <button
             onClick={reset}
-            className="rounded-xl bg-black dark:bg-white px-6 py-3 text-sm text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-100"
+            className="rounded-xl bg-black dark:bg-white px-6 py-3 text-sm text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200"
           >
             Try again
           </button>
           <a
             href="/"
-            className="rounded-xl border border-gray-300 dark:border-gray-600 px-6 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
+            className="rounded-xl border border-gray-300 dark:border-gray-600 px-6 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800"
           >
             Go to homepage
           </a>

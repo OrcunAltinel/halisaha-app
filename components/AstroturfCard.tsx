@@ -17,7 +17,7 @@ export default function AstroturfCard({ field }: { field: Astroturf }) {
   const thumbnail = field.image_urls?.[0] ?? field.image_url ?? null
 
   return (
-    <div className="rounded-2xl bg-white dark:bg-gray-900 p-5 shadow-sm transition hover:shadow-md">
+    <div className="rounded-2xl bg-white dark:bg-gray-900 p-5 shadow-sm transition hover:shadow-md ring-1 ring-gray-100 dark:ring-gray-800 border-l-4 border-green-700">
       <div className="mb-4 h-48 rounded-xl bg-gray-200 dark:bg-gray-700 overflow-hidden">
         {thumbnail && (
           // eslint-disable-next-line @next/next/no-img-element
@@ -55,11 +55,14 @@ export default function AstroturfCard({ field }: { field: Astroturf }) {
       )}
 
       <div className="mt-5 flex items-center justify-between">
-        <p className="text-lg font-bold text-gray-900 dark:text-white">{field.price_per_hour} TL</p>
+        <p className="text-lg font-black text-gray-900 dark:text-white">
+          <span className="text-green-600 dark:text-green-400">₺</span>{field.price_per_hour}
+          <span className="text-sm font-normal text-gray-500 dark:text-gray-400"> / hr</span>
+        </p>
 
         <Link
           href={`/astroturf/${field.id}`}
-          className="rounded-xl bg-black dark:bg-white px-4 py-2 text-white dark:text-black transition hover:opacity-90"
+          className="rounded-xl bg-green-800 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-900"
         >
           View details
         </Link>

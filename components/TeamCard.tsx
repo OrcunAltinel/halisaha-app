@@ -13,7 +13,7 @@ type Props = {
 
 export default function TeamCard({ team, isCurrentUserTeam }: Props) {
   return (
-    <div className="rounded-2xl bg-white dark:bg-gray-900 p-5 shadow-sm transition hover:shadow-md ring-1 ring-gray-100 dark:ring-gray-800">
+    <div className="rounded-2xl bg-white dark:bg-gray-900 p-5 shadow-sm transition hover:shadow-md ring-1 ring-gray-100 dark:ring-gray-800 border-l-4 border-green-700">
       <div className="flex items-start justify-between gap-3">
         <h3 className="text-xl font-semibold text-gray-900 dark:text-white truncate">
           {team.name}
@@ -38,7 +38,7 @@ export default function TeamCard({ team, isCurrentUserTeam }: Props) {
 
         <Link
           href={`/teams/${team.id}`}
-          className="rounded-xl bg-black dark:bg-white px-4 py-2 text-sm font-medium text-white dark:text-black transition hover:opacity-90"
+          className="rounded-xl bg-green-800 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-900"
         >
           View team
         </Link>

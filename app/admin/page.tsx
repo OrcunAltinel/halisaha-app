@@ -51,7 +51,7 @@ export default function AdminHomePage() {
   }, [router])
 
   return (
-    <main className="min-h-screen bg-gray-50 dark:bg-gray-950 px-6 py-10">
+    <main className="min-h-screen bg-gray-200 dark:bg-gray-950 px-6 py-10">
       <div className="mx-auto max-w-5xl">
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white">Admin Panel</h1>

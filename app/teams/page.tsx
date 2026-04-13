@@ -65,28 +65,28 @@ export default async function TeamsPage({
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 dark:bg-gray-950 px-4 py-10 sm:px-6">
+    <main className="min-h-screen bg-gray-200 dark:bg-gray-950 px-4 py-10 sm:px-6">
       <div className="mx-auto max-w-6xl">
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-white">Teams</h1>
+            <h1 className="text-4xl font-black tracking-tight text-gray-900 dark:text-white">Teams</h1>
             <p className="mt-2 text-gray-600 dark:text-gray-400">
               Browse all teams or create your own.
             </p>
           </div>
 
           {user && !currentUserTeamId && (
-            <Link href="/teams/create" className="rounded-xl bg-black dark:bg-white px-5 py-2.5 text-sm font-semibold text-white dark:text-black transition hover:opacity-90 w-fit">
+            <Link href="/teams/create" className="rounded-xl bg-green-800 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-green-900 w-fit">
               Create a team
             </Link>
           )}
           {user && currentUserTeamId && (
-            <Link href="/my-team" className="rounded-xl border border-gray-300 dark:border-gray-700 px-5 py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-300 transition hover:bg-gray-100 dark:hover:bg-gray-800 w-fit">
+            <Link href="/my-team" className="rounded-xl border border-green-800 px-5 py-2.5 text-sm font-semibold text-green-800 dark:text-green-400 transition hover:bg-green-800/10 w-fit">
               Go to My Team
             </Link>
           )}
           {!user && (
-            <Link href="/login" className="rounded-xl bg-black dark:bg-white px-5 py-2.5 text-sm font-semibold text-white dark:text-black transition hover:opacity-90 w-fit">
+            <Link href="/login" className="rounded-xl bg-green-800 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-green-900 w-fit">
               Log in to create a team
             </Link>
           )}

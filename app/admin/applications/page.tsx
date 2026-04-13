@@ -122,7 +122,7 @@ export default async function AdminApplicationsPage({
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 dark:bg-gray-950 px-4 py-10 sm:px-6 sm:py-12">
+    <main className="min-h-screen bg-gray-200 dark:bg-gray-950 px-4 py-10 sm:px-6 sm:py-12">
       <div className="mx-auto max-w-4xl">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white md:text-4xl">
@@ -149,7 +149,7 @@ export default async function AdminApplicationsPage({
                 {tabLabels[s]}
                 <span
                   className={`ml-2 rounded-full px-2 py-0.5 text-xs ${
-                    isActive ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
+                    isActive ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900' : 'bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
                   }`}
                 >
                   {counts[s]}
@@ -222,7 +222,7 @@ export default async function AdminApplicationsPage({
                   </div>
 
                   {app.description && (
-                    <div className="mt-4 rounded-lg bg-gray-50 dark:bg-gray-800 p-3 text-sm text-gray-700 dark:text-gray-300">
+                    <div className="mt-4 rounded-lg bg-gray-200 dark:bg-gray-800 p-3 text-sm text-gray-700 dark:text-gray-300">
                       <p className="whitespace-pre-wrap">{app.description}</p>
                     </div>
                   )}
@@ -239,7 +239,7 @@ export default async function AdminApplicationsPage({
                             href={url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="aspect-square overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800 ring-1 ring-gray-200 dark:ring-gray-700 transition hover:ring-gray-400 dark:hover:ring-gray-500"
+                            className="aspect-square overflow-hidden rounded-lg bg-gray-200 dark:bg-gray-800 ring-1 ring-gray-200 dark:ring-gray-700 transition hover:ring-gray-400 dark:hover:ring-gray-500"
                           >
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img

@@ -39,7 +39,7 @@ export default async function ChallengePage({
   if (!challengedTeam) notFound()
 
   return (
-    <main className="min-h-screen bg-gray-50 dark:bg-gray-950 px-4 py-10 sm:px-6">
+    <main className="min-h-screen bg-gray-200 dark:bg-gray-950 px-4 py-10 sm:px-6">
       <div className="mx-auto max-w-4xl">
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white">

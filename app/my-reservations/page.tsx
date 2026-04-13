@@ -160,7 +160,7 @@ export default function MyReservationsPage() {
     if (status === 'pending') return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400'
     if (status === 'cancelled') return 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
     if (status === 'rejected') return 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
-    if (status === 'completed') return 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
+    if (status === 'completed') return 'bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
     return 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
   }
 
@@ -183,7 +183,7 @@ export default function MyReservationsPage() {
       <button
         onClick={() => setActiveTab(key)}
         className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
-          isActive ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900' : 'border dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+          isActive ? 'bg-green-800 text-white' : 'border dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'
         }`}
       >
         {label} ({count})
@@ -206,7 +206,7 @@ export default function MyReservationsPage() {
         onClose={() => setCancelModal(null)}
       />
     )}
-    <main className="min-h-screen bg-gray-50 dark:bg-gray-950 px-6 py-10">
+    <main className="min-h-screen bg-gray-200 dark:bg-gray-950 px-6 py-10">
       <div className="mx-auto max-w-5xl">
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white">My Reservations</h1>
@@ -319,7 +319,7 @@ export default function MyReservationsPage() {
                             return (
                               <button
                                 onClick={() => setReviewingId(reservation.id)}
-                                className="mt-4 rounded-xl border dark:border-gray-700 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+                                className="mt-4 rounded-xl border border-green-800 px-4 py-2 text-sm font-medium text-green-800 dark:text-green-400 hover:bg-green-800/10 transition"
                               >
                                 Leave a review
                               </button>
@@ -331,7 +331,7 @@ export default function MyReservationsPage() {
                           <span className={`rounded-full px-4 py-2 text-sm font-semibold ${statusColor(displayStatus)}`}>
                             {displayStatus}
                           </span>
-                          <span className="rounded-full bg-gray-100 dark:bg-gray-800 px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                          <span className="rounded-full bg-gray-200 dark:bg-gray-800 px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
                             {reservation.payment_status}
                           </span>
 

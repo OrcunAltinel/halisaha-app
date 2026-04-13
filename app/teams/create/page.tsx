@@ -22,7 +22,7 @@ export default async function CreateTeamPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 dark:bg-gray-950 px-4 py-10 sm:px-6">
+    <main className="min-h-screen bg-gray-200 dark:bg-gray-950 px-4 py-10 sm:px-6">
       <div className="mx-auto max-w-lg">
         <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">Create a team</h1>
         <p className="text-gray-600 dark:text-gray-400 mb-8">

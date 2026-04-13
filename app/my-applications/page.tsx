@@ -67,7 +67,7 @@ export default async function MyApplicationsPage() {
   const applications = (data ?? []) as Application[]
 
   return (
-    <main className="min-h-screen bg-gray-50 dark:bg-gray-950 px-4 py-10 sm:px-6 sm:py-12">
+    <main className="min-h-screen bg-gray-200 dark:bg-gray-950 px-4 py-10 sm:px-6 sm:py-12">
       <div className="mx-auto max-w-3xl">
         <div className="mb-6 flex items-start justify-between gap-4">
           <div>
@@ -102,7 +102,7 @@ export default async function MyApplicationsPage() {
             </p>
             <Link
               href="/list-your-pitch"
-              className="mt-4 inline-block rounded-lg bg-gray-900 dark:bg-white px-4 py-2 text-sm font-semibold text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100"
+              className="mt-4 inline-block rounded-lg bg-gray-900 dark:bg-white px-4 py-2 text-sm font-semibold text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-200"
             >
               List your pitch
             </Link>
@@ -120,7 +120,7 @@ export default async function MyApplicationsPage() {
                 >
                   <div className="flex flex-col sm:flex-row">
                     {primaryImage ? (
-                      <div className="h-40 w-full shrink-0 bg-gray-100 dark:bg-gray-800 sm:h-auto sm:w-48">
+                      <div className="h-40 w-full shrink-0 bg-gray-200 dark:bg-gray-800 sm:h-auto sm:w-48">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={primaryImage}
@@ -129,7 +129,7 @@ export default async function MyApplicationsPage() {
                         />
                       </div>
                     ) : (
-                      <div className="flex h-40 w-full shrink-0 items-center justify-center bg-gray-100 dark:bg-gray-800 text-xs text-gray-400 dark:text-gray-500 sm:h-auto sm:w-48">
+                      <div className="flex h-40 w-full shrink-0 items-center justify-center bg-gray-200 dark:bg-gray-800 text-xs text-gray-400 dark:text-gray-500 sm:h-auto sm:w-48">
                         No image
                       </div>
                     )}

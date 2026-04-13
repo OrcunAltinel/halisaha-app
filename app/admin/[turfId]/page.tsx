@@ -324,7 +324,7 @@ export default function AdminTurfPage() {
     if (status === 'pending') return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400'
     if (status === 'cancelled') return 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
     if (status === 'rejected') return 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
-    if (status === 'completed') return 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
+    if (status === 'completed') return 'bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
     return 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
   }
 
@@ -403,7 +403,7 @@ export default function AdminTurfPage() {
       <button
         onClick={() => setActiveTab(key)}
         className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
-          isActive ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900' : 'border dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+          isActive ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900' : 'border dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'
         }`}
       >
         {label} ({count})
@@ -437,7 +437,7 @@ export default function AdminTurfPage() {
         onClose={() => setModal(null)}
       />
     )}
-    <main className="min-h-screen bg-gray-50 dark:bg-gray-950 px-6 py-10">
+    <main className="min-h-screen bg-gray-200 dark:bg-gray-950 px-6 py-10">
       <div className="mx-auto max-w-5xl">
         <Link href="/admin" className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
           ← Back to admin home
@@ -482,7 +482,7 @@ export default function AdminTurfPage() {
                 <button
                   onClick={handleSavePrice}
                   disabled={savingPrice}
-                  className="rounded-xl bg-gray-900 dark:bg-white px-5 py-2 text-sm font-semibold text-white dark:text-gray-900 hover:bg-gray-700 dark:hover:bg-gray-100 disabled:opacity-50"
+                  className="rounded-xl bg-gray-900 dark:bg-white px-5 py-2 text-sm font-semibold text-white dark:text-gray-900 hover:bg-gray-700 dark:hover:bg-gray-200 disabled:opacity-50"
                 >
                   {savingPrice ? 'Saving...' : 'Save price'}
                 </button>
@@ -538,7 +538,7 @@ export default function AdminTurfPage() {
                   <button
                     onClick={handleBulkGenerate}
                     disabled={generating}
-                    className="mt-3 rounded-xl bg-gray-900 dark:bg-white px-5 py-2 text-sm font-semibold text-white dark:text-gray-900 hover:bg-gray-700 dark:hover:bg-gray-100 disabled:opacity-50"
+                    className="mt-3 rounded-xl bg-gray-900 dark:bg-white px-5 py-2 text-sm font-semibold text-white dark:text-gray-900 hover:bg-gray-700 dark:hover:bg-gray-200 disabled:opacity-50"
                   >
                     {generating ? 'Generating...' : 'Generate next 30 days'}
                   </button>
@@ -562,7 +562,7 @@ export default function AdminTurfPage() {
                     <button
                       onClick={handleSingleDayGenerate}
                       disabled={generating}
-                      className="rounded-xl bg-gray-900 dark:bg-white px-5 py-2 text-sm font-semibold text-white dark:text-gray-900 hover:bg-gray-700 dark:hover:bg-gray-100 disabled:opacity-50"
+                      className="rounded-xl bg-gray-900 dark:bg-white px-5 py-2 text-sm font-semibold text-white dark:text-gray-900 hover:bg-gray-700 dark:hover:bg-gray-200 disabled:opacity-50"
                     >
                       {generating ? 'Generating...' : 'Generate for date'}
                     </button>

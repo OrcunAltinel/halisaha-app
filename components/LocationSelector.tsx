@@ -15,7 +15,7 @@ export default function LocationSelector() {
   }
 
   return (
-    <div className="w-full max-w-xl rounded-2xl bg-white dark:bg-gray-900 p-4 shadow-lg">
+    <div className="w-full max-w-xl rounded-2xl bg-white dark:bg-gray-900 p-4 shadow-2xl ring-1 ring-white/10">
       <div className="flex flex-col gap-3 md:flex-row">
         <select
           value={location}
@@ -32,7 +32,7 @@ export default function LocationSelector() {
 
         <button
           onClick={handleSearch}
-          className="rounded-xl bg-black dark:bg-white px-6 py-3 text-white dark:text-black transition hover:opacity-90"
+          className="rounded-xl bg-green-800 px-6 py-3 font-semibold text-white transition hover:bg-green-900"
         >
           Search
         </button>

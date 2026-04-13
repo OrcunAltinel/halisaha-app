@@ -136,20 +136,20 @@ export default function Navbar() {
   }
 
   const linkClass = (href: string) =>
-    `text-sm transition-colors ${
+    `text-sm transition-colors whitespace-nowrap ${
       pathname === href
-        ? "text-gray-900 dark:text-white font-medium"
+        ? "text-gray-900 dark:text-white font-semibold"
         : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
     }`;
 
   return (
-    <nav className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-40">
+    <nav className="bg-white dark:bg-gray-900 border-b-2 border-green-500 sticky top-0 z-40">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-14">
           {/* Left: Logo + primary links */}
           <div className="flex items-center gap-6">
-            <Link href="/" className="text-lg font-bold text-gray-900 dark:text-white">
-              Halisaha
+            <Link href="/" className="text-lg font-black tracking-tight text-gray-900 dark:text-white flex items-center">
+              Halisaha<span className="text-green-500">.</span>
             </Link>
 
             <div className="hidden md:flex items-center gap-5">
@@ -184,7 +184,7 @@ export default function Navbar() {
                 <Link href="/login" className="text-sm px-3 py-1.5 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
                   Log in
                 </Link>
-                <Link href="/signup" className="text-sm px-3 py-1.5 rounded-md bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors">
+                <Link href="/signup" className="text-sm px-3 py-1.5 rounded-md bg-green-800 text-white hover:bg-green-900 transition-colors">
                   Sign up
                 </Link>
               </>
@@ -212,7 +212,7 @@ export default function Navbar() {
 
         {/* Mobile menu */}
         {menuOpen && (
-          <div className="md:hidden pb-3 flex flex-col gap-2 border-t border-gray-100 dark:border-gray-800 pt-3">
+          <div className="md:hidden pb-3 flex flex-col gap-2 border-t border-green-500/30 pt-3">
             <Link href="/" className={linkClass("/")}>Home</Link>
             <Link href="/hali-sahalar" className={linkClass("/hali-sahalar")}>Astroturfs</Link>
             {email && <Link href="/my-reservations" className={linkClass("/my-reservations")}>My Reservations</Link>}

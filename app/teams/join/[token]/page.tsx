@@ -44,7 +44,7 @@ export default async function JoinViaInvitePage({
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center px-4 py-10">
+    <main className="min-h-screen bg-gray-200 dark:bg-gray-950 flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-md rounded-2xl bg-white dark:bg-gray-900 p-8 shadow-sm ring-1 ring-gray-100 dark:ring-gray-800 text-center">
         <div className="mb-4 text-4xl">⚽</div>
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">

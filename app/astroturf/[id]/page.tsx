@@ -89,11 +89,11 @@ export default async function AstroturfDetailPage({
       : null
 
   return (
-    <main className="min-h-screen bg-gray-50 dark:bg-gray-950 px-4 py-10 sm:px-6 sm:py-12">
+    <main className="min-h-screen bg-gray-200 dark:bg-gray-950 px-4 py-10 sm:px-6 sm:py-12">
       <div className="mx-auto max-w-5xl">
         <Link
           href="/hali-sahalar"
-          className="mb-4 inline-block text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+          className="mb-4 inline-flex items-center text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors"
         >
           ← Back to astroturfs
         </Link>
@@ -137,7 +137,7 @@ export default async function AstroturfDetailPage({
 
         {/* Booking calendar */}
         <div>
-          <h2 className="mb-4 text-2xl font-bold text-gray-900 dark:text-white">Available Time Slots</h2>
+          <h2 className="mb-4 text-2xl font-black tracking-tight text-gray-900 dark:text-white">Available Time Slots</h2>
           <TurfCalendar
             astroturfId={turf.id}
             pricePerHour={turf.price_per_hour}

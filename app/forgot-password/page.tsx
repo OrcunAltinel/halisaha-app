@@ -2,7 +2,7 @@ import ForgotPasswordForm from '@/components/ForgotPasswordForm'
 
 export default function ForgotPasswordPage() {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-950 px-4 py-12">
+    <main className="flex min-h-screen items-center justify-center bg-gray-200 dark:bg-gray-950 px-4 py-12">
       <ForgotPasswordForm />
     </main>
   )

@@ -147,7 +147,7 @@ export default function ListYourPitchPage() {
 
   if (authLoading) {
     return (
-      <main className="min-h-screen bg-gray-50 dark:bg-gray-950 px-4 py-12">
+      <main className="min-h-screen bg-gray-200 dark:bg-gray-950 px-4 py-12">
         <div className="mx-auto max-w-2xl">
           <div className="rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-sm">
             <p className="text-gray-600 dark:text-gray-400">Loading…</p>
@@ -157,10 +157,10 @@ export default function ListYourPitchPage() {
     )
   }
 
-  const inputClass = "w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-gray-900 dark:focus:border-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-900 dark:focus:ring-gray-400"
+  const inputClass = "w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-green-500 dark:focus:border-green-400 focus:outline-none focus:ring-1 focus:ring-green-500 dark:focus:ring-green-400"
 
   return (
-    <main className="min-h-screen bg-gray-50 dark:bg-gray-950 px-4 py-10 sm:px-6 sm:py-12">
+    <main className="min-h-screen bg-gray-200 dark:bg-gray-950 px-4 py-10 sm:px-6 sm:py-12">
       <div className="mx-auto max-w-2xl">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white md:text-4xl">
@@ -311,7 +311,7 @@ export default function ListYourPitchPage() {
             <button
               type="submit"
               disabled={submitting}
-              className="rounded-lg bg-gray-900 dark:bg-white px-5 py-2.5 text-sm font-semibold text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60"
+              className="rounded-lg bg-green-800 px-5 py-2.5 text-sm font-semibold text-white hover:bg-green-900 disabled:cursor-not-allowed disabled:opacity-60 transition-colors"
             >
               {submitting ? 'Submitting…' : 'Submit application'}
             </button>
