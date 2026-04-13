@@ -10,6 +10,8 @@ type Astroturf = {
   description?: string | null
   price_per_hour: number
   is_active: boolean
+  image_url?: string | null
+  image_urls?: string[] | null
   avgRating?: number | null
   reviewCount?: number
 }

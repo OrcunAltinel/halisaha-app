@@ -129,7 +129,7 @@ export default function ImageUploader({
   return (
     <div>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
-        {value.map((url) => (
+        {value.map((url, idx) => (
           <div
             key={url}
             className="group relative aspect-square overflow-hidden rounded-xl bg-gray-100 dark:bg-gray-800 ring-1 ring-gray-200 dark:ring-gray-700"
@@ -140,6 +140,11 @@ export default function ImageUploader({
               alt="Pitch photo"
               className="h-full w-full object-cover"
             />
+            {idx === 0 && (
+              <span className="absolute left-1.5 top-1.5 rounded-full bg-black/70 px-2 py-0.5 text-[10px] font-semibold text-white">
+                Thumbnail
+              </span>
+            )}
             <button
               type="button"
               onClick={() => handleRemove(url)}
@@ -197,8 +202,8 @@ export default function ImageUploader({
       )}
 
       <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-        Up to {maxImages} photos. JPEG, PNG, or WebP. Images are automatically
-        resized to keep upload sizes small.
+        Up to {maxImages} photos. JPEG, PNG, or WebP. Images are automatically resized to keep upload sizes small.
+        The first photo will be used as the thumbnail on the listings page.
       </p>
     </div>
   )

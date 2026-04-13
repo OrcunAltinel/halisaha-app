@@ -7,14 +7,23 @@ type Astroturf = {
   address: string
   description?: string | null
   price_per_hour: number
+  image_url?: string | null
+  image_urls?: string[] | null
   avgRating?: number | null
   reviewCount?: number
 }
 
 export default function AstroturfCard({ field }: { field: Astroturf }) {
+  const thumbnail = field.image_urls?.[0] ?? field.image_url ?? null
+
   return (
     <div className="rounded-2xl bg-white dark:bg-gray-900 p-5 shadow-sm transition hover:shadow-md">
-      <div className="mb-4 h-48 rounded-xl bg-gray-200 dark:bg-gray-700" />
+      <div className="mb-4 h-48 rounded-xl bg-gray-200 dark:bg-gray-700 overflow-hidden">
+        {thumbnail && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={thumbnail} alt={field.name} className="h-full w-full object-cover" />
+        )}
+      </div>
 
       <div className="flex items-start justify-between gap-4">
         <div>

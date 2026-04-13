@@ -22,7 +22,9 @@ Before committing any change, always run the dev server (`npm run dev`) and veri
 
 **Always show a summary of all changes to the user before committing or pushing.** List every new file, every modified file, and a plain-English description of what each does. Wait for explicit user approval before running `git commit` or `git push`.
 
-Commit and push to GitHub at every logical checkpoint — after each feature, fix, or self-contained change. Never batch unrelated changes into one commit. Commit messages must be clean and human-written in style: conventional commit format (`feat:`, `fix:`, `refactor:`, etc.), no mention of AI tools, no "Co-authored-by" lines. Push immediately after committing so work is never only local.
+**After implementing any feature, always tell the user exactly where to go to test it.** List the specific URLs and the steps to follow — e.g. "Go to `/my-reservations` → Past tab, click 'Leave a review' on a confirmed booking." Do not assume the user knows where a new feature lives.
+
+Commit and push to GitHub at every logical checkpoint — after each feature, fix, or self-contained change. Never batch unrelated changes into one commit. Commit messages must be clean and human-written in style: conventional commit format (`feat:`, `fix:`, `refactor:`, etc.), no mention of AI tools, no "Co-authored-by" lines, no heredoc/EOF syntax — always use plain `git commit -m "..."`. Push immediately after committing so work is never only local.
 
 ## Architecture
 
