@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import TurfCalendar from '@/components/TurfCalendar'
 import ReviewsList from '@/components/ReviewsList'
+import TurfImageGallery from '@/components/TurfImageGallery'
 import { createSupabaseServerClient } from '@/lib/supabase'
 
 type Astroturf = {
@@ -99,16 +100,12 @@ export default async function AstroturfDetailPage({
 
         {/* Header */}
         <div className="mb-6 overflow-hidden rounded-2xl bg-white dark:bg-gray-900 shadow-sm ring-1 ring-gray-100 dark:ring-gray-800">
-          {turf.image_url && (
-            <div className="aspect-[16/7] w-full bg-gray-100 dark:bg-gray-800">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={turf.image_url}
-                alt={turf.name}
-                className="h-full w-full object-cover"
-              />
-            </div>
-          )}
+          <div className="p-4 pb-0">
+            <TurfImageGallery
+              images={turf.image_urls && turf.image_urls.length > 0 ? turf.image_urls : turf.image_url ? [turf.image_url] : []}
+              alt={turf.name}
+            />
+          </div>
           <div className="p-6 sm:p-8">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white md:text-4xl">
               {turf.name}

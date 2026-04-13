@@ -9,12 +9,15 @@ type Props = {
 
 export default function TurfImageGallery({ images, alt }: Props) {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
+  const [zoomed, setZoomed] = useState(false)
 
-  const close = useCallback(() => setLightboxIndex(null), [])
+  const close = useCallback(() => { setLightboxIndex(null); setZoomed(false) }, [])
   const next = useCallback(() => {
+    setZoomed(false)
     setLightboxIndex((i) => (i === null ? null : (i + 1) % images.length))
   }, [images.length])
   const prev = useCallback(() => {
+    setZoomed(false)
     setLightboxIndex((i) =>
       i === null ? null : (i - 1 + images.length) % images.length
     )
@@ -175,10 +178,16 @@ export default function TurfImageGallery({ images, alt }: Props) {
             <img
               src={images[lightboxIndex]}
               alt={`${alt} - photo ${lightboxIndex + 1}`}
-              className="max-h-[85vh] max-w-full object-contain"
+              onDoubleClick={() => setZoomed((z) => !z)}
+              style={{
+                transform: zoomed ? 'scale(2)' : 'scale(1)',
+                transition: 'transform 0.25s ease',
+                transformOrigin: 'center center',
+              }}
+              className={`max-h-[85vh] max-w-full object-contain ${zoomed ? 'cursor-zoom-out' : 'cursor-zoom-in'}`}
             />
             <p className="mt-3 text-center text-sm text-white/70">
-              {lightboxIndex + 1} / {images.length}
+              {lightboxIndex + 1} / {images.length} · double-click to {zoomed ? 'zoom out' : 'zoom in'}
             </p>
           </div>
         </div>
