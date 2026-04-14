@@ -15,7 +15,7 @@ export default function LocationSelector() {
   }
 
   return (
-    <div className="w-full max-w-xl rounded-2xl bg-white dark:bg-gray-900 p-4 shadow-2xl ring-1 ring-white/10">
+    <div className="w-full rounded-2xl bg-white dark:bg-gray-900 p-4 shadow-2xl ring-1 ring-white/10">
       <div className="flex flex-col gap-3 md:flex-row">
         <select
           value={location}

@@ -16,6 +16,17 @@ npm run lint     # ESLint
 
 No test suite exists yet.
 
+### Turbopack cache gotcha
+
+If a new file is added while the dev server is already running, Turbopack may cache a "module not found" error and keep returning 404 for that route even after the file exists. Fix: stop the server, delete `.next/`, and restart.
+
+```bash
+# PowerShell
+Stop-Process -Name node -Force
+Remove-Item -Recurse -Force .next
+npm run dev
+```
+
 ## Git workflow
 
 Before committing any change, always run the dev server (`npm run dev`) and verify the affected pages look and work correctly in the browser at **http://localhost:3000**. Only commit after confirming the change is visible and correct.

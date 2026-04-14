@@ -35,7 +35,7 @@ export default async function HomePage() {
         <div className="pointer-events-none absolute -bottom-8 -right-8 h-32 w-32 rounded-full border border-white/10" />
         <div className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 h-36 w-20 border-l border-t border-b border-white/10" />
 
-        <div className="relative mx-auto max-w-6xl">
+        <div className="relative mx-auto max-w-6xl flex flex-col items-center text-center">
           {/* Eyebrow */}
           <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-green-500/30 bg-green-500/10 px-3 py-1">
             <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
@@ -52,11 +52,11 @@ export default async function HomePage() {
             Choose your location, explore nearby halısahas, and reserve your slot in seconds.
           </p>
 
-          <div className="mt-8">
+          <div className="mt-8 w-full max-w-xl">
             <LocationSelector />
           </div>
 
-          <div className="mt-7 flex flex-wrap gap-3">
+          <div className="mt-7 flex flex-wrap gap-3 justify-center">
             <Link href="/hali-sahalar" className="rounded-full border border-white/20 px-4 py-1.5 text-sm text-gray-300 hover:border-green-500 hover:text-green-400 transition-colors">
               Browse all pitches →
             </Link>
