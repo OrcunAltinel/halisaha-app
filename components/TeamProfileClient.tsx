@@ -23,6 +23,8 @@ type ChallengeEntry = {
   end_time: string
   challenger_team_name: string
   challenged_team_name: string
+  challenger_score: number | null
+  challenged_score: number | null
   created_at: string
 }
 
@@ -47,6 +49,7 @@ const statusColor = (status: string) => {
   if (status === 'accepted') return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
   if (status === 'pending') return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400'
   if (status === 'rejected' || status === 'cancelled') return 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
+  if (status === 'played') return 'bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
   return 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
 }
 
@@ -194,9 +197,16 @@ export default function TeamProfileClient({
                         {formatTime(c.start_time)} – {formatTime(c.end_time)}
                       </p>
                     </div>
-                    <span className={`rounded-full px-3 py-1 text-xs font-semibold w-fit ${statusColor(c.status)}`}>
-                      {c.status}
-                    </span>
+                    <div className="flex items-center gap-2 w-fit">
+                      {c.status === 'played' && c.challenger_score != null && c.challenged_score != null && (
+                        <span className="rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-3 py-1 text-sm font-bold tabular-nums">
+                          {c.challenger_score} – {c.challenged_score}
+                        </span>
+                      )}
+                      <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusColor(c.status)}`}>
+                        {c.status}
+                      </span>
+                    </div>
                   </div>
                 ))}
               </div>

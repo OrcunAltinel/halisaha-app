@@ -81,7 +81,7 @@ export default async function AstroturfDetailPage({
     .eq('astroturf_id', turf.id)
     .order('created_at', { ascending: false })
 
-  const reviews = (reviewsData ?? []) as Review[]
+  const reviews = (reviewsData ?? []) as unknown as Review[]
 
   const avgRating =
     reviews.length > 0
