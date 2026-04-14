@@ -18,6 +18,8 @@ type ChallengeEntry = {
   end_time: string
   challenger_team_name: string
   challenged_team_name: string
+  challenger_score: number | null
+  challenged_score: number | null
   message: string | null
   created_at: string
 }
@@ -93,6 +95,7 @@ export default async function MyTeamPage() {
     .select(`
       id, status, message, created_at,
       challenger_team_id, challenged_team_id,
+      challenger_score, challenged_score,
       time_slots ( slot_date, start_time, end_time ),
       astroturfs ( name )
     `)
@@ -125,6 +128,8 @@ export default async function MyTeamPage() {
       end_time: c.time_slots?.end_time ?? '',
       challenger_team_name: teamNameMap.get(c.challenger_team_id) ?? '',
       challenged_team_name: teamNameMap.get(c.challenged_team_id) ?? '',
+      challenger_score: c.challenger_score ?? null,
+      challenged_score: c.challenged_score ?? null,
       message: c.message,
       created_at: c.created_at,
     }
