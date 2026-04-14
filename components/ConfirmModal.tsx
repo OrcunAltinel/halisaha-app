@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import { useLocale } from '@/components/LocaleProvider'
+import { t } from '@/lib/locale'
 
 type Props = {
   title: string
@@ -17,15 +19,18 @@ type Props = {
 export default function ConfirmModal({
   title,
   message,
-  confirmLabel = 'Confirm',
+  confirmLabel,
   variant = 'danger',
   withReason = false,
-  reasonPlaceholder = 'Reason (optional)',
+  reasonPlaceholder,
   loading = false,
   onConfirm,
   onClose,
 }: Props) {
   const [reason, setReason] = useState('')
+  const { locale } = useLocale()
+  const resolvedConfirmLabel = confirmLabel ?? t(locale, 'Confirm', 'Onayla')
+  const resolvedReasonPlaceholder = reasonPlaceholder ?? t(locale, 'Reason (optional)', 'Sebep (isteğe bağlı)')
 
   return (
     <div
@@ -48,7 +53,7 @@ export default function ConfirmModal({
               onChange={(e) => setReason(e.target.value)}
               rows={3}
               maxLength={500}
-              placeholder={reasonPlaceholder}
+              placeholder={resolvedReasonPlaceholder}
               className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-gray-900 dark:focus:border-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-900 dark:focus:ring-gray-400"
             />
           </div>
@@ -61,7 +66,7 @@ export default function ConfirmModal({
             disabled={loading}
             className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50"
           >
-            Cancel
+            {t(locale, 'Cancel', 'İptal')}
           </button>
           <button
             type="button"
@@ -73,7 +78,7 @@ export default function ConfirmModal({
                 : 'bg-gray-900 hover:bg-gray-700 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100'
             }`}
           >
-            {loading ? 'Working…' : confirmLabel}
+            {loading ? t(locale, 'Working…', 'İşleniyor…') : resolvedConfirmLabel}
           </button>
         </div>
       </div>

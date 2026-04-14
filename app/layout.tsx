@@ -1,42 +1,46 @@
 import './globals.css'
+import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import ToastProvider from '@/components/ToastProvider'
 import ThemeProvider from '@/components/ThemeProvider'
+import { LocaleProvider } from '@/components/LocaleProvider'
+import { t } from '@/lib/locale'
+import { getRequestLocale } from '@/lib/locale-server'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' })
 
-export const metadata = {
-  title: 'Halisaha — Book Astroturf Pitches in Cyprus',
-  description: 'Find and book astroturf football pitches across Cyprus.',
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getRequestLocale()
+  return {
+    title: t(locale, 'Halisaha — Book Astroturf Pitches in Cyprus', 'Halisaha — Kıbrıs’ta Halı Saha Rezervasyonu'),
+    description: t(
+      locale,
+      'Find and book astroturf football pitches across Cyprus.',
+      'Kıbrıs genelindeki halı sahaları keşfedin ve kolayca rezervasyon yapın.'
+    ),
+  }
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const locale = await getRequestLocale()
+
   return (
-    <html lang="en" suppressHydrationWarning className={`${inter.variable} bg-gray-200 dark:bg-gray-950`}>
-      <head>
-        {/* Prevent flash of wrong theme on load */}
-        <script dangerouslySetInnerHTML={{ __html: `
-          try {
-            const t = localStorage.getItem('theme');
-            if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-              document.documentElement.classList.add('dark');
-            }
-          } catch(e) {}
-        `}} />
-      </head>
+    <html lang={locale} suppressHydrationWarning className={`${inter.variable} bg-gray-200 dark:bg-gray-950`}>
       <body className="bg-gray-200 dark:bg-gray-950 text-black dark:text-white">
         <ThemeProvider>
-          <ToastProvider>
-            <Navbar />
-            {children}
-            <Footer />
-          </ToastProvider>
+          <LocaleProvider initialLocale={locale}>
+            <ToastProvider>
+              <Navbar />
+              {children}
+              <Footer />
+            </ToastProvider>
+          </LocaleProvider>
         </ThemeProvider>
       </body>
     </html>

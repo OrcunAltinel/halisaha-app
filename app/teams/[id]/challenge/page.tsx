@@ -1,12 +1,15 @@
 import { redirect, notFound } from 'next/navigation'
 import { createSupabaseServerClient } from '@/lib/supabase'
 import ChallengeWizard from '@/components/ChallengeWizard'
+import { t } from '@/lib/locale'
+import { getRequestLocale } from '@/lib/locale-server'
 
 export default async function ChallengePage({
   params,
 }: {
   params: Promise<{ id: string }>
 }) {
+  const locale = await getRequestLocale()
   const { id } = await params
   const supabase = await createSupabaseServerClient()
 
@@ -43,10 +46,10 @@ export default async function ChallengePage({
       <div className="mx-auto max-w-4xl">
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
-            Challenge {challengedTeam.name}
+            {locale === 'tr' ? `${challengedTeam.name} takımına meydan oku` : `Challenge ${challengedTeam.name}`}
           </h1>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
-            Pick a pitch and time slot, then send your challenge.
+            {t(locale, 'Pick a pitch and time slot, then send your challenge.', 'Bir saha ve saat seç, sonra meydan okumani gönder.')}
           </p>
         </div>
 

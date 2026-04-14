@@ -2,6 +2,8 @@ import { redirect } from 'next/navigation'
 import { createSupabaseServerClient } from '@/lib/supabase'
 import MyTeamClient from '@/components/MyTeamClient'
 import Link from 'next/link'
+import { t } from '@/lib/locale'
+import { getRequestLocale } from '@/lib/locale-server'
 
 type Member = {
   user_id: string
@@ -36,7 +38,19 @@ type InviteLink = {
   token: string
 }
 
+type ChallengeRow = {
+  id: string
+  status: string
+  message: string | null
+  created_at: string
+  challenger_team_id: string
+  challenged_team_id: string
+  time_slots: { slot_date: string | null; start_time: string | null; end_time: string | null } | null
+  astroturfs: { name: string | null } | null
+}
+
 export default async function MyTeamPage() {
+  const locale = await getRequestLocale()
   const supabase = await createSupabaseServerClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -52,16 +66,16 @@ export default async function MyTeamPage() {
     return (
       <main className="min-h-screen bg-gray-200 dark:bg-gray-950 px-4 py-10 sm:px-6">
         <div className="mx-auto max-w-lg text-center">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-3">My Team</h1>
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-3">{t(locale, 'My Team', 'Takımım')}</h1>
           <p className="text-gray-600 dark:text-gray-400 mb-8">
-            You are not part of any team yet.
+            {t(locale, 'You are not part of any team yet.', 'Henüz herhangi bir takımın parçası değilsin.')}
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link href="/teams/create" className="rounded-xl bg-gray-900 dark:bg-white px-6 py-3 text-sm font-semibold text-white dark:text-gray-900 hover:opacity-90 transition">
-              Create a team
+              {t(locale, 'Create a team', 'Takım oluştur')}
             </Link>
             <Link href="/teams" className="rounded-xl border border-gray-300 dark:border-gray-700 px-6 py-3 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800 transition">
-              Browse teams
+              {t(locale, 'Browse teams', 'Takımlara göz at')}
             </Link>
           </div>
         </div>
@@ -118,7 +132,7 @@ export default async function MyTeamPage() {
   const incoming: ChallengeEntry[] = []
   const outgoing: ChallengeEntry[] = []
 
-  for (const c of (challengesData ?? []) as any[]) {
+  for (const c of (challengesData ?? []) as ChallengeRow[]) {
     const entry: ChallengeEntry = {
       id: c.id,
       status: c.status,

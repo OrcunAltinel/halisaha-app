@@ -13,6 +13,8 @@ import ConfirmModal from '@/components/ConfirmModal'
 import { useToast } from '@/components/ToastProvider'
 import ReviewForm from '@/components/ReviewForm'
 import StarRating from '@/components/StarRating'
+import { t, translateCancellationActor, translatePaymentStatus, translateStatus } from '@/lib/locale'
+import { useLocale } from '@/components/LocaleProvider'
 
 type ReservationRow = {
   id: string
@@ -38,6 +40,7 @@ const supabase = createSupabaseBrowserClient()
 
 export default function MyReservationsPage() {
   const router = useRouter()
+  const { locale } = useLocale()
   const [reservations, setReservations] = useState<ReservationRow[]>([])
   const [loading, setLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState('')
@@ -145,14 +148,14 @@ export default function MyReservationsPage() {
       )
     )
     setCancellingId(null)
-    showToast('Reservation cancelled.')
+    showToast(t(locale, 'Reservation cancelled.', 'Rezervasyon iptal edildi.'))
   }
 
   const handleReviewSuccess = (reservationId: string, rating: number, comment: string) => {
     setSubmittedReviews((prev) => ({ ...prev, [reservationId]: { rating, comment } }))
     setReviewedIds((prev) => new Set([...prev, reservationId]))
     setReviewingId(null)
-    showToast('Review submitted!')
+    showToast(t(locale, 'Review submitted!', 'Yorum gönderildi!'))
   }
 
   const statusColor = (status: string) => {
@@ -195,12 +198,12 @@ export default function MyReservationsPage() {
     <>
     {cancelModal && (
       <ConfirmModal
-        title="Cancel reservation?"
-        message="Are you sure you want to cancel this reservation?"
-        confirmLabel="Cancel reservation"
+        title={t(locale, 'Cancel reservation?', 'Rezervasyonu iptal et?')}
+        message={t(locale, 'Are you sure you want to cancel this reservation?', 'Bu rezervasyonu iptal etmek istediğine emin misin?')}
+        confirmLabel={t(locale, 'Cancel reservation', 'Rezervasyonu iptal et')}
         variant="danger"
         withReason
-        reasonPlaceholder="Reason (optional)"
+        reasonPlaceholder={t(locale, 'Reason (optional)', 'Sebep (isteğe bağlı)')}
         loading={cancellingId === cancelModal}
         onConfirm={confirmCancel}
         onClose={() => setCancelModal(null)}
@@ -209,13 +212,13 @@ export default function MyReservationsPage() {
     <main className="min-h-screen bg-gray-200 dark:bg-gray-950 px-6 py-10">
       <div className="mx-auto max-w-5xl">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white">My Reservations</h1>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">See all the slots you have booked.</p>
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white">{t(locale, 'My Reservations', 'Rezervasyonlarım')}</h1>
+          <p className="mt-2 text-gray-600 dark:text-gray-400">{t(locale, 'See all the slots you have booked.', 'Ayırttığın tüm saatleri gör.')}</p>
         </div>
 
         {loading && (
           <div className="rounded-2xl border dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm">
-            <p className="text-base font-medium text-gray-700 dark:text-gray-300">Loading reservations...</p>
+            <p className="text-base font-medium text-gray-700 dark:text-gray-300">{t(locale, 'Loading reservations...', 'Rezervasyonlar yükleniyor...')}</p>
           </div>
         )}
 
@@ -227,20 +230,20 @@ export default function MyReservationsPage() {
 
         {!loading && !errorMessage && reservations.length === 0 && (
           <div className="rounded-2xl border dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm">
-            <p className="text-gray-700 dark:text-gray-300">You do not have any reservations yet.</p>
+            <p className="text-gray-700 dark:text-gray-300">{t(locale, 'You do not have any reservations yet.', 'Henüz bir rezervasyonun yok.')}</p>
           </div>
         )}
 
         {!loading && !errorMessage && reservations.length > 0 && (
           <>
             <div className="mb-4 flex flex-wrap gap-2">
-              {tabButton('upcoming', 'Upcoming', upcoming.length)}
-              {tabButton('past', 'Past', past.length)}
+              {tabButton('upcoming', t(locale, 'Upcoming', 'Yaklasan'), upcoming.length)}
+              {tabButton('past', t(locale, 'Past', 'Geçmiş'), past.length)}
             </div>
 
             {visibleList.length === 0 ? (
               <div className="rounded-2xl border dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm">
-                <p className="text-gray-700 dark:text-gray-300">Nothing to show here.</p>
+                <p className="text-gray-700 dark:text-gray-300">{t(locale, 'Nothing to show here.', 'Burada gösterilecek bir sey yok.')}</p>
               </div>
             ) : (
               <div className="grid gap-4">
@@ -253,34 +256,36 @@ export default function MyReservationsPage() {
                       <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
                         <div className="flex-1 min-w-0">
                           <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                            {reservation.astroturfs?.name || 'Astroturf'}
+                            {reservation.astroturfs?.name || t(locale, 'Astroturf', 'Halı Saha')}
                           </h2>
                           <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                            {reservation.astroturfs?.address || 'No address'}
+                            {reservation.astroturfs?.address || t(locale, 'No address', 'Adres yok')}
                           </p>
 
                           <div className="mt-4 space-y-2 text-sm text-gray-800 dark:text-gray-200">
                             <p>
-                              <span className="font-semibold">Date:</span>{' '}
-                              {formatDateLabel(reservation.time_slots?.slot_date || '')}
+                              <span className="font-semibold">{t(locale, 'Date:', 'Tarih:')}</span>{' '}
+                              {formatDateLabel(reservation.time_slots?.slot_date || '', locale)}
                             </p>
                             <p>
-                              <span className="font-semibold">Time:</span>{' '}
+                              <span className="font-semibold">{t(locale, 'Time:', 'Saat:')}</span>{' '}
                               {formatTime(reservation.time_slots?.start_time)} – {formatTime(reservation.time_slots?.end_time)}
                             </p>
                             <p>
-                              <span className="font-semibold">Price:</span> {reservation.total_price} TL
+                              <span className="font-semibold">{t(locale, 'Price:', 'Ücret:')}</span> {reservation.total_price} TL
                             </p>
                           </div>
 
                           {reservation.status === 'cancelled' && reservation.cancelled_by && (
                             <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
-                              Cancelled by {reservation.cancelled_by}
+                              {locale === 'tr'
+                                ? `${translateCancellationActor(locale, reservation.cancelled_by)} tarafindan iptal edildi`
+                                : `Cancelled by ${translateCancellationActor(locale, reservation.cancelled_by)}`}
                               {reservation.cancellation_reason ? ` — "${reservation.cancellation_reason}"` : ''}
                             </p>
                           )}
 
-                          {/* Review section — only for past confirmed reservations */}
+                          {/* Review seçtion — only for past confirmed reservations */}
                           {isPast && reservation.status === 'confirmed' && (() => {
                             const submitted = submittedReviews[reservation.id]
                             const alreadyReviewed = reviewedIds.has(reservation.id)
@@ -288,7 +293,7 @@ export default function MyReservationsPage() {
                             if (submitted) {
                               return (
                                 <div className="mt-4 border-t dark:border-gray-700 pt-4">
-                                  <p className="text-sm font-semibold text-green-600 dark:text-green-400 mb-1">Review submitted</p>
+                                  <p className="text-sm font-semibold text-green-600 dark:text-green-400 mb-1">{t(locale, 'Review submitted', 'Yorum gönderildi')}</p>
                                   <StarRating value={submitted.rating} size="sm" />
                                   {submitted.comment && (
                                     <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{submitted.comment}</p>
@@ -300,7 +305,7 @@ export default function MyReservationsPage() {
                             if (alreadyReviewed) {
                               return (
                                 <p className="mt-4 text-sm text-gray-500 dark:text-gray-400 border-t dark:border-gray-700 pt-4">
-                                  You have already reviewed this visit.
+                                  {t(locale, 'You have already reviewed this visit.', 'Bu ziyaret için zaten yorum bıraktın.')}
                                 </p>
                               )
                             }
@@ -321,7 +326,7 @@ export default function MyReservationsPage() {
                                 onClick={() => setReviewingId(reservation.id)}
                                 className="mt-4 rounded-xl border border-green-800 px-4 py-2 text-sm font-medium text-green-800 dark:text-green-400 hover:bg-green-800/10 transition"
                               >
-                                Leave a review
+                                {t(locale, 'Leave a review', 'Yorum birak')}
                               </button>
                             )
                           })()}
@@ -329,10 +334,10 @@ export default function MyReservationsPage() {
 
                         <div className="flex flex-col gap-2 items-end">
                           <span className={`rounded-full px-4 py-2 text-sm font-semibold ${statusColor(displayStatus)}`}>
-                            {displayStatus}
+                            {translateStatus(locale, displayStatus)}
                           </span>
                           <span className="rounded-full bg-gray-200 dark:bg-gray-800 px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
-                            {reservation.payment_status}
+                            {translatePaymentStatus(locale, reservation.payment_status)}
                           </span>
 
                           {!isPast &&
@@ -344,7 +349,7 @@ export default function MyReservationsPage() {
                                 disabled={cancellingId === reservation.id}
                                 className="mt-2 rounded-xl border border-red-300 dark:border-red-800 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50"
                               >
-                                {cancellingId === reservation.id ? 'Cancelling...' : 'Cancel'}
+                                {cancellingId === reservation.id ? t(locale, 'Cancelling...', 'İptal ediliyor...') : t(locale, 'Cancel', 'İptal et')}
                               </button>
                             )}
                         </div>

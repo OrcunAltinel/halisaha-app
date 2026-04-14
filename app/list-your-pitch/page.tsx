@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createSupabaseBrowserClient } from '@/lib/supabase-browser'
 import ImageUploader from '@/components/ImageUploader'
+import { useLocale } from '@/components/LocaleProvider'
+import { t } from '@/lib/locale'
 
 type Location = {
   id: string
@@ -14,6 +16,7 @@ type Location = {
 export default function ListYourPitchPage() {
   const router = useRouter()
   const supabase = createSupabaseBrowserClient()
+  const { locale } = useLocale()
 
   const [authLoading, setAuthLoading] = useState(true)
   const [userId, setUserId] = useState<string | null>(null)
@@ -70,15 +73,15 @@ export default function ListYourPitchPage() {
   }, [router, supabase])
 
   function validate(): string | null {
-    if (name.trim().length < 3) return 'Pitch name must be at least 3 characters.'
-    if (address.trim().length < 5) return 'Please provide a full address.'
-    if (!locationId) return 'Please select a location.'
+    if (name.trim().length < 3) return t(locale, 'Pitch name must be at least 3 characters.', 'Saha adı en az 3 karakter olmalı.')
+    if (address.trim().length < 5) return t(locale, 'Please provide a full address.', 'Lütfen tam bir adres gir.')
+    if (!locationId) return t(locale, 'Please select a location.', 'Lütfen bir konum seç.')
     const price = Number(pricePerHour)
     if (!pricePerHour || Number.isNaN(price) || price <= 0) {
-      return 'Please enter a valid price per hour.'
+      return t(locale, 'Please enter a valid price per hour.', 'Lütfen geçerli bir saatlik ücret gir.')
     }
     if (imageUrls.length === 0) {
-      return 'Please upload at least one photo of your pitch.'
+      return t(locale, 'Please upload at least one photo of your pitch.', 'Lütfen sahana ait en az bir fotoğraf yükle.')
     }
     return null
   }
@@ -95,7 +98,7 @@ export default function ListYourPitchPage() {
     }
 
     if (!userId) {
-      setErrorMsg('You must be signed in to submit an application.')
+      setErrorMsg(t(locale, 'You must be signed in to submit an application.', 'Başvuru göndermek için giriş yapmalisin.'))
       return
     }
 
@@ -118,7 +121,7 @@ export default function ListYourPitchPage() {
       }
 
       setSuccessMsg(
-        'Your application has been submitted. We will review it shortly.'
+        t(locale, 'Your application has been submitted. We will review it shortly.', 'Başvurun gönderildi. Kısa sure içinde inceleyeceğiz.')
       )
       // Reset form
       setName('')
@@ -138,7 +141,7 @@ export default function ListYourPitchPage() {
       setErrorMsg(
         err instanceof Error
           ? err.message
-          : 'Failed to submit application. Please try again.'
+          : t(locale, 'Failed to submit application. Please try again.', 'Başvuru gönderilemedi. Lütfen tekrar dene.')
       )
     } finally {
       setSubmitting(false)
@@ -150,7 +153,7 @@ export default function ListYourPitchPage() {
       <main className="min-h-screen bg-gray-200 dark:bg-gray-950 px-4 py-12">
         <div className="mx-auto max-w-2xl">
           <div className="rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-sm">
-            <p className="text-gray-600 dark:text-gray-400">Loading…</p>
+            <p className="text-gray-600 dark:text-gray-400">{t(locale, 'Loading…', 'Yükleniyor…')}</p>
           </div>
         </div>
       </main>
@@ -164,12 +167,10 @@ export default function ListYourPitchPage() {
       <div className="mx-auto max-w-2xl">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white md:text-4xl">
-            List your pitch
+            {t(locale, 'List your pitch', 'Sahani listele')}
           </h1>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
-            Tell us about your astroturf and we will review your application.
-            Approved pitches go live on the platform so players can book them
-            directly.
+            {t(locale, 'Tell us about your astroturf and we will review your application. Approved pitches go live on the platform so players can book them directly.', 'Sahan hakkında bize bilgi ver, başvurunu inceleyelim. Onaylanan sahalar platformda yayinlanir ve oyuncular doğrudan rezervasyon yapabilir.')}
           </p>
         </div>
 
@@ -180,13 +181,13 @@ export default function ListYourPitchPage() {
           {/* Name */}
           <div>
             <label className="mb-1 block text-sm font-semibold text-gray-900 dark:text-white">
-              Pitch name <span className="text-red-500">*</span>
+              {t(locale, 'Pitch name', 'Saha adı')} <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Mersin Spor Halı Saha"
+              placeholder={t(locale, 'e.g. Mersin Spor Halı Saha', 'örnek: Mersin Spor Halı Saha')}
               className={inputClass}
             />
           </div>
@@ -194,14 +195,14 @@ export default function ListYourPitchPage() {
           {/* Location */}
           <div>
             <label className="mb-1 block text-sm font-semibold text-gray-900 dark:text-white">
-              City / Area <span className="text-red-500">*</span>
+              {t(locale, 'City / Area', 'Sehir / Bölge')} <span className="text-red-500">*</span>
             </label>
             <select
               value={locationId}
               onChange={(e) => setLocationId(e.target.value)}
               className={inputClass}
             >
-              <option value="">Select a location</option>
+              <option value="">{t(locale, 'Select a location', 'Bir konum seç')}</option>
               {locations.map((loc) => (
                 <option key={loc.id} value={loc.id}>
                   {loc.name}
@@ -213,13 +214,13 @@ export default function ListYourPitchPage() {
           {/* Address */}
           <div>
             <label className="mb-1 block text-sm font-semibold text-gray-900 dark:text-white">
-              Full address <span className="text-red-500">*</span>
+              {t(locale, 'Full address', 'Tam adres')} <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
-              placeholder="Street, neighborhood, landmarks…"
+              placeholder={t(locale, 'Street, neighborhood, landmarks…', 'Sokak, mahalle, yakın noktalar…')}
               className={inputClass}
             />
           </div>
@@ -227,7 +228,7 @@ export default function ListYourPitchPage() {
           {/* Price */}
           <div>
             <label className="mb-1 block text-sm font-semibold text-gray-900 dark:text-white">
-              Price per hour (₺) <span className="text-red-500">*</span>
+              {t(locale, 'Price per hour (₺)', 'Saatlik ücret (₺)')} <span className="text-red-500">*</span>
             </label>
             <input
               type="number"
@@ -236,7 +237,7 @@ export default function ListYourPitchPage() {
               step="1"
               value={pricePerHour}
               onChange={(e) => setPricePerHour(e.target.value)}
-              placeholder="e.g. 500"
+              placeholder={t(locale, 'e.g. 500', 'örnek: 500')}
               className={inputClass}
             />
           </div>
@@ -244,7 +245,7 @@ export default function ListYourPitchPage() {
           {/* Phone */}
           <div>
             <label className="mb-1 block text-sm font-semibold text-gray-900 dark:text-white">
-              Contact phone
+              {t(locale, 'Contact phone', 'İletişim telefonu')}
             </label>
             <input
               type="tel"
@@ -254,20 +255,20 @@ export default function ListYourPitchPage() {
               className={inputClass}
             />
             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Optional. Shown to players who book your pitch.
+              {t(locale, 'Optional. Shown to players who book your pitch.', 'İsteğe bagli. Sahani rezerve eden oyunculara gösterilir.')}
             </p>
           </div>
 
           {/* Description */}
           <div>
             <label className="mb-1 block text-sm font-semibold text-gray-900 dark:text-white">
-              Description
+              {t(locale, 'Description', 'Açıklama')}
             </label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={4}
-              placeholder="Surface type, facilities (showers, parking, lighting), any rules…"
+              placeholder={t(locale, 'Surface type, facilities (showers, parking, lighting), any rules…', 'Zemin tipi, imkanlar (dus, otopark, aydinlatma), kurallar…')}
               className={inputClass}
             />
           </div>
@@ -275,7 +276,7 @@ export default function ListYourPitchPage() {
           {/* Images */}
           <div>
             <label className="mb-2 block text-sm font-semibold text-gray-900 dark:text-white">
-              Photos <span className="text-red-500">*</span>
+              {t(locale, 'Photos', 'Fotoğraflar')} <span className="text-red-500">*</span>
             </label>
             {userId && (
               <ImageUploader
@@ -306,14 +307,14 @@ export default function ListYourPitchPage() {
               href="/"
               className="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
             >
-              Cancel
+              {t(locale, 'Cancel', 'İptal')}
             </Link>
             <button
               type="submit"
               disabled={submitting}
               className="rounded-lg bg-green-800 px-5 py-2.5 text-sm font-semibold text-white hover:bg-green-900 disabled:cursor-not-allowed disabled:opacity-60 transition-colors"
             >
-              {submitting ? 'Submitting…' : 'Submit application'}
+              {submitting ? t(locale, 'Submitting…', 'Gönderiliyor…') : t(locale, 'Submit application', 'Başvuruyu gönder')}
             </button>
           </div>
         </form>

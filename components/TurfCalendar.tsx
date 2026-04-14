@@ -2,6 +2,8 @@
 
 import { useMemo, useRef, useState, useEffect } from 'react'
 import BookSlotButton from './BookSlotButton'
+import { useLocale } from '@/components/LocaleProvider'
+import { t } from '@/lib/locale'
 import { formatTime, todayStr } from '@/lib/date-helpers'
 
 type TimeSlot = {
@@ -37,6 +39,7 @@ function buildDateStrip(days: number) {
 
 export default function TurfCalendar({ astroturfId, pricePerHour, slots }: Props) {
   const today = todayStr()
+  const { locale } = useLocale()
   const [selectedDate, setSelectedDate] = useState<string>(today)
   const stripRef = useRef<HTMLDivElement>(null)
 
@@ -58,8 +61,8 @@ export default function TurfCalendar({ astroturfId, pricePerHour, slots }: Props
   const selectedLabel = useMemo(() => {
     const [y, m, d] = selectedDate.split('-').map(Number)
     const dt = new Date(y, m - 1, d)
-    return dt.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
-  }, [selectedDate])
+    return dt.toLocaleDateString(locale === 'tr' ? 'tr-TR' : 'en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
+  }, [locale, selectedDate])
 
   function scrollStrip(dir: 'left' | 'right') {
     const el = stripRef.current
@@ -76,19 +79,19 @@ export default function TurfCalendar({ astroturfId, pricePerHour, slots }: Props
   return (
     <div className="rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-sm">
       <div className="mb-4 flex items-center justify-between">
-        <h3 className="text-lg font-bold text-gray-900 dark:text-white">Pick a date</h3>
+        <h3 className="text-lg font-bold text-gray-900 dark:text-white">{t(locale, 'Pick a date', 'Tarih seç')}</h3>
         <div className="hidden gap-2 sm:flex">
           <button
             onClick={() => scrollStrip('left')}
             className="rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-1 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-            aria-label="Scroll dates left"
+            aria-label={t(locale, 'Scroll dates left', 'Tarihleri sola kaydır')}
           >
             ←
           </button>
           <button
             onClick={() => scrollStrip('right')}
             className="rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-1 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-            aria-label="Scroll dates right"
+            aria-label={t(locale, 'Scroll dates right', 'Tarihleri sağa kaydır')}
           >
             →
           </button>
@@ -105,9 +108,9 @@ export default function TurfCalendar({ astroturfId, pricePerHour, slots }: Props
           const daySlots = slotsByDate.get(dateStr) || []
           const availableCount = daySlots.filter((s) => s.is_available).length
 
-          const weekday = date.toLocaleDateString('en-GB', { weekday: 'short' })
+          const weekday = date.toLocaleDateString(locale === 'tr' ? 'tr-TR' : 'en-GB', { weekday: 'short' })
           const dayNum = date.getDate()
-          const monthShort = date.toLocaleDateString('en-GB', { month: 'short' })
+          const monthShort = date.toLocaleDateString(locale === 'tr' ? 'tr-TR' : 'en-GB', { month: 'short' })
 
           return (
             <button
@@ -122,7 +125,7 @@ export default function TurfCalendar({ astroturfId, pricePerHour, slots }: Props
               ].join(' ')}
             >
               <span className={`text-xs font-semibold uppercase tracking-wide ${isSelected ? 'text-gray-300 dark:text-gray-500' : 'text-gray-500 dark:text-gray-400'}`}>
-                {isToday ? 'Today' : weekday}
+                {isToday ? t(locale, 'Today', 'Bugün') : weekday}
               </span>
               <span className="mt-1 text-xl font-bold leading-none">{dayNum}</span>
               <span className={`mt-0.5 text-[11px] ${isSelected ? 'text-gray-300 dark:text-gray-500' : 'text-gray-500 dark:text-gray-400'}`}>
@@ -139,7 +142,7 @@ export default function TurfCalendar({ astroturfId, pricePerHour, slots }: Props
                   ? 'bg-white/10 dark:bg-black/10 text-gray-300 dark:text-gray-600'
                   : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400',
               ].join(' ')}>
-                {availableCount > 0 ? `${availableCount} open` : 'Full'}
+                {availableCount > 0 ? (locale === 'tr' ? `${availableCount} müsait` : `${availableCount} open`) : t(locale, 'Full', 'Dolu')}
               </span>
             </button>
           )
@@ -150,7 +153,7 @@ export default function TurfCalendar({ astroturfId, pricePerHour, slots }: Props
         <h4 className="mb-4 text-base font-bold text-gray-900 dark:text-white">{selectedLabel}</h4>
 
         {selectedSlots.length === 0 ? (
-          <p className="text-sm text-gray-600 dark:text-gray-400">No slots for this day.</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">{t(locale, 'No slots for this day.', 'Bu gün için saat yok.')}</p>
         ) : (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             {selectedSlots.map((slot) => (

@@ -4,10 +4,13 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createSupabaseBrowserClient } from '@/lib/supabase-browser'
 import { useToast } from '@/components/ToastProvider'
+import { useLocale } from '@/components/LocaleProvider'
+import { t } from '@/lib/locale'
 
 export default function CreateTeamForm() {
   const router = useRouter()
   const { showToast } = useToast()
+  const { locale } = useLocale()
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [loading, setLoading] = useState(false)
@@ -27,18 +30,18 @@ export default function CreateTeamForm() {
     if (error) {
       const msg =
         error.message === 'already_in_a_team'
-          ? 'You are already a member of a team.'
+          ? t(locale, 'You are already a member of a team.', 'Zaten bir takımın üyesisin.')
           : error.message === 'already_captain'
-          ? 'You already captain a team.'
+          ? t(locale, 'You already captain a team.', 'Zaten bir takımın kaptanisin.')
           : error.message.includes('teams_name_unique')
-          ? 'That team name is already taken.'
+          ? t(locale, 'That team name is already taken.', 'Bu takım adı zaten alınmış.')
           : error.message
       showToast(msg, 'error')
       setLoading(false)
       return
     }
 
-    showToast('Team created!', 'success')
+    showToast(t(locale, 'Team created!', 'Takım oluşturuldu!'), 'success')
     router.push('/my-team')
     router.refresh()
   }
@@ -47,7 +50,7 @@ export default function CreateTeamForm() {
     <form onSubmit={handleSubmit} className="space-y-5">
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-          Team name <span className="text-red-500">*</span>
+          {t(locale, 'Team name', 'Takım adı')} <span className="text-red-500">*</span>
         </label>
         <input
           type="text"
@@ -55,21 +58,21 @@ export default function CreateTeamForm() {
           onChange={(e) => setName(e.target.value)}
           maxLength={60}
           required
-          placeholder="e.g. Street Kings FC"
+          placeholder={t(locale, 'e.g. Street Kings FC', 'örnek: Sokak Krallari FC')}
           className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-gray-900 dark:focus:border-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-900 dark:focus:ring-gray-400"
         />
       </div>
 
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-          Description <span className="text-gray-400">(optional)</span>
+          {t(locale, 'Description', 'Açıklama')} <span className="text-gray-400">({t(locale, 'optional', 'isteğe bağlı')})</span>
         </label>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           rows={3}
           maxLength={300}
-          placeholder="Tell other teams a bit about yourselves…"
+          placeholder={t(locale, 'Tell other teams a bit about yourselves…', 'Diğer takımlara kendinizden biraz bahsedin…')}
           className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-gray-900 dark:focus:border-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-900 dark:focus:ring-gray-400"
         />
       </div>
@@ -79,7 +82,7 @@ export default function CreateTeamForm() {
         disabled={loading || !name.trim()}
         className="w-full rounded-xl bg-gray-900 dark:bg-white py-2.5 text-sm font-semibold text-white dark:text-gray-900 transition hover:opacity-90 disabled:opacity-50"
       >
-        {loading ? 'Creating…' : 'Create team'}
+        {loading ? t(locale, 'Creating…', 'Oluşturuluyor…') : t(locale, 'Create team', 'Takım oluştur')}
       </button>
     </form>
   )

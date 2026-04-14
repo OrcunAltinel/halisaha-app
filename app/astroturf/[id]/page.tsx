@@ -3,6 +3,8 @@ import Link from 'next/link'
 import TurfCalendar from '@/components/TurfCalendar'
 import ReviewsList from '@/components/ReviewsList'
 import TurfImageGallery from '@/components/TurfImageGallery'
+import { t } from '@/lib/locale'
+import { getRequestLocale } from '@/lib/locale-server'
 import { createSupabaseServerClient } from '@/lib/supabase'
 
 type Astroturf = {
@@ -38,6 +40,7 @@ export default async function AstroturfDetailPage({
 }: {
   params: Promise<{ id: string }>
 }) {
+  const locale = await getRequestLocale()
   const supabase = await createSupabaseServerClient()
   const { id } = await params
 
@@ -95,7 +98,7 @@ export default async function AstroturfDetailPage({
           href="/hali-sahalar"
           className="mb-4 inline-flex items-center text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors"
         >
-          ← Back to astroturfs
+          {t(locale, '← Back to astroturfs', '← Halı sahalara dön')}
         </Link>
 
         {/* Header */}
@@ -115,12 +118,12 @@ export default async function AstroturfDetailPage({
               <div className="mt-3 flex items-center gap-2">
                 <span className="text-yellow-400 text-lg">{'★'.repeat(Math.round(avgRating))}{'☆'.repeat(5 - Math.round(avgRating))}</span>
                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  {avgRating.toFixed(1)} ({reviews.length} {reviews.length === 1 ? 'review' : 'reviews'})
+                  {avgRating.toFixed(1)} ({locale === 'tr' ? `${reviews.length} yorum` : `${reviews.length} ${reviews.length === 1 ? 'review' : 'reviews'}`})
                 </span>
               </div>
             )}
             <p className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">
-              ₺{turf.price_per_hour} / hour
+              ₺{turf.price_per_hour} {t(locale, '/ hour', '/ saat')}
             </p>
             {turf.description && (
               <p className="mt-4 whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-300">
@@ -129,7 +132,7 @@ export default async function AstroturfDetailPage({
             )}
             {turf.phone && (
               <p className="mt-3 text-sm text-gray-600 dark:text-gray-400">
-                Contact: <span className="font-medium text-gray-900 dark:text-white">{turf.phone}</span>
+                {t(locale, 'Contact:', 'İletişim:')} <span className="font-medium text-gray-900 dark:text-white">{turf.phone}</span>
               </p>
             )}
           </div>
@@ -137,7 +140,7 @@ export default async function AstroturfDetailPage({
 
         {/* Booking calendar */}
         <div>
-          <h2 className="mb-4 text-2xl font-black tracking-tight text-gray-900 dark:text-white">Available Time Slots</h2>
+          <h2 className="mb-4 text-2xl font-black tracking-tight text-gray-900 dark:text-white">{t(locale, 'Available Time Slots', 'Müsait Saatler')}</h2>
           <TurfCalendar
             astroturfId={turf.id}
             pricePerHour={turf.price_per_hour}
@@ -147,8 +150,8 @@ export default async function AstroturfDetailPage({
 
         {/* Reviews */}
         <div className="mt-10">
-          <h2 className="mb-6 text-2xl font-bold text-gray-900 dark:text-white">Reviews</h2>
-          <ReviewsList reviews={reviews} />
+          <h2 className="mb-6 text-2xl font-bold text-gray-900 dark:text-white">{t(locale, 'Reviews', 'Yorumlar')}</h2>
+          <ReviewsList reviews={reviews} locale={locale} />
         </div>
       </div>
     </main>

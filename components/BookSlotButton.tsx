@@ -1,6 +1,8 @@
 'use client'
 
 import { createSupabaseBrowserClient } from '@/lib/supabase-browser'
+import { useLocale } from '@/components/LocaleProvider'
+import { t } from '@/lib/locale'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
@@ -22,6 +24,7 @@ export default function BookSlotButton({
   const [loading, setLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
   const [successMsg, setSuccessMsg] = useState('')
+  const { locale } = useLocale()
 
   const handleBook = async () => {
     if (!isAvailable || loading) return
@@ -50,7 +53,7 @@ export default function BookSlotButton({
       return
     }
 
-    setSuccessMsg('Request submitted. Awaiting admin approval.')
+    setSuccessMsg(t(locale, 'Request submitted. Awaiting admin approval.', 'Talep gönderildi. Yönetici onayı bekleniyor.'))
     setLoading(false)
     router.refresh()
   }
@@ -61,7 +64,7 @@ export default function BookSlotButton({
         className="cursor-not-allowed rounded-lg bg-gray-200 dark:bg-gray-700 px-4 py-2 text-sm text-gray-500 dark:text-gray-400"
         disabled
       >
-        Unavailable
+        {t(locale, 'Unavailable', 'Müsait değil')}
       </button>
     )
   }
@@ -75,7 +78,7 @@ export default function BookSlotButton({
         disabled={loading}
         className="rounded-lg bg-green-600 px-4 py-2 text-sm text-white hover:bg-green-700 disabled:opacity-60"
       >
-        {loading ? 'Sending request...' : 'Request booking'}
+        {loading ? t(locale, 'Sending request...', 'Talep gönderiliyor...') : t(locale, 'Request booking', 'Rezervasyon iste')}
       </button>
     </div>
   )

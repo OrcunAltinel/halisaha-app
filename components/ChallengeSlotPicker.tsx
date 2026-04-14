@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createSupabaseBrowserClient } from '@/lib/supabase-browser'
+import { useLocale } from '@/components/LocaleProvider'
+import { t } from '@/lib/locale'
 import { formatTime, todayStr } from '@/lib/date-helpers'
 
 type TimeSlot = {
@@ -44,6 +46,7 @@ function buildDateStrip(days: number) {
 
 export default function ChallengeSlotPicker({ astroturfId, pricePerHour, onSlotSelected }: Props) {
   const today = todayStr()
+  const { locale } = useLocale()
   const [selectedDate, setSelectedDate] = useState(today)
   const [slots, setSlots] = useState<TimeSlot[]>([])
   const [loading, setLoading] = useState(true)
@@ -51,21 +54,23 @@ export default function ChallengeSlotPicker({ astroturfId, pricePerHour, onSlotS
 
   useEffect(() => {
     let mounted = true
-    setLoading(true)
-    supabase
-      .from('time_slots')
-      .select('id, slot_date, start_time, end_time, is_available, price')
-      .eq('astroturf_id', astroturfId)
-      .eq('is_available', true)
-      .gte('slot_date', today)
-      .order('slot_date', { ascending: true })
-      .order('start_time', { ascending: true })
-      .then(({ data }) => {
-        if (mounted) {
-          setSlots((data ?? []) as TimeSlot[])
-          setLoading(false)
-        }
-      })
+    const loadSlots = async () => {
+      setLoading(true)
+      const { data } = await supabase
+        .from('time_slots')
+        .select('id, slot_date, start_time, end_time, is_available, price')
+        .eq('astroturf_id', astroturfId)
+        .eq('is_available', true)
+        .gte('slot_date', today)
+        .order('slot_date', { ascending: true })
+        .order('start_time', { ascending: true })
+
+      if (!mounted) return
+      setSlots((data ?? []) as TimeSlot[])
+      setLoading(false)
+    }
+
+    loadSlots()
     return () => { mounted = false }
   }, [astroturfId, today])
 
@@ -86,8 +91,8 @@ export default function ChallengeSlotPicker({ astroturfId, pricePerHour, onSlotS
   const selectedLabel = useMemo(() => {
     const [y, m, d] = selectedDate.split('-').map(Number)
     const dt = new Date(y, m - 1, d)
-    return dt.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
-  }, [selectedDate])
+    return dt.toLocaleDateString(locale === 'tr' ? 'tr-TR' : 'en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
+  }, [locale, selectedDate])
 
   function scrollStrip(dir: 'left' | 'right') {
     const el = stripRef.current
@@ -103,7 +108,7 @@ export default function ChallengeSlotPicker({ astroturfId, pricePerHour, onSlotS
   return (
     <div className="rounded-2xl bg-white dark:bg-gray-900 p-5 shadow-sm ring-1 ring-gray-100 dark:ring-gray-800">
       <div className="mb-4 flex items-center justify-between">
-        <h3 className="text-base font-bold text-gray-900 dark:text-white">Pick a date & slot</h3>
+        <h3 className="text-base font-bold text-gray-900 dark:text-white">{t(locale, 'Pick a date & slot', 'Tarih ve saat seç')}</h3>
         <div className="hidden gap-2 sm:flex">
           <button onClick={() => scrollStrip('left')} className="rounded-lg border border-gray-200 dark:border-gray-700 px-2 py-1 text-xs text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800">
             ←
@@ -131,11 +136,11 @@ export default function ChallengeSlotPicker({ astroturfId, pricePerHour, onSlotS
               }`}
             >
               <span className="text-xs font-medium uppercase">
-                {date.toLocaleDateString('en-GB', { weekday: 'short' })}
+                {date.toLocaleDateString(locale === 'tr' ? 'tr-TR' : 'en-GB', { weekday: 'short' })}
               </span>
               <span className="text-lg font-bold leading-tight">{date.getDate()}</span>
               <span className={`text-xs mt-0.5 ${count > 0 ? 'text-green-500' : 'opacity-40'}`}>
-                {count > 0 ? `${count} free` : 'none'}
+                {count > 0 ? (locale === 'tr' ? `${count} bos` : `${count} free`) : t(locale, 'none', 'yok')}
               </span>
             </button>
           )
@@ -149,9 +154,9 @@ export default function ChallengeSlotPicker({ astroturfId, pricePerHour, onSlotS
         </p>
 
         {loading ? (
-          <p className="text-sm text-gray-500 dark:text-gray-400">Loading slots…</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t(locale, 'Loading slots…', 'Saatler yükleniyor…')}</p>
         ) : selectedSlots.length === 0 ? (
-          <p className="text-sm text-gray-500 dark:text-gray-400">No available slots on this day.</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t(locale, 'No available slots on this day.', 'Bu gün müsait saat yok.')}</p>
         ) : (
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
             {selectedSlots.map((slot) => (

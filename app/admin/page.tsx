@@ -6,9 +6,12 @@ import Link from 'next/link'
 import { createSupabaseBrowserClient } from '@/lib/supabase-browser'
 import { getAdminTurfs, type AdminTurf } from '@/lib/admin'
 import FootballLoader from '@/components/FootballLoader'
+import { useLocale } from '@/components/LocaleProvider'
+import { t } from '@/lib/locale'
 
 export default function AdminHomePage() {
   const router = useRouter()
+  const { locale } = useLocale()
   const [turfs, setTurfs] = useState<AdminTurf[]>([])
   const [loading, setLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState('')
@@ -35,7 +38,7 @@ export default function AdminHomePage() {
       if (!mounted) return
 
       if (adminTurfs.length === 0) {
-        setErrorMessage('You are not an admin of any turf.')
+        setErrorMessage(t(locale, 'You are not an admin of any turf.', 'Herhangi bir sahanın yöneticisi değilsin.'))
         setLoading(false)
         return
       }
@@ -48,17 +51,17 @@ export default function AdminHomePage() {
     return () => {
       mounted = false
     }
-  }, [router])
+  }, [locale, router])
 
   return (
     <main className="min-h-screen bg-gray-200 dark:bg-gray-950 px-6 py-10">
       <div className="mx-auto max-w-5xl">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white">Admin Panel</h1>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">Manage the turfs you own.</p>
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white">{t(locale, 'Admin Panel', 'Yönetim Paneli')}</h1>
+          <p className="mt-2 text-gray-600 dark:text-gray-400">{t(locale, 'Manage the turfs you own.', 'Sahip olduğun sahaları yönet.')}</p>
         </div>
 
-        {loading && <FootballLoader message="Loading your pitches…" />}
+        {loading && <FootballLoader message={t(locale, 'Loading your pitches…', 'Sahalarin yükleniyor…')} />}
 
         {!loading && errorMessage && (
           <div className="rounded-2xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 p-6 shadow-sm">
@@ -75,17 +78,17 @@ export default function AdminHomePage() {
                 className="rounded-2xl border dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm transition hover:shadow-md"
               >
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                  {t.astroturfs?.name || 'Turf'}
+                  {t.astroturfs?.name || t(locale, 'Turf', 'Saha')}
                 </h2>
                 <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                  {t.astroturfs?.address || 'No address'}
+                  {t.astroturfs?.address || t(locale, 'No address', 'Adres yok')}
                 </p>
                 <p className="mt-3 text-sm text-gray-800 dark:text-gray-200">
-                  <span className="font-semibold">Hourly price:</span>{' '}
+                  <span className="font-semibold">{t(locale, 'Hourly price:', 'Saatlik ücret:')}</span>{' '}
                   {t.astroturfs?.price_per_hour ?? '-'} TL
                 </p>
                 <p className="mt-1 text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                  Role: {t.role}
+                  {t(locale, 'Role:', 'Rol:')} {t.role}
                 </p>
               </Link>
             ))}

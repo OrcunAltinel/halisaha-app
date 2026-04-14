@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createSupabaseBrowserClient } from '@/lib/supabase-browser'
+import { useLocale } from '@/components/LocaleProvider'
+import { t } from '@/lib/locale'
 
 type Props = {
   applicationId: string
@@ -13,6 +15,7 @@ type ModalMode = 'approve' | 'reject' | null
 export default function ApplicationActions({ applicationId }: Props) {
   const router = useRouter()
   const supabase = createSupabaseBrowserClient()
+  const { locale } = useLocale()
 
   const [mode, setMode] = useState<ModalMode>(null)
   const [notes, setNotes] = useState('')
@@ -54,7 +57,7 @@ export default function ApplicationActions({ applicationId }: Props) {
     } catch (err) {
       console.error('[ApplicationActions] rpc error:', err)
       setError(
-        err instanceof Error ? err.message : 'Something went wrong. Please try again.'
+        err instanceof Error ? err.message : t(locale, 'Something went wrong. Please try again.', 'Bir şeyler ters gitti. Lütfen tekrar dene.')
       )
     } finally {
       setSubmitting(false)
@@ -69,14 +72,14 @@ export default function ApplicationActions({ applicationId }: Props) {
           onClick={() => openModal('reject')}
           className="rounded-lg border border-red-200 dark:border-red-800 bg-white dark:bg-gray-900 px-4 py-2 text-sm font-semibold text-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
         >
-          Reject
+          {t(locale, 'Reject', 'Reddet')}
         </button>
         <button
           type="button"
           onClick={() => openModal('approve')}
           className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700"
         >
-          Approve
+          {t(locale, 'Approve', 'Onayla')}
         </button>
       </div>
 
@@ -92,17 +95,17 @@ export default function ApplicationActions({ applicationId }: Props) {
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-              {mode === 'approve' ? 'Approve application' : 'Reject application'}
+              {mode === 'approve' ? t(locale, 'Approve application', 'Başvuruyu onayla') : t(locale, 'Reject application', 'Başvuruyu reddet')}
             </h3>
             <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
               {mode === 'approve'
-                ? 'This will create a live pitch on the platform and assign the applicant as its owner. The owner will need to add time slots before players can book.'
-                : 'The applicant will see the reason for rejection on their "My applications" page.'}
+                ? t(locale, 'This will create a live pitch on the platform and assign the applicant as its owner. The owner will need to add time slots before players can book.', 'Bu islem platformda canli bir saha oluşturur ve başvuru sahibini sahibi olarak atar. Oyuncular rezervasyon yapmadan once sahibin saat eklemesi gerekir.')
+                : t(locale, 'The applicant will see the reason for rejection on their "My applications" page.', 'Başvuru sahibi reddedilme nedenini "Başvurularım" sayfasında görecek.')}
             </p>
 
             <div className="mt-4">
               <label className="mb-1 block text-sm font-semibold text-gray-900 dark:text-white">
-                {mode === 'approve' ? 'Notes (optional)' : 'Reason (optional)'}
+                {mode === 'approve' ? t(locale, 'Notes (optional)', 'Notlar (isteğe bağlı)') : t(locale, 'Reason (optional)', 'Sebep (isteğe bağlı)')}
               </label>
               <textarea
                 value={notes}
@@ -111,8 +114,8 @@ export default function ApplicationActions({ applicationId }: Props) {
                 maxLength={500}
                 placeholder={
                   mode === 'approve'
-                    ? 'Any notes you want the owner to see…'
-                    : 'Let the applicant know why this was rejected…'
+                    ? t(locale, 'Any notes you want the owner to see…', 'Sahibin görmesini istedigin notlar…')
+                    : t(locale, 'Let the applicant know why this was rejected…', 'Başvuru sahibine neden reddedildigini bildir…')
                 }
                 className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-gray-900 dark:focus:border-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-900 dark:focus:ring-gray-400"
               />
@@ -131,7 +134,7 @@ export default function ApplicationActions({ applicationId }: Props) {
                 disabled={submitting}
                 className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50"
               >
-                Cancel
+                {t(locale, 'Cancel', 'İptal')}
               </button>
               <button
                 type="button"
@@ -144,10 +147,10 @@ export default function ApplicationActions({ applicationId }: Props) {
                 }`}
               >
                 {submitting
-                  ? 'Working…'
+                  ? t(locale, 'Working…', 'İşleniyor…')
                   : mode === 'approve'
-                  ? 'Confirm approve'
-                  : 'Confirm reject'}
+                  ? t(locale, 'Confirm approve', 'Onayi onayla')
+                  : t(locale, 'Confirm reject', 'Reddi onayla')}
               </button>
             </div>
           </div>

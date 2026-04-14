@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { t, type Locale } from '@/lib/locale'
 
 type Astroturf = {
   id: string
@@ -13,7 +14,13 @@ type Astroturf = {
   reviewCount?: number
 }
 
-export default function AstroturfCard({ field }: { field: Astroturf }) {
+export default function AstroturfCard({
+  field,
+  locale,
+}: {
+  field: Astroturf
+  locale: Locale
+}) {
   const thumbnail = field.image_urls?.[0] ?? field.image_url ?? null
 
   return (
@@ -29,7 +36,7 @@ export default function AstroturfCard({ field }: { field: Astroturf }) {
         <div>
           <h3 className="text-xl font-semibold text-gray-900 dark:text-white">{field.name}</h3>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            {field.location_name || 'Unknown location'}
+            {field.location_name || t(locale, 'Unknown location', 'Bilinmeyen konum')}
           </p>
           {field.avgRating != null && (
             <div className="mt-1 flex items-center gap-1.5">
@@ -44,7 +51,7 @@ export default function AstroturfCard({ field }: { field: Astroturf }) {
         </div>
 
         <div className="rounded-full bg-green-100 dark:bg-green-900/30 px-3 py-1 text-sm font-medium text-green-700 dark:text-green-400">
-          Active
+          {t(locale, 'Active', 'Aktif')}
         </div>
       </div>
 
@@ -57,14 +64,14 @@ export default function AstroturfCard({ field }: { field: Astroturf }) {
       <div className="mt-5 flex items-center justify-between">
         <p className="text-lg font-black text-gray-900 dark:text-white">
           <span className="text-green-600 dark:text-green-400">₺</span>{field.price_per_hour}
-          <span className="text-sm font-normal text-gray-500 dark:text-gray-400"> / hr</span>
+          <span className="text-sm font-normal text-gray-500 dark:text-gray-400"> {t(locale, '/ hr', '/ saat')}</span>
         </p>
 
         <Link
           href={`/astroturf/${field.id}`}
           className="rounded-xl bg-green-800 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-900"
         >
-          View details
+          {t(locale, 'View details', 'Detaylari gör')}
         </Link>
       </div>
     </div>

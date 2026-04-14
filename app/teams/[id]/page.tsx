@@ -22,6 +22,16 @@ type ChallengeEntry = {
   created_at: string
 }
 
+type ChallengeRow = {
+  id: string
+  status: string
+  created_at: string
+  challenger_team_id: string
+  challenged_team_id: string
+  time_slots: { slot_date: string | null; start_time: string | null; end_time: string | null } | null
+  astroturfs: { name: string | null } | null
+}
+
 export default async function TeamProfilePage({
   params,
 }: {
@@ -78,7 +88,7 @@ export default async function TeamProfilePage({
   const teamNameMap = new Map<string, string>()
   for (const t of teamNames ?? []) teamNameMap.set(t.id, t.name)
 
-  const challenges: ChallengeEntry[] = (challengesData ?? []).map((c: any) => ({
+  const challenges: ChallengeEntry[] = ((challengesData ?? []) as ChallengeRow[]).map((c) => ({
     id: c.id,
     status: c.status,
     astroturf_name: c.astroturfs?.name ?? '',

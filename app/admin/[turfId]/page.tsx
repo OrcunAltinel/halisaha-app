@@ -13,6 +13,8 @@ import {
 import ConfirmModal from '@/components/ConfirmModal'
 import { useToast } from '@/components/ToastProvider'
 import FootballLoader from '@/components/FootballLoader'
+import { t, translateCancellationActor, translateStatus } from '@/lib/locale'
+import { useLocale } from '@/components/LocaleProvider'
 
 type AdminReservation = {
   id: string
@@ -36,6 +38,7 @@ type TurfInfo = {
 
 export default function AdminTurfPage() {
   const router = useRouter()
+  const { locale } = useLocale()
   const params = useParams<{ turfId: string }>()
   const turfId = params.turfId
 
@@ -84,7 +87,7 @@ export default function AdminTurfPage() {
       .maybeSingle()
 
     if (adminError || !adminRow) {
-      setErrorMessage('You do not have access to this turf.')
+      setErrorMessage(t(locale, 'You do not have access to this turf.', 'Bu sahaya erisim yetkin yok.'))
       setLoading(false)
       return
     }
@@ -96,7 +99,7 @@ export default function AdminTurfPage() {
       .single()
 
     if (turfError || !turfData) {
-      setErrorMessage('Turf not found.')
+      setErrorMessage(t(locale, 'Turf not found.', 'Saha bulunamadı.'))
       setLoading(false)
       return
     }
@@ -198,7 +201,7 @@ export default function AdminTurfPage() {
       prev.map((r) => (r.id === reservationId ? { ...r, status: 'rejected' } : r))
     )
     setActingId(null)
-    showToast('Booking rejected.')
+    showToast(t(locale, 'Booking rejected.', 'Rezervasyon reddedildi.'))
   }
 
   const handleAdminCancel = (reservationId: string) => {
@@ -238,14 +241,14 @@ export default function AdminTurfPage() {
       )
     )
     setActingId(null)
-    showToast('Reservation cancelled.')
+    showToast(t(locale, 'Reservation cancelled.', 'Rezervasyon iptal edildi.'))
   }
 
   const handleSavePrice = async () => {
     if (!userId || !turf) return
     const parsed = Number(newPrice)
     if (isNaN(parsed) || parsed < 0) {
-      setPriceMessage('Enter a valid non-negative number.')
+      setPriceMessage(t(locale, 'Enter a valid non-negative number.', 'Geçerli ve negatif olmayan bir sayi gir.'))
       return
     }
 
@@ -267,7 +270,7 @@ export default function AdminTurfPage() {
     }
 
     setTurf({ ...turf, price_per_hour: parsed })
-    setPriceMessage('Price updated.')
+    setPriceMessage(t(locale, 'Price updated.', 'Ücret güncellendi.'))
   }
 
   const runGenerator = async (startDate: string, endDate: string) => {
@@ -286,7 +289,7 @@ export default function AdminTurfPage() {
       open >= close
     ) {
       setGeneratorMessage(
-        'Opening hour must be 0-23, closing hour must be 1-24, and opening < closing.'
+        t(locale, 'Opening hour must be 0-23, closing hour must be 1-24, and opening < closing.', 'Açılış saati 0-23, kapanış saati 1-24 arasında olmalı ve açılış < kapanış olmalıdir.')
       )
       return
     }
@@ -311,7 +314,7 @@ export default function AdminTurfPage() {
       return
     }
 
-    setGeneratorMessage(`Created ${data ?? 0} new slots.`)
+    setGeneratorMessage(locale === 'tr' ? `${data ?? 0} yeni saat oluşturuldu.` : `Created ${data ?? 0} new slots.`)
   }
 
   const handleBulkGenerate = async () => {
@@ -331,7 +334,7 @@ export default function AdminTurfPage() {
 
   const handleSingleDayGenerate = async () => {
     if (!singleDate) {
-      setGeneratorMessage('Please pick a date.')
+      setGeneratorMessage(t(locale, 'Please pick a date.', 'Lütfen bir tarih seç.'))
       return
     }
     await runGenerator(singleDate, singleDate)
@@ -384,11 +387,52 @@ export default function AdminTurfPage() {
     return Array.from({ length: max - min + 1 }, (_, i) => min + i)
   }, [reservations])
 
-  const shiftCalendar = (days: number) => {
-    const d = new Date(calendarStart + 'T00:00:00')
-    d.setDate(d.getDate() + days)
-    setCalendarStart(d.toISOString().split('T')[0])
-    setSelectedRes(null)
+  const renderReservationCard = (r: AdminReservation) => {
+    const displayStatus = effectiveStatus(r.status, r.time_slots?.slot_date)
+
+    return (
+      <div key={r.id} className="rounded-2xl border dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="text-sm text-gray-800 dark:text-gray-200">
+            <p>
+              <span className="font-semibold">
+                {formatDateLabel(r.time_slots?.slot_date || '', locale)}
+              </span>{' '}
+              {formatTime(r.time_slots?.start_time)} – {formatTime(r.time_slots?.end_time)}
+            </p>
+            <p className="text-gray-600 dark:text-gray-400">
+              {locale === 'tr' ? `${r.total_price} TL · kullanıcı ${r.user_id.slice(0, 8)}...` : `${r.total_price} TL · user ${r.user_id.slice(0, 8)}...`}
+            </p>
+            {r.status === 'cancelled' && r.cancelled_by && (
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                {locale === 'tr'
+                  ? `${translateCancellationActor(locale, r.cancelled_by)} tarafindan iptal edildi`
+                  : `Cancelled by ${translateCancellationActor(locale, r.cancelled_by)}`}
+                {r.cancellation_reason ? ` — "${r.cancellation_reason}"` : ''}
+              </p>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <span
+              className={`rounded-full px-4 py-2 text-sm font-semibold ${statusColor(
+                displayStatus
+              )}`}
+            >
+              {translateStatus(locale, displayStatus)}
+            </span>
+            {r.status === 'confirmed' && dateBucket(r.time_slots?.slot_date) !== 'past' && (
+              <button
+                onClick={() => handleAdminCancel(r.id)}
+                disabled={actingId === r.id}
+                className="rounded-xl border border-red-300 dark:border-red-800 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50"
+              >
+                {actingId === r.id ? '...' : t(locale, 'Cancel', 'İptal et')}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    )
   }
 
   const shortDateLabel = (dateStr: string) => {
@@ -402,9 +446,9 @@ export default function AdminTurfPage() {
     <>
     {modal?.type === 'reject' && (
       <ConfirmModal
-        title="Reject booking request?"
-        message="This will reject the reservation and free up the time slot."
-        confirmLabel="Reject"
+        title={t(locale, 'Reject booking request?', 'Rezervasyon talebini reddet?')}
+        message={t(locale, 'This will reject the reservation and free up the time slot.', 'Bu islem rezervasyonu reddeder ve saati boşa cikarir.')}
+        confirmLabel={t(locale, 'Reject', 'Reddet')}
         variant="danger"
         loading={actingId === modal.reservationId}
         onConfirm={confirmReject}
@@ -413,12 +457,12 @@ export default function AdminTurfPage() {
     )}
     {modal?.type === 'cancel' && (
       <ConfirmModal
-        title="Cancel reservation?"
-        message="This will cancel the confirmed reservation and free up the time slot."
-        confirmLabel="Cancel reservation"
+        title={t(locale, 'Cancel reservation?', 'Rezervasyonu iptal et?')}
+        message={t(locale, 'This will cancel the confirmed reservation and free up the time slot.', 'Bu islem onaylı rezervasyonu iptal eder ve saati boşa cikarir.')}
+        confirmLabel={t(locale, 'Cancel reservation', 'Rezervasyonu iptal et')}
         variant="danger"
         withReason
-        reasonPlaceholder="Reason for cancellation (optional)"
+        reasonPlaceholder={t(locale, 'Reason for cancellation (optional)', 'İptal nedeni (isteğe bağlı)')}
         loading={actingId === modal.reservationId}
         onConfirm={confirmAdminCancel}
         onClose={() => setModal(null)}
@@ -427,12 +471,12 @@ export default function AdminTurfPage() {
     <main className="min-h-screen bg-gray-200 dark:bg-gray-950 px-6 py-10">
       <div className="mx-auto max-w-5xl">
         <Link href="/admin" className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
-          ← Back to admin home
+          {t(locale, '← Back to admin home', '← Yönetim anasayfasina don')}
         </Link>
 
         {loading && (
           <div className="mt-6 rounded-2xl border dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm">
-            <FootballLoader message="Loading pitch data…" />
+            <FootballLoader message={t(locale, 'Loading pitch data…', 'Saha verileri yükleniyor…')} />
           </div>
         )}
 
@@ -451,11 +495,11 @@ export default function AdminTurfPage() {
 
             {/* Price settings */}
             <section className="mb-10 rounded-2xl border dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Turf Settings</h2>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">{t(locale, 'Turf Settings', 'Saha Ayarları')}</h2>
               <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end">
                 <div className="flex-1">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Hourly price (TL)
+                    {t(locale, 'Hourly price (TL)', 'Saatlik ücret (TL)')}
                   </label>
                   <input
                     type="number"
@@ -471,26 +515,26 @@ export default function AdminTurfPage() {
                   disabled={savingPrice}
                   className="rounded-xl bg-gray-900 dark:bg-white px-5 py-2 text-sm font-semibold text-white dark:text-gray-900 hover:bg-gray-700 dark:hover:bg-gray-200 disabled:opacity-50"
                 >
-                  {savingPrice ? 'Saving...' : 'Save price'}
+                  {savingPrice ? t(locale, 'Saving...', 'Kaydediliyor...') : t(locale, 'Save price', 'Ücreti kaydet')}
                 </button>
               </div>
               {priceMessage && <p className="mt-3 text-sm text-gray-700 dark:text-gray-300">{priceMessage}</p>}
               <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
-                Current price: {turf.price_per_hour} TL/hour
+                {locale === 'tr' ? `Mevcut ücret: ${turf.price_per_hour} TL/saat` : `Current price: ${turf.price_per_hour} TL/hour`}
               </p>
             </section>
 
             {/* Slot generator */}
             <section className="mb-10 rounded-2xl border dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Slot Generator</h2>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">{t(locale, 'Slot Generator', 'Saat Uretici')}</h2>
               <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                Set your opening hours and create 1-hour time slots. Existing slots are skipped.
+                {t(locale, 'Set your opening hours and create 1-hour time slots. Existing slots are skipped.', 'Açılış saatlerini belirle ve 1 saatlik zaman dilimleri oluştur. Var olan saatler atlanır.')}
               </p>
 
               <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Opening hour (0–23)
+                    {t(locale, 'Opening hour (0–23)', 'Açılış saati (0–23)')}
                   </label>
                   <input
                     type="number"
@@ -503,7 +547,7 @@ export default function AdminTurfPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Closing hour (1–24)
+                    {t(locale, 'Closing hour (1–24)', 'Kapanis saati (1–24)')}
                   </label>
                   <input
                     type="number"
@@ -518,27 +562,27 @@ export default function AdminTurfPage() {
 
               <div className="mt-6 space-y-4">
                 <div className="rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-                  <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">Bulk: next 30 days</p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">{t(locale, 'Bulk: next 30 days', 'Toplu: sonraki 30 gün')}</p>
                   <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    Generates slots from today through 30 days ahead.
+                    {t(locale, 'Generates slots from today through 30 days ahead.', 'Bugünden itibaren 30 günluk saatler oluşturur.')}
                   </p>
                   <button
                     onClick={handleBulkGenerate}
                     disabled={generating}
                     className="mt-3 rounded-xl bg-gray-900 dark:bg-white px-5 py-2 text-sm font-semibold text-white dark:text-gray-900 hover:bg-gray-700 dark:hover:bg-gray-200 disabled:opacity-50"
                   >
-                    {generating ? 'Generating...' : 'Generate next 30 days'}
+                    {generating ? t(locale, 'Generating...', 'Oluşturuluyor...') : t(locale, 'Generate next 30 days', 'Sonraki 30 günu oluştur')}
                   </button>
                 </div>
 
                 <div className="rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-                  <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">Single day</p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">{t(locale, 'Single day', 'Tek gün')}</p>
                   <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    Pick one specific date to generate slots for.
+                    {t(locale, 'Pick one specific date to generate slots for.', 'Saat oluşturmak için belirli bir tarih seç.')}
                   </p>
                   <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end">
                     <div className="flex-1">
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Date</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t(locale, 'Date', 'Tarih')}</label>
                       <input
                         type="date"
                         value={singleDate}
@@ -551,7 +595,7 @@ export default function AdminTurfPage() {
                       disabled={generating}
                       className="rounded-xl bg-gray-900 dark:bg-white px-5 py-2 text-sm font-semibold text-white dark:text-gray-900 hover:bg-gray-700 dark:hover:bg-gray-200 disabled:opacity-50"
                     >
-                      {generating ? 'Generating...' : 'Generate for date'}
+                      {generating ? t(locale, 'Generating...', 'Oluşturuluyor...') : t(locale, 'Generate for date', 'Tarih için oluştur')}
                     </button>
                   </div>
                 </div>
@@ -565,12 +609,12 @@ export default function AdminTurfPage() {
             {/* Pending requests (all) */}
             <section className="mb-10">
               <h2 className="mb-4 text-2xl font-bold text-gray-900 dark:text-white">
-                Pending Requests ({pendingReservations.length})
+                {t(locale, 'Pending Requests', 'Bekleyen Talepler')} ({pendingReservations.length})
               </h2>
 
               {pendingReservations.length === 0 && (
                 <div className="rounded-2xl border dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm">
-                  <p className="text-gray-700 dark:text-gray-300">No pending requests.</p>
+                  <p className="text-gray-700 dark:text-gray-300">{t(locale, 'No pending requests.', 'Bekleyen talep yok.')}</p>
                 </div>
               )}
 
@@ -587,29 +631,29 @@ export default function AdminTurfPage() {
                       <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
                         <div>
                           <p className="text-sm text-gray-500 dark:text-gray-400">
-                            Reservation #{r.id.slice(0, 8)}
+                            {locale === 'tr' ? `Rezervasyon #${r.id.slice(0, 8)}` : `Reservation #${r.id.slice(0, 8)}`}
                             {isPastPending && (
                               <span className="ml-2 rounded-full bg-orange-200 dark:bg-orange-900/40 px-2 py-0.5 text-xs font-semibold text-orange-800 dark:text-orange-400">
-                                past date
+                                {t(locale, 'past date', 'geçmiş tarih')}
                               </span>
                             )}
                           </p>
                           <div className="mt-2 space-y-1 text-sm text-gray-800 dark:text-gray-200">
                             <p>
-                              <span className="font-semibold">Date:</span>{' '}
-                              {formatDateLabel(r.time_slots?.slot_date || '')}
+                              <span className="font-semibold">{t(locale, 'Date:', 'Tarih:')}</span>{' '}
+                              {formatDateLabel(r.time_slots?.slot_date || '', locale)}
                             </p>
                             <p>
-                              <span className="font-semibold">Time:</span>{' '}
+                              <span className="font-semibold">{t(locale, 'Time:', 'Saat:')}</span>{' '}
                               {formatTime(r.time_slots?.start_time)} –{' '}
                               {formatTime(r.time_slots?.end_time)}
                             </p>
                             <p>
-                              <span className="font-semibold">Price:</span>{' '}
+                              <span className="font-semibold">{t(locale, 'Price:', 'Ücret:')}</span>{' '}
                               {r.total_price} TL
                             </p>
                             <p className="text-xs text-gray-500 dark:text-gray-400">
-                              User: {r.user_profiles?.username ?? r.user_id.slice(0, 8) + '…'}
+                              {locale === 'tr' ? `Kullanıcı: ${r.user_id.slice(0, 8)}...` : `User: ${r.user_id.slice(0, 8)}...`}
                             </p>
                           </div>
                         </div>
@@ -620,7 +664,7 @@ export default function AdminTurfPage() {
                               r.status
                             )}`}
                           >
-                            {r.status}
+                            {translateStatus(locale, r.status)}
                           </span>
                           <div className="flex gap-2">
                             <button
@@ -628,14 +672,14 @@ export default function AdminTurfPage() {
                               disabled={actingId === r.id}
                               className="rounded-xl bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700 disabled:opacity-50"
                             >
-                              {actingId === r.id ? '...' : 'Approve'}
+                              {actingId === r.id ? '...' : t(locale, 'Approve', 'Onayla')}
                             </button>
                             <button
                               onClick={() => handleReject(r.id)}
                               disabled={actingId === r.id}
                               className="rounded-xl border border-red-300 dark:border-red-800 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50"
                             >
-                              Reject
+                              {t(locale, 'Reject', 'Reddet')}
                             </button>
                           </div>
                         </div>
@@ -648,29 +692,17 @@ export default function AdminTurfPage() {
 
             {/* Reservation calendar */}
             <section>
-              <h2 className="mb-4 text-2xl font-bold text-gray-900 dark:text-white">Reservations</h2>
+              <h2 className="mb-4 text-2xl font-bold text-gray-900 dark:text-white">{t(locale, 'Reservations', 'Rezervasyonlar')}</h2>
 
-              <div className="rounded-2xl border dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
-                {/* Calendar navigation */}
-                <div className="flex items-center justify-between px-5 py-3 border-b dark:border-gray-800">
-                  <button
-                    onClick={() => shiftCalendar(-7)}
-                    className="rounded-xl border dark:border-gray-700 px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
-                  >
-                    ← Prev week
-                  </button>
-                  <button
-                    onClick={() => { setCalendarStart(todayStr); setSelectedRes(null) }}
-                    className="rounded-xl px-3 py-1.5 text-sm font-semibold text-green-700 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 transition"
-                  >
-                    Today
-                  </button>
-                  <button
-                    onClick={() => shiftCalendar(7)}
-                    className="rounded-xl border dark:border-gray-700 px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
-                  >
-                    Next week →
-                  </button>
+              <div className="mb-4 flex flex-wrap gap-2">
+                {tabButton('past', t(locale, 'Past', 'Geçmiş'), bucketed.past.length)}
+                {tabButton('today', t(locale, 'Today', 'Bugün'), bucketed.today.length)}
+                {tabButton('upcoming', t(locale, 'Upcoming', 'Yaklasan'), bucketed.upcoming.length)}
+              </div>
+
+              {visibleList.length === 0 ? (
+                <div className="rounded-2xl border dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm">
+                  <p className="text-gray-700 dark:text-gray-300">{t(locale, 'No reservations in this tab.', 'Bu sekmede rezervasyon yok.')}</p>
                 </div>
 
                 {/* Grid */}

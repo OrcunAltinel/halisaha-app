@@ -1,3 +1,4 @@
+import { getIntlLocale, t, type Locale } from '@/lib/locale'
 import StarRating from './StarRating'
 
 type Review = {
@@ -10,6 +11,7 @@ type Review = {
 
 type Props = {
   reviews: Review[]
+  locale: Locale
 }
 
 function avgRating(reviews: Review[]) {
@@ -17,11 +19,11 @@ function avgRating(reviews: Review[]) {
   return reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
 }
 
-export default function ReviewsList({ reviews }: Props) {
+export default function ReviewsList({ reviews, locale }: Props) {
   if (reviews.length === 0) {
     return (
       <p className="text-sm text-gray-500 dark:text-gray-400">
-        No reviews yet. Be the first to leave one after your visit!
+        {t(locale, 'No reviews yet. Be the first to leave one after your visit!', 'Henüz yorum yok. Ziyaretinden sonra ilk yorumu sen birak!')}
       </p>
     )
   }
@@ -38,7 +40,9 @@ export default function ReviewsList({ reviews }: Props) {
         <div>
           <StarRating value={Math.round(avg)} size="md" />
           <p className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
-            {reviews.length} {reviews.length === 1 ? 'review' : 'reviews'}
+            {locale === 'tr'
+              ? `${reviews.length} yorum`
+              : `${reviews.length} ${reviews.length === 1 ? 'review' : 'reviews'}`}
           </p>
         </div>
       </div>
@@ -46,8 +50,8 @@ export default function ReviewsList({ reviews }: Props) {
       {/* List */}
       <div className="space-y-4">
         {reviews.map((review) => {
-          const displayName = review.user_profiles?.username ?? 'Anonymous'
-          const date = new Date(review.created_at).toLocaleDateString('en-GB', {
+          const displayName = review.user_profiles?.username ?? t(locale, 'Anonymous', 'Anonim')
+          const date = new Date(review.created_at).toLocaleDateString(getIntlLocale(locale), {
             day: 'numeric',
             month: 'short',
             year: 'numeric',

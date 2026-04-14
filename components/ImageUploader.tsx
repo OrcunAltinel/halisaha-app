@@ -3,6 +3,8 @@
 import { useRef, useState } from 'react'
 import imageCompression from 'browser-image-compression'
 import { createSupabaseBrowserClient } from '@/lib/supabase-browser'
+import { useLocale } from '@/components/LocaleProvider'
+import { t } from '@/lib/locale'
 
 type Props = {
   userId: string
@@ -25,6 +27,7 @@ export default function ImageUploader({
   disabled = false,
 }: Props) {
   const supabase = createSupabaseBrowserClient()
+  const { locale } = useLocale()
   const inputRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -44,7 +47,9 @@ export default function ImageUploader({
     // Enforce total limit
     if (files.length > slotsLeft) {
       setError(
-        `You can only add ${slotsLeft} more image${slotsLeft === 1 ? '' : 's'}.`
+        locale === 'tr'
+          ? `Yalnizca ${slotsLeft} resim daha ekleyebilirsin.`
+          : `You can only add ${slotsLeft} more image${slotsLeft === 1 ? '' : 's'}.`
       )
       return
     }
@@ -52,11 +57,15 @@ export default function ImageUploader({
     // Validate types and sizes up front
     for (const file of files) {
       if (!ACCEPTED_TYPES.includes(file.type)) {
-        setError(`"${file.name}" is not a supported image type. Use JPEG, PNG, or WebP.`)
+        setError(locale === 'tr'
+          ? `"${file.name}" desteklenmeyen bir görsel turu. JPEG, PNG veya WebP kullan.`
+          : `"${file.name}" is not a supported image type. Use JPEG, PNG, or WebP.`)
         return
       }
       if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
-        setError(`"${file.name}" is too large. Max ${MAX_FILE_SIZE_MB}MB per file.`)
+        setError(locale === 'tr'
+          ? `"${file.name}" cok buyuk. Dosya basi en fazla ${MAX_FILE_SIZE_MB}MB olabilir.`
+          : `"${file.name}" is too large. Max ${MAX_FILE_SIZE_MB}MB per file.`)
         return
       }
     }
@@ -103,7 +112,7 @@ export default function ImageUploader({
       onChange([...value, ...uploadedUrls])
     } catch (err) {
       console.error('[ImageUploader] upload error:', err)
-      setError(err instanceof Error ? err.message : 'Upload failed. Please try again.')
+      setError(err instanceof Error ? err.message : t(locale, 'Upload failed. Please try again.', 'Yükleme başarısız oldu. Lütfen tekrar dene.'))
     } finally {
       setUploading(false)
     }
@@ -137,12 +146,12 @@ export default function ImageUploader({
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={url}
-              alt="Pitch photo"
+              alt={t(locale, 'Pitch photo', 'Saha fotoğrafı')}
               className="h-full w-full object-cover"
             />
             {idx === 0 && (
               <span className="absolute left-1.5 top-1.5 rounded-full bg-black/70 px-2 py-0.5 text-[10px] font-semibold text-white">
-                Thumbnail
+                {t(locale, 'Thumbnail', 'Kapak')}
               </span>
             )}
             <button
@@ -150,9 +159,9 @@ export default function ImageUploader({
               onClick={() => handleRemove(url)}
               disabled={disabled}
               className="absolute right-1.5 top-1.5 rounded-full bg-black/60 px-2 py-1 text-[11px] font-semibold text-white opacity-0 transition group-hover:opacity-100 focus:opacity-100 disabled:opacity-50"
-              aria-label="Remove image"
+              aria-label={t(locale, 'Remove image', 'Görseli kaldir')}
             >
-              Remove
+              {t(locale, 'Remove', 'Kaldir')}
             </button>
           </div>
         ))}
@@ -165,7 +174,7 @@ export default function ImageUploader({
             className="flex aspect-square flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300 transition hover:border-gray-400 dark:hover:border-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {uploading ? (
-              <span className="text-xs font-medium">Uploading…</span>
+              <span className="text-xs font-medium">{t(locale, 'Uploading…', 'Yükleniyor…')}</span>
             ) : (
               <>
                 <svg
@@ -178,7 +187,7 @@ export default function ImageUploader({
                 >
                   <path d="M12 5v14M5 12h14" />
                 </svg>
-                <span className="text-xs font-medium">Add photo</span>
+                <span className="text-xs font-medium">{t(locale, 'Add photo', 'Foto ekle')}</span>
                 <span className="text-[10px] text-gray-500 dark:text-gray-400">
                   {value.length}/{maxImages}
                 </span>
@@ -202,8 +211,9 @@ export default function ImageUploader({
       )}
 
       <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-        Up to {maxImages} photos. JPEG, PNG, or WebP. Images are automatically resized to keep upload sizes small.
-        The first photo will be used as the thumbnail on the listings page.
+        {locale === 'tr'
+          ? `En fazla ${maxImages} foto. JPEG, PNG veya WebP. Yükleme boyutunu küçük tutmak için görseller otomatik yeniden boyutlandirilir. İlk fotoğraf listeleme sayfasında kapak olarak kullanilir.`
+          : `Up to ${maxImages} photos. JPEG, PNG, or WebP. Images are automatically resized to keep upload sizes small. The first photo will be used as the thumbnail on the listings page.`}
       </p>
     </div>
   )

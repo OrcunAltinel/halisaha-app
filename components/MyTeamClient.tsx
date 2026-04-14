@@ -1,12 +1,15 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createSupabaseBrowserClient } from '@/lib/supabase-browser'
 import { useToast } from '@/components/ToastProvider'
 import ConfirmModal from '@/components/ConfirmModal'
 import EditTeamModal from '@/components/EditTeamModal'
 import { formatDateLabel, formatTime } from '@/lib/date-helpers'
+import { useLocale } from '@/components/LocaleProvider'
+import { t, translateStatus } from '@/lib/locale'
 
 type Member = {
   user_id: string
@@ -74,6 +77,7 @@ export default function MyTeamClient({
 }: Props) {
   const router = useRouter()
   const { showToast } = useToast()
+  const { locale } = useLocale()
 
   const [members, setMembers] = useState(initialMembers)
   const [teamName, setTeamName] = useState(team.name)
@@ -114,13 +118,13 @@ export default function MyTeamClient({
     const { error } = await supabase.rpc('update_team', { p_name: name, p_description: description || null })
     setEditLoading(false)
     if (error) {
-      showToast(error.message.includes('teams_name_unique') ? 'That team name is already taken.' : error.message, 'error')
+      showToast(error.message.includes('teams_name_unique') ? t(locale, 'That team name is already taken.', 'Bu takım adı zaten alınmış.') : error.message, 'error')
       return
     }
     setTeamName(name)
     setTeamDescription(description || null)
     setShowEditModal(false)
-    showToast('Team updated!', 'success')
+    showToast(t(locale, 'Team updated!', 'Takım güncellendi!'), 'success')
   }
 
   // ── Leave team ──
@@ -130,10 +134,10 @@ export default function MyTeamClient({
     const { error } = await supabase.rpc('leave_team')
     setLeaveLoading(false)
     if (error) {
-      showToast(error.message === 'captain_cannot_leave' ? 'Captains cannot leave their team.' : error.message, 'error')
+      showToast(error.message === 'captain_cannot_leave' ? t(locale, 'Captains cannot leave their team.', 'Kaptanlar takımdan ayrilamaz.') : error.message, 'error')
       return
     }
-    showToast('You have left the team.')
+    showToast(t(locale, 'You have left the team.', 'Takımdan ayrıldin.'))
     router.push('/teams')
     router.refresh()
   }
@@ -146,7 +150,7 @@ export default function MyTeamClient({
     setRemoveLoading(false)
     if (error) { showToast(error.message, 'error'); return }
     setMembers((prev) => prev.filter((m) => m.user_id !== userId))
-    showToast('Member removed.')
+    showToast(t(locale, 'Member removed.', 'Üye kaldırıldı.'))
   }
 
   // ── Join requests ──
@@ -156,7 +160,7 @@ export default function MyTeamClient({
     const { error } = await supabase.rpc('accept_join_request', { p_request_id: requestId })
     setRequestActionLoading(false)
     if (error) {
-      showToast(error.message === 'user_already_in_a_team' ? 'That user already joined another team.' : error.message, 'error')
+      showToast(error.message === 'user_already_in_a_team' ? t(locale, 'That user already joined another team.', 'Bu kullanıcı zaten başka bir takıma katıldı.') : error.message, 'error')
       return
     }
     const accepted = joinRequests.find((r) => r.id === requestId)
@@ -164,7 +168,7 @@ export default function MyTeamClient({
     if (accepted) {
       setMembers((prev) => [...prev, { user_id: accepted.user_id, display_name: accepted.display_name, joined_at: new Date().toISOString() }])
     }
-    showToast('Request accepted — member added!', 'success')
+    showToast(t(locale, 'Request accepted — member added!', 'Talep kabul edildi — üye eklendi!'), 'success')
   }
 
   async function handleRejectRequest(requestId: string) {
@@ -174,7 +178,7 @@ export default function MyTeamClient({
     setRequestActionLoading(false)
     if (error) { showToast(error.message, 'error'); return }
     setJoinRequests((prev) => prev.filter((r) => r.id !== requestId))
-    showToast('Request rejected.')
+    showToast(t(locale, 'Request rejected.', 'Talep reddedildi.'))
   }
 
   // ── Invite links ──
@@ -188,7 +192,7 @@ export default function MyTeamClient({
     setLinkLoading(false)
     if (error) { showToast(error.message, 'error'); return }
     setInviteLinks((prev) => [data as InviteLink, ...prev])
-    showToast('Invite link created!', 'success')
+    showToast(t(locale, 'Invite link created!', 'Davet bağlantısı oluşturuldu!'), 'success')
   }
 
   async function handleRevokeLink(linkId: string) {
@@ -198,7 +202,7 @@ export default function MyTeamClient({
     setRevokeLoading(false)
     if (error) { showToast(error.message, 'error'); return }
     setInviteLinks((prev) => prev.filter((l) => l.id !== linkId))
-    showToast('Invite link revoked.')
+    showToast(t(locale, 'Invite link revoked.', 'Davet bağlantısı iptal edildi.'))
   }
 
   function copyLink(token: string) {
@@ -215,11 +219,11 @@ export default function MyTeamClient({
     const { error } = await supabase.rpc('accept_challenge', { p_challenge_id: challengeId })
     setAcceptChallengeLoading(false)
     if (error) {
-      showToast(error.message === 'slot_no_longer_available' ? 'That slot is no longer available.' : error.message, 'error')
+      showToast(error.message === 'slot_no_longer_available' ? t(locale, 'That slot is no longer available.', 'Bu saat artık müsait değil.') : error.message, 'error')
       return
     }
     setIncoming((prev) => prev.map((c) => c.id === challengeId ? { ...c, status: 'accepted' } : c))
-    showToast('Challenge accepted! Reservation pending approval.', 'success')
+    showToast(t(locale, 'Challenge accepted! Reservation pending approval.', 'Meydan okuma kabul edildi! Rezervasyon onay bekliyor.'), 'success')
     router.refresh()
   }
 
@@ -230,7 +234,7 @@ export default function MyTeamClient({
     setRejectChallengeLoading(false)
     if (error) { showToast(error.message, 'error'); return }
     setIncoming((prev) => prev.map((c) => c.id === challengeId ? { ...c, status: 'rejected' } : c))
-    showToast('Challenge rejected.')
+    showToast(t(locale, 'Challenge rejected.', 'Meydan okuma reddedildi.'))
   }
 
   async function handleCancelChallenge(challengeId: string) {
@@ -240,7 +244,7 @@ export default function MyTeamClient({
     setCancelChallengeLoading(false)
     if (error) { showToast(error.message, 'error'); return }
     setOutgoing((prev) => prev.map((c) => c.id === challengeId ? { ...c, status: 'cancelled' } : c))
-    showToast('Challenge cancelled.')
+    showToast(t(locale, 'Challenge cancelled.', 'Meydan okuma iptal edildi.'))
   }
 
   function openResultModal(challengeId: string) {
@@ -282,14 +286,14 @@ export default function MyTeamClient({
   return (
     <>
       {showEditModal && <EditTeamModal team={{ name: teamName, description: teamDescription }} onSave={handleEditSave} onClose={() => setShowEditModal(false)} loading={editLoading} />}
-      {leaveModal && <ConfirmModal title="Leave team?" message="Are you sure you want to leave this team?" confirmLabel="Leave team" variant="danger" loading={leaveLoading} onConfirm={handleLeave} onClose={() => setLeaveModal(false)} />}
-      {removeModal && <ConfirmModal title="Remove member?" message="Are you sure you want to remove this member?" confirmLabel="Remove" variant="danger" loading={removeLoading} onConfirm={() => handleRemoveMember(removeModal)} onClose={() => setRemoveModal(null)} />}
-      {acceptChallengeModal && <ConfirmModal title="Accept challenge?" message="Accepting will automatically book the time slot. The reservation will be pending admin approval." confirmLabel="Accept" variant="default" loading={acceptChallengeLoading} onConfirm={() => handleAcceptChallenge(acceptChallengeModal)} onClose={() => setAcceptChallengeModal(null)} />}
-      {rejectChallengeModal && <ConfirmModal title="Reject challenge?" message="The challenging team will be notified that you declined." confirmLabel="Reject" variant="danger" loading={rejectChallengeLoading} onConfirm={() => handleRejectChallenge(rejectChallengeModal)} onClose={() => setRejectChallengeModal(null)} />}
-      {cancelChallengeModal && <ConfirmModal title="Cancel challenge?" message="Are you sure you want to cancel this challenge?" confirmLabel="Cancel challenge" variant="danger" loading={cancelChallengeLoading} onConfirm={() => handleCancelChallenge(cancelChallengeModal)} onClose={() => setCancelChallengeModal(null)} />}
-      {acceptRequestId && <ConfirmModal title="Accept join request?" message="This user will be added to your team." confirmLabel="Accept" variant="default" loading={requestActionLoading} onConfirm={() => handleAcceptRequest(acceptRequestId)} onClose={() => setAcceptRequestId(null)} />}
-      {rejectRequestId && <ConfirmModal title="Reject join request?" message="This user's request will be declined." confirmLabel="Reject" variant="danger" loading={requestActionLoading} onConfirm={() => handleRejectRequest(rejectRequestId)} onClose={() => setRejectRequestId(null)} />}
-      {revokeId && <ConfirmModal title="Revoke invite link?" message="Anyone with this link will no longer be able to join using it." confirmLabel="Revoke" variant="danger" loading={revokeLoading} onConfirm={() => handleRevokeLink(revokeId)} onClose={() => setRevokeId(null)} />}
+      {leaveModal && <ConfirmModal title={t(locale, 'Leave team?', 'Takımdan ayrıl?')} message={t(locale, 'Are you sure you want to leave this team?', 'Bu takımdan ayrilmak istedigine emin misin?')} confirmLabel={t(locale, 'Leave team', 'Takımdan ayrıl')} variant="danger" loading={leaveLoading} onConfirm={handleLeave} onClose={() => setLeaveModal(false)} />}
+      {removeModal && <ConfirmModal title={t(locale, 'Remove member?', 'Üyeyi kaldır?')} message={t(locale, 'Are you sure you want to remove this member?', 'Bu üyeyi kaldırmak istediğine emin misin?')} confirmLabel={t(locale, 'Remove', 'Kaldir')} variant="danger" loading={removeLoading} onConfirm={() => handleRemoveMember(removeModal)} onClose={() => setRemoveModal(null)} />}
+      {acceptChallengeModal && <ConfirmModal title={t(locale, 'Accept challenge?', 'Meydan okumayı kabul et?')} message={t(locale, 'Accepting will automatically book the time slot. The reservation will be pending admin approval.', 'Kabul edersen saat otomatik rezerve edilir. Rezervasyon yönetici onayı bekler.')} confirmLabel={t(locale, 'Accept', 'Kabul et')} variant="default" loading={acceptChallengeLoading} onConfirm={() => handleAcceptChallenge(acceptChallengeModal)} onClose={() => setAcceptChallengeModal(null)} />}
+      {rejectChallengeModal && <ConfirmModal title={t(locale, 'Reject challenge?', 'Meydan okumayı reddet?')} message={t(locale, 'The challenging team will be notified that you declined.', 'Karşı takım talebi reddettiğin konusunda bilgilendirilecek.')} confirmLabel={t(locale, 'Reject', 'Reddet')} variant="danger" loading={rejectChallengeLoading} onConfirm={() => handleRejectChallenge(rejectChallengeModal)} onClose={() => setRejectChallengeModal(null)} />}
+      {cancelChallengeModal && <ConfirmModal title={t(locale, 'Cancel challenge?', 'Meydan okumayı iptal et?')} message={t(locale, 'Are you sure you want to cancel this challenge?', 'Bu meydan okumayi iptal etmek istedigine emin misin?')} confirmLabel={t(locale, 'Cancel challenge', 'Meydan okumayı iptal et')} variant="danger" loading={cancelChallengeLoading} onConfirm={() => handleCancelChallenge(cancelChallengeModal)} onClose={() => setCancelChallengeModal(null)} />}
+      {acceptRequestId && <ConfirmModal title={t(locale, 'Accept join request?', 'Katılım talebini kabul et?')} message={t(locale, 'This user will be added to your team.', 'Bu kullanıcı takımına eklenecek.')} confirmLabel={t(locale, 'Accept', 'Kabul et')} variant="default" loading={requestActionLoading} onConfirm={() => handleAcceptRequest(acceptRequestId)} onClose={() => setAcceptRequestId(null)} />}
+      {rejectRequestId && <ConfirmModal title={t(locale, 'Reject join request?', 'Katılım talebini reddet?')} message={t(locale, 'This user\'s request will be declined.', 'Bu kullanıcınin talebi reddedilecek.')} confirmLabel={t(locale, 'Reject', 'Reddet')} variant="danger" loading={requestActionLoading} onConfirm={() => handleRejectRequest(rejectRequestId)} onClose={() => setRejectRequestId(null)} />}
+      {revokeId && <ConfirmModal title={t(locale, 'Revoke invite link?', 'Davet bağlantısını iptal et?')} message={t(locale, 'Anyone with this link will no longer be able to join using it.', 'Bu bağlantıya sahip olanlar artık bununla katılamayacak.')} confirmLabel={t(locale, 'Revoke', 'İptal et')} variant="danger" loading={revokeLoading} onConfirm={() => handleRevokeLink(revokeId)} onClose={() => setRevokeId(null)} />}
 
       {/* Result entry modal */}
       {resultModal && (() => {
@@ -363,13 +367,13 @@ export default function MyTeamClient({
               <div>
                 <div className="flex items-center gap-3">
                   <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{teamName}</h1>
-                  {isCaptain && <span className="rounded-full bg-yellow-100 dark:bg-yellow-900/30 px-3 py-1 text-xs font-semibold text-yellow-700 dark:text-yellow-400">Captain</span>}
+                  {isCaptain && <span className="rounded-full bg-yellow-100 dark:bg-yellow-900/30 px-3 py-1 text-xs font-semibold text-yellow-700 dark:text-yellow-400">{t(locale, 'Captain', 'Kaptan')}</span>}
                 </div>
                 {teamDescription && <p className="mt-2 text-gray-600 dark:text-gray-400">{teamDescription}</p>}
               </div>
               <div className="flex gap-2 shrink-0">
-                {isCaptain && <button onClick={() => setShowEditModal(true)} className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition">Edit</button>}
-                {!isCaptain && <button onClick={() => setLeaveModal(true)} disabled={leaveLoading} className="rounded-lg border border-red-300 dark:border-red-800 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50">Leave team</button>}
+                {isCaptain && <button onClick={() => setShowEditModal(true)} className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition">{t(locale, 'Edit', 'Duzenle')}</button>}
+                {!isCaptain && <button onClick={() => setLeaveModal(true)} disabled={leaveLoading} className="rounded-lg border border-red-300 dark:border-red-800 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50">{t(locale, 'Leave team', 'Takımdan ayrıl')}</button>}
               </div>
             </div>
           </div>
@@ -378,18 +382,18 @@ export default function MyTeamClient({
           {isCaptain && (
             <div className="rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-sm ring-1 ring-gray-100 dark:ring-gray-800">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                Join Requests <span className="ml-1 text-base font-normal text-gray-500 dark:text-gray-400">({joinRequests.length})</span>
+                {t(locale, 'Join Requests', 'Katılım Talepleri')} <span className="ml-1 text-base font-normal text-gray-500 dark:text-gray-400">({joinRequests.length})</span>
               </h2>
               {joinRequests.length === 0 ? (
-                <p className="text-sm text-gray-500 dark:text-gray-400">No pending join requests.</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{t(locale, 'No pending join requests.', 'Bekleyen katılım talebi yok.')}</p>
               ) : (
                 <div className="divide-y dark:divide-gray-800">
                   {joinRequests.map((req) => (
                     <div key={req.id} className="flex items-center justify-between py-3 gap-4">
                       <p className="text-sm font-medium text-gray-900 dark:text-white">{req.display_name}</p>
                       <div className="flex gap-2 shrink-0">
-                        <button onClick={() => setAcceptRequestId(req.id)} disabled={requestActionLoading} className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-700 disabled:opacity-50 transition">Accept</button>
-                        <button onClick={() => setRejectRequestId(req.id)} disabled={requestActionLoading} className="rounded-lg border border-red-300 dark:border-red-700 px-3 py-1.5 text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50 transition">Reject</button>
+                        <button onClick={() => setAcceptRequestId(req.id)} disabled={requestActionLoading} className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-700 disabled:opacity-50 transition">{t(locale, 'Accept', 'Kabul et')}</button>
+                        <button onClick={() => setRejectRequestId(req.id)} disabled={requestActionLoading} className="rounded-lg border border-red-300 dark:border-red-700 px-3 py-1.5 text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50 transition">{t(locale, 'Reject', 'Reddet')}</button>
                       </div>
                     </div>
                   ))}
@@ -402,17 +406,16 @@ export default function MyTeamClient({
           {isCaptain && (
             <div className="rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-sm ring-1 ring-gray-100 dark:ring-gray-800">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Invite Links</h2>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">{t(locale, 'Invite Links', 'Davet Bağlantılari')}</h2>
                 <button onClick={handleGenerateLink} disabled={linkLoading} className="rounded-lg bg-gray-900 dark:bg-white px-4 py-2 text-sm font-semibold text-white dark:text-gray-900 hover:opacity-90 disabled:opacity-50 transition">
-                  {linkLoading ? 'Generating…' : '+ New link'}
+                  {linkLoading ? t(locale, 'Generating…', 'Oluşturuluyor…') : t(locale, '+ New link', '+ Yeni bağlantı')}
                 </button>
               </div>
               {inviteLinks.length === 0 ? (
-                <p className="text-sm text-gray-500 dark:text-gray-400">No invite links yet. Generate one and share it with friends — anyone with the link joins instantly.</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{t(locale, 'No invite links yet. Generate one and share it with friends — anyone with the link joins instantly.', 'Henüz davet bağlantısı yok. Bir tane oluşturup arkadaşlarınla paylaş — bağlantıya sahip olanlar anında katılabilir.')}</p>
               ) : (
                 <div className="space-y-2">
                   {inviteLinks.map((link) => {
-                    const url = typeof window !== 'undefined' ? `${window.location.origin}/teams/join/${link.token}` : `/teams/join/${link.token}`
                     return (
                       <div key={link.id} className="flex items-center gap-2 rounded-lg border dark:border-gray-700 px-3 py-2.5">
                         <code className="flex-1 text-xs text-gray-600 dark:text-gray-400 truncate">
@@ -422,13 +425,13 @@ export default function MyTeamClient({
                           onClick={() => copyLink(link.token)}
                           className="shrink-0 rounded-md border border-gray-300 dark:border-gray-600 px-3 py-1 text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition"
                         >
-                          {copiedToken === link.token ? 'Copied!' : 'Copy'}
+                          {copiedToken === link.token ? t(locale, 'Copied!', 'Kopyalandı!') : t(locale, 'Copy', 'Kopyala')}
                         </button>
                         <button
                           onClick={() => setRevokeId(link.id)}
                           className="shrink-0 text-xs text-red-500 hover:text-red-700 dark:hover:text-red-300 transition"
                         >
-                          Revoke
+                          {t(locale, 'Revoke', 'İptal et')}
                         </button>
                       </div>
                     )
@@ -440,16 +443,16 @@ export default function MyTeamClient({
 
           {/* Members */}
           <div className="rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-sm ring-1 ring-gray-100 dark:ring-gray-800">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Members ({members.length})</h2>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">{t(locale, 'Members', 'Üyeler')} ({members.length})</h2>
             <div className="divide-y dark:divide-gray-800">
               {members.map((member) => (
                 <div key={member.user_id} className="flex items-center justify-between py-3">
                   <div>
                     <p className="text-sm font-medium text-gray-900 dark:text-white">{member.display_name}</p>
-                    {member.user_id === team.captain_id && <p className="text-xs text-yellow-600 dark:text-yellow-400">Captain</p>}
+                    {member.user_id === team.captain_id && <p className="text-xs text-yellow-600 dark:text-yellow-400">{t(locale, 'Captain', 'Kaptan')}</p>}
                   </div>
                   {isCaptain && member.user_id !== currentUserId && (
-                    <button onClick={() => setRemoveModal(member.user_id)} className="text-xs text-red-500 hover:text-red-700 dark:hover:text-red-300 transition">Remove</button>
+                    <button onClick={() => setRemoveModal(member.user_id)} className="text-xs text-red-500 hover:text-red-700 dark:hover:text-red-300 transition">{t(locale, 'Remove', 'Kaldir')}</button>
                   )}
                 </div>
               ))}
@@ -459,25 +462,25 @@ export default function MyTeamClient({
           {/* Received challenges */}
           {isCaptain && (
             <div className="rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-sm ring-1 ring-gray-100 dark:ring-gray-800">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Received Challenges ({incoming.length})</h2>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">{t(locale, 'Received Challenges', 'Gelen Meydan Okumalar')} ({incoming.length})</h2>
               {incoming.length === 0 ? (
-                <p className="text-sm text-gray-500 dark:text-gray-400">No challenges received yet.</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{t(locale, 'No challenges received yet.', 'Henüz gelen meydan okuma yok.')}</p>
               ) : (
                 <div className="space-y-4">
                   {incoming.map((c) => (
                     <div key={c.id} className="rounded-xl border dark:border-gray-700 p-4">
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                         <div className="space-y-1 text-sm">
-                          <p className="font-semibold text-gray-900 dark:text-white">{c.challenger_team_name} challenged you</p>
-                          <p className="text-gray-600 dark:text-gray-400"><span className="font-medium">Pitch:</span> {c.astroturf_name}</p>
-                          <p className="text-gray-600 dark:text-gray-400"><span className="font-medium">When:</span> {formatDateLabel(c.slot_date)}, {formatTime(c.start_time)} – {formatTime(c.end_time)}</p>
+                          <p className="font-semibold text-gray-900 dark:text-white">{locale === 'tr' ? `${c.challenger_team_name} sana meydan okudu` : `${c.challenger_team_name} challenged you`}</p>
+                          <p className="text-gray-600 dark:text-gray-400"><span className="font-medium">{t(locale, 'Pitch:', 'Saha:')}</span> {c.astroturf_name}</p>
+                          <p className="text-gray-600 dark:text-gray-400"><span className="font-medium">{t(locale, 'When:', 'Ne zaman:')}</span> {formatDateLabel(c.slot_date, locale)}, {formatTime(c.start_time)} – {formatTime(c.end_time)}</p>
                           {c.message && <p className="text-gray-500 dark:text-gray-400 italic">&ldquo;{c.message}&rdquo;</p>}
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
                           {c.status === 'pending' ? (
                             <>
-                              <button onClick={() => setAcceptChallengeModal(c.id)} disabled={acceptChallengeLoading} className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700 disabled:opacity-50 transition">Accept</button>
-                              <button onClick={() => setRejectChallengeModal(c.id)} disabled={rejectChallengeLoading} className="rounded-lg border border-red-300 dark:border-red-700 px-4 py-2 text-sm font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50 transition">Reject</button>
+                              <button onClick={() => setAcceptChallengeModal(c.id)} disabled={acceptChallengeLoading} className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700 disabled:opacity-50 transition">{t(locale, 'Accept', 'Kabul et')}</button>
+                              <button onClick={() => setRejectChallengeModal(c.id)} disabled={rejectChallengeLoading} className="rounded-lg border border-red-300 dark:border-red-700 px-4 py-2 text-sm font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50 transition">{t(locale, 'Reject', 'Reddet')}</button>
                             </>
                           ) : c.status === 'accepted' ? (
                             <div className="flex items-center gap-2">
@@ -492,7 +495,7 @@ export default function MyTeamClient({
                               <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusColor(c.status)}`}>played</span>
                             </div>
                           ) : (
-                            <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusColor(c.status)}`}>{c.status}</span>
+                            <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusColor(c.status)}`}>{translateStatus(locale, c.status)}</span>
                           )}
                         </div>
                       </div>
@@ -505,43 +508,26 @@ export default function MyTeamClient({
 
           {/* Outgoing challenges */}
           <div className="rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-sm ring-1 ring-gray-100 dark:ring-gray-800">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Sent Challenges ({outgoing.length})</h2>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">{t(locale, 'Sent Challenges', 'Gönderilen Meydan Okumalar')} ({outgoing.length})</h2>
             {outgoing.length === 0 ? (
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                No challenges sent yet.{isCaptain && <> <a href="/teams" className="underline text-gray-900 dark:text-white">Browse teams</a> to issue one.</>}
-              </p>
-            ) : (
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  {t(locale, 'No challenges sent yet.', 'Henüz gönderilen meydan okuma yok.')}
+                  {isCaptain && <> <Link href="/teams" className="underline text-gray-900 dark:text-white">{t(locale, 'Browse teams', 'Takımlara göz at')}</Link> {t(locale, 'to issue one.', 've bir tane gönder.')}</>}
+                </p>
+              ) : (
               <div className="space-y-4">
                 {outgoing.map((c) => (
                   <div key={c.id} className="rounded-xl border dark:border-gray-700 p-4">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                       <div className="space-y-1 text-sm">
                         <p className="font-semibold text-gray-900 dark:text-white">vs {c.challenged_team_name}</p>
-                        <p className="text-gray-600 dark:text-gray-400"><span className="font-medium">Pitch:</span> {c.astroturf_name}</p>
-                        <p className="text-gray-600 dark:text-gray-400"><span className="font-medium">When:</span> {formatDateLabel(c.slot_date)}, {formatTime(c.start_time)} – {formatTime(c.end_time)}</p>
+                        <p className="text-gray-600 dark:text-gray-400"><span className="font-medium">{t(locale, 'Pitch:', 'Saha:')}</span> {c.astroturf_name}</p>
+                        <p className="text-gray-600 dark:text-gray-400"><span className="font-medium">{t(locale, 'When:', 'Ne zaman:')}</span> {formatDateLabel(c.slot_date, locale)}, {formatTime(c.start_time)} – {formatTime(c.end_time)}</p>
                       </div>
                       <div className="flex items-center gap-3 shrink-0">
-                        {c.status === 'played' ? (
-                          <div className="flex items-center gap-2">
-                            <span className="rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-3 py-1 text-sm font-bold tabular-nums">
-                              {c.challenger_score} – {c.challenged_score}
-                            </span>
-                            <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusColor(c.status)}`}>played</span>
-                          </div>
-                        ) : c.status === 'accepted' ? (
-                          <div className="flex items-center gap-2">
-                            <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusColor(c.status)}`}>{c.status}</span>
-                            {isCaptain && (
-                              <button onClick={() => openResultModal(c.id)} className="rounded-lg border border-gray-300 dark:border-gray-700 px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition">Enter result</button>
-                            )}
-                          </div>
-                        ) : (
-                          <>
-                            <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusColor(c.status)}`}>{c.status}</span>
-                            {c.status === 'pending' && isCaptain && (
-                              <button onClick={() => setCancelChallengeModal(c.id)} disabled={cancelChallengeLoading} className="text-xs text-red-500 hover:text-red-700 dark:hover:text-red-300 disabled:opacity-50 transition">Cancel</button>
-                            )}
-                          </>
+                        <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusColor(c.status)}`}>{translateStatus(locale, c.status)}</span>
+                        {c.status === 'pending' && isCaptain && (
+                          <button onClick={() => setCancelChallengeModal(c.id)} disabled={cancelChallengeLoading} className="text-xs text-red-500 hover:text-red-700 dark:hover:text-red-300 disabled:opacity-50 transition">{t(locale, 'Cancel', 'İptal et')}</button>
                         )}
                       </div>
                     </div>

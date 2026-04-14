@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createSupabaseBrowserClient } from '@/lib/supabase-browser'
 import { useToast } from '@/components/ToastProvider'
+import { getIntlLocale, t } from '@/lib/locale'
+import { useLocale } from '@/components/LocaleProvider'
 
 type Props = {
   userId: string
@@ -39,7 +41,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 const inputClass =
   'w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-gray-900 dark:focus:border-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-900 dark:focus:ring-gray-400'
 
-const saveBtn = (loading: boolean, label = 'Save changes') =>
+const saveBtn = (loading: boolean) =>
   `mt-1 rounded-lg bg-gray-900 dark:bg-white px-4 py-2 text-sm font-semibold text-white dark:text-gray-900 hover:opacity-90 disabled:opacity-50 transition ${loading ? 'opacity-60' : ''}`
 
 export default function ProfileClient({
@@ -51,6 +53,7 @@ export default function ProfileClient({
 }: Props) {
   const router = useRouter()
   const { showToast } = useToast()
+  const { locale } = useLocale()
 
   // Username
   const [username, setUsername] = useState(currentUsername ?? '')
@@ -70,7 +73,7 @@ export default function ProfileClient({
     e.preventDefault()
     const trimmed = username.trim()
     if (!trimmed || trimmed.length < 3) {
-      showToast('Username must be at least 3 characters.', 'error')
+      showToast(t(locale, 'Username must be at least 3 characters.', 'Kullanıcı adı en az 3 karakter olmalı.'), 'error')
       return
     }
     setUsernameLoading(true)
@@ -81,7 +84,7 @@ export default function ProfileClient({
         p_username: trimmed,
       })
       if (!available) {
-        showToast('That username is already taken.', 'error')
+        showToast(t(locale, 'That username is already taken.', 'Bu kullanıcı adı zaten alınmış.'), 'error')
         setUsernameLoading(false)
         return
       }
@@ -96,7 +99,7 @@ export default function ProfileClient({
       showToast(error.message, 'error')
       return
     }
-    showToast('Username updated!', 'success')
+    showToast(t(locale, 'Username updated!', 'Kullanıcı adı güncellendi!'), 'success')
     router.refresh()
   }
 
@@ -113,18 +116,18 @@ export default function ProfileClient({
       showToast(error.message, 'error')
       return
     }
-    showToast('Confirmation sent to your new email address. Click the link to complete the change.', 'success')
+    showToast(t(locale, 'Confirmation sent to your new email address. Click the link to complete the change.', 'Yeni e-posta adresine onay bağlantısı gönderildi. Değişikliği tamamlamak için bağlantıya tıkla.'), 'success')
     setNewEmail('')
   }
 
   async function handlePasswordSave(e: React.FormEvent) {
     e.preventDefault()
     if (newPassword !== confirmPassword) {
-      showToast('New passwords do not match.', 'error')
+      showToast(t(locale, 'New passwords do not match.', 'Yeni şifreler eşleşmiyor.'), 'error')
       return
     }
     if (newPassword.length < 6) {
-      showToast('Password must be at least 6 characters.', 'error')
+      showToast(t(locale, 'Password must be at least 6 characters.', 'Şifre en az 6 karakter olmalı.'), 'error')
       return
     }
     setPasswordLoading(true)
@@ -135,7 +138,7 @@ export default function ProfileClient({
       password: currentPassword,
     })
     if (signInError) {
-      showToast('Current password is incorrect.', 'error')
+      showToast(t(locale, 'Current password is incorrect.', 'Mevcut şifre yanlış.'), 'error')
       setPasswordLoading(false)
       return
     }
@@ -147,13 +150,13 @@ export default function ProfileClient({
       showToast(error.message, 'error')
       return
     }
-    showToast('Password updated!', 'success')
+    showToast(t(locale, 'Password updated!', 'Şifre güncellendi!'), 'success')
     setCurrentPassword('')
     setNewPassword('')
     setConfirmPassword('')
   }
 
-  const memberSince = new Date(joinedAt).toLocaleDateString('en-GB', {
+  const memberSince = new Date(joinedAt).toLocaleDateString(getIntlLocale(locale), {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
@@ -164,44 +167,48 @@ export default function ProfileClient({
       <div className="mx-auto max-w-2xl space-y-6">
 
         <div className="mb-2">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white">Profile</h1>
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white">{t(locale, 'Profile', 'Profil')}</h1>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Member since {memberSince}
+            {locale === 'tr' ? `${memberSince} tarihinden beri üye` : `Member since ${memberSince}`}
           </p>
         </div>
 
         {/* Username */}
-        <Section title="Username">
+        <Section title={t(locale, 'Username', 'Kullanıcı adı')}>
           {!currentUsername && (
             <p className="mb-4 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 px-4 py-2.5 text-sm text-yellow-800 dark:text-yellow-300">
-              You have not set a username yet. Other users see your email address instead.
+              {t(locale, 'You have not set a username yet. Other users see your email address instead.', 'Henüz bir kullanıcı adı belirlemedin. Diğer kullanıcılar bunun yerine e-posta adresini görür.')}
             </p>
           )}
           <form onSubmit={handleUsernameSave}>
-            <Field label="Username">
+            <Field label={t(locale, 'Username', 'Kullanıcı adı')}>
               <input
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 minLength={3}
                 maxLength={30}
-                placeholder="e.g. streetking99"
+                placeholder={t(locale, 'e.g. streetking99', 'örnek: streetking99')}
                 className={inputClass}
               />
             </Field>
             <button type="submit" disabled={usernameLoading} className={saveBtn(usernameLoading)}>
-              {usernameLoading ? 'Saving…' : currentUsername ? 'Update username' : 'Set username'}
+              {usernameLoading
+                ? t(locale, 'Saving…', 'Kaydediliyor…')
+                : currentUsername
+                ? t(locale, 'Update username', 'Kullanıcı adını güncelle')
+                : t(locale, 'Set username', 'Kullanıcı adı belirle')}
             </button>
           </form>
         </Section>
 
         {/* Email */}
-        <Section title="Email address">
+        <Section title={t(locale, 'Email address', 'E-posta adresi')}>
           <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
-            Current: <span className="font-medium text-gray-900 dark:text-white">{currentEmail}</span>
+            {t(locale, 'Current:', 'Mevcut:')} <span className="font-medium text-gray-900 dark:text-white">{currentEmail}</span>
           </p>
           <form onSubmit={handleEmailSave}>
-            <Field label="New email address">
+            <Field label={t(locale, 'New email address', 'Yeni e-posta adresi')}>
               <input
                 type="email"
                 value={newEmail}
@@ -211,22 +218,22 @@ export default function ProfileClient({
               />
             </Field>
             <p className="mb-3 text-xs text-gray-500 dark:text-gray-400">
-              A confirmation link will be sent to the new address.
+              {t(locale, 'A confirmation link will be sent to the new address.', 'Yeni adrese bir onay bağlantısı gönderilecek.')}
             </p>
             <button
               type="submit"
               disabled={emailLoading || !newEmail.trim()}
-              className={saveBtn(emailLoading, 'Change email')}
+              className={saveBtn(emailLoading)}
             >
-              {emailLoading ? 'Sending…' : 'Change email'}
+              {emailLoading ? t(locale, 'Sending…', 'Gönderiliyor…') : t(locale, 'Change email', 'E-postayı değiştir')}
             </button>
           </form>
         </Section>
 
         {/* Password */}
-        <Section title="Password">
+        <Section title={t(locale, 'Password', 'Şifre')}>
           <form onSubmit={handlePasswordSave} className="space-y-4">
-            <Field label="Current password">
+            <Field label={t(locale, 'Current password', 'Mevcut şifre')}>
               <input
                 type="password"
                 value={currentPassword}
@@ -235,7 +242,7 @@ export default function ProfileClient({
                 className={inputClass}
               />
             </Field>
-            <Field label="New password">
+            <Field label={t(locale, 'New password', 'Yeni şifre')}>
               <input
                 type="password"
                 value={newPassword}
@@ -245,7 +252,7 @@ export default function ProfileClient({
                 className={inputClass}
               />
             </Field>
-            <Field label="Confirm new password">
+            <Field label={t(locale, 'Confirm new password', 'Yeni şifreyi doğrula')}>
               <input
                 type="password"
                 value={confirmPassword}
@@ -258,45 +265,45 @@ export default function ProfileClient({
             <button
               type="submit"
               disabled={passwordLoading || !currentPassword || !newPassword || !confirmPassword}
-              className={saveBtn(passwordLoading, 'Change password')}
+              className={saveBtn(passwordLoading)}
             >
-              {passwordLoading ? 'Updating…' : 'Change password'}
+              {passwordLoading ? t(locale, 'Updating…', 'Güncelleniyor…') : t(locale, 'Change password', 'Şifreyi değiştir')}
             </button>
           </form>
         </Section>
 
         {/* Team */}
-        <Section title="Your Team">
+        <Section title={t(locale, 'Your Team', 'Takımın')}>
           {team ? (
             <div className="flex items-center justify-between">
               <div>
                 <p className="font-semibold text-gray-900 dark:text-white">{team.name}</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">You are a member of this team</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{t(locale, 'You are a member of this team', 'Bu takımın bir üyesisin')}</p>
               </div>
               <Link
                 href="/my-team"
                 className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition"
               >
-                Manage
+                {t(locale, 'Manage', 'Yönet')}
               </Link>
             </div>
           ) : (
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                You are not part of any team yet.
+                {t(locale, 'You are not part of any team yet.', 'Henüz herhangi bir takımın parçası değilsin.')}
               </p>
               <div className="flex gap-3">
                 <Link
                   href="/teams/create"
                   className="rounded-lg bg-gray-900 dark:bg-white px-4 py-2 text-sm font-semibold text-white dark:text-gray-900 hover:opacity-90 transition"
                 >
-                  Create a team
+                  {t(locale, 'Create a team', 'Takım oluştur')}
                 </Link>
                 <Link
                   href="/teams"
                   className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition"
                 >
-                  Browse teams
+                  {t(locale, 'Browse teams', 'Takımlara göz at')}
                 </Link>
               </div>
             </div>

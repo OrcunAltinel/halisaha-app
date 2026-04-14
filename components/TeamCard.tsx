@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { t, type Locale } from '@/lib/locale'
 
 type Props = {
   team: {
@@ -9,9 +10,10 @@ type Props = {
     member_count: number
   }
   isCurrentUserTeam: boolean
+  locale: Locale
 }
 
-export default function TeamCard({ team, isCurrentUserTeam }: Props) {
+export default function TeamCard({ team, isCurrentUserTeam, locale }: Props) {
   return (
     <div className="rounded-2xl bg-white dark:bg-gray-900 p-5 shadow-sm transition hover:shadow-md ring-1 ring-gray-100 dark:ring-gray-800 border-l-4 border-green-700">
       <div className="flex items-start justify-between gap-3">
@@ -20,7 +22,7 @@ export default function TeamCard({ team, isCurrentUserTeam }: Props) {
         </h3>
         {isCurrentUserTeam && (
           <span className="shrink-0 rounded-full bg-green-100 dark:bg-green-900/30 px-3 py-1 text-xs font-semibold text-green-700 dark:text-green-400">
-            Your team
+            {t(locale, 'Your team', 'Senin takımın')}
           </span>
         )}
       </div>
@@ -33,14 +35,16 @@ export default function TeamCard({ team, isCurrentUserTeam }: Props) {
 
       <div className="mt-4 flex items-center justify-between">
         <span className="text-sm text-gray-500 dark:text-gray-400">
-          {team.member_count} {team.member_count === 1 ? 'member' : 'members'}
+          {locale === 'tr'
+            ? `${team.member_count} üye`
+            : `${team.member_count} ${team.member_count === 1 ? 'member' : 'members'}`}
         </span>
 
         <Link
           href={`/teams/${team.id}`}
           className="rounded-xl bg-green-800 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-900"
         >
-          View team
+          {t(locale, 'View team', 'Takımı gör')}
         </Link>
       </div>
     </div>

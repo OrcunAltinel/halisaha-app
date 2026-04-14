@@ -3,10 +3,13 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createSupabaseBrowserClient } from '@/lib/supabase-browser'
+import { useLocale } from '@/components/LocaleProvider'
+import { t } from '@/lib/locale'
 
 export default function ResetPasswordForm() {
   const router = useRouter()
   const supabase = createSupabaseBrowserClient()
+  const { locale } = useLocale()
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [message, setMessage] = useState<{ text: string; isError: boolean } | null>(null)
@@ -18,12 +21,12 @@ export default function ResetPasswordForm() {
     setMessage(null)
 
     if (password.length < 8) {
-      setMessage({ text: 'Password must be at least 8 characters.', isError: true })
+      setMessage({ text: t(locale, 'Password must be at least 8 characters.', 'Şifre en az 8 karakter olmalı.'), isError: true })
       return
     }
 
     if (password !== confirm) {
-      setMessage({ text: 'Passwords do not match.', isError: true })
+      setMessage({ text: t(locale, 'Passwords do not match.', 'Şifreler eşleşmiyor.'), isError: true })
       return
     }
 
@@ -46,8 +49,8 @@ export default function ResetPasswordForm() {
     return (
       <div className="mx-auto max-w-md rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-sm text-center">
         <div className="mb-4 text-4xl">✅</div>
-        <h1 className="mb-2 text-2xl font-bold">Password updated</h1>
-        <p className="text-gray-600 dark:text-gray-400">Your password has been changed. Redirecting you to login…</p>
+        <h1 className="mb-2 text-2xl font-bold">{t(locale, 'Password updated', 'Şifre güncellendi')}</h1>
+        <p className="text-gray-600 dark:text-gray-400">{t(locale, 'Your password has been changed. Redirecting you to login…', 'Şifren degistirildi. Giriş sayfasina yönlendiriliyorsun…')}</p>
       </div>
     )
   }
@@ -57,10 +60,10 @@ export default function ResetPasswordForm() {
       onSubmit={handleSubmit}
       className="mx-auto max-w-md rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-sm"
     >
-      <h1 className="mb-6 text-2xl font-bold">Set a new password</h1>
+      <h1 className="mb-6 text-2xl font-bold">{t(locale, 'Set a new password', 'Yeni bir şifre belirle')}</h1>
 
       <div className="mb-4">
-        <label className="mb-2 block text-sm font-medium">New password</label>
+        <label className="mb-2 block text-sm font-medium">{t(locale, 'New password', 'Yeni şifre')}</label>
         <input
           type="password"
           value={password}
@@ -72,7 +75,7 @@ export default function ResetPasswordForm() {
       </div>
 
       <div className="mb-4">
-        <label className="mb-2 block text-sm font-medium">Confirm new password</label>
+        <label className="mb-2 block text-sm font-medium">{t(locale, 'Confirm new password', 'Yeni şifreyi doğrula')}</label>
         <input
           type="password"
           value={confirm}
@@ -94,7 +97,7 @@ export default function ResetPasswordForm() {
         disabled={loading}
         className="w-full rounded-xl bg-black dark:bg-white px-4 py-3 text-white dark:text-black"
       >
-        {loading ? 'Updating...' : 'Update password'}
+        {loading ? t(locale, 'Updating...', 'Güncelleniyor...') : t(locale, 'Update password', 'Şifreyi güncelle')}
       </button>
     </form>
   )

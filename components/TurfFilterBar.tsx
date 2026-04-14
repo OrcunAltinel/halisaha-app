@@ -1,7 +1,9 @@
 'use client'
 
-import { useRouter, useSearchParams, usePathname } from 'next/navigation'
-import { useEffect, useState, useTransition } from 'react'
+import { useRouter, usePathname } from 'next/navigation'
+import { useState, useTransition } from 'react'
+import { useLocale } from '@/components/LocaleProvider'
+import { t } from '@/lib/locale'
 
 type Location = {
   id: string
@@ -25,20 +27,13 @@ export default function TurfFilterBar({
 }: Props) {
   const router = useRouter()
   const pathname = usePathname()
-  const searchParams = useSearchParams()
   const [isPending, startTransition] = useTransition()
+  const { locale } = useLocale()
 
   const [query, setQuery] = useState(initialQuery)
   const [location, setLocation] = useState(initialLocation)
   const [minPrice, setMinPrice] = useState(initialMinPrice)
   const [maxPrice, setMaxPrice] = useState(initialMaxPrice)
-
-  useEffect(() => {
-    setQuery(searchParams.get('q') || '')
-    setLocation(searchParams.get('location') || '')
-    setMinPrice(searchParams.get('minPrice') || '')
-    setMaxPrice(searchParams.get('maxPrice') || '')
-  }, [searchParams])
 
   function buildUrl(overrides: Partial<Record<string, string>>) {
     const params = new URLSearchParams()
@@ -88,27 +83,27 @@ export default function TurfFilterBar({
       <div className="grid gap-3 sm:grid-cols-12">
         <div className="sm:col-span-5">
           <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-            Search
+            {t(locale, 'Search', 'Ara')}
           </label>
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Name, address, keyword…"
+            placeholder={t(locale, 'Name, address, keyword…', 'Ad, adres, anahtar kelime…')}
             className={inputClass}
           />
         </div>
 
         <div className="sm:col-span-3">
           <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-            Location
+            {t(locale, 'Location', 'Konum')}
           </label>
           <select
             value={location}
             onChange={(e) => handleLocationChange(e.target.value)}
             className={inputClass}
           >
-            <option value="">All locations</option>
+            <option value="">{t(locale, 'All locations', 'Tüm konumlar')}</option>
             {locations.map((loc) => (
               <option key={loc.id} value={loc.name}>{loc.name}</option>
             ))}
@@ -117,7 +112,7 @@ export default function TurfFilterBar({
 
         <div className="sm:col-span-2">
           <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-            Min ₺
+            {t(locale, 'Min ₺', 'Min ₺')}
           </label>
           <input
             type="number"
@@ -132,7 +127,7 @@ export default function TurfFilterBar({
 
         <div className="sm:col-span-2">
           <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-            Max ₺
+            {t(locale, 'Max ₺', 'Maks ₺')}
           </label>
           <input
             type="number"
@@ -140,7 +135,7 @@ export default function TurfFilterBar({
             min="0"
             value={maxPrice}
             onChange={(e) => setMaxPrice(e.target.value)}
-            placeholder="Any"
+            placeholder={t(locale, 'Any', 'Fark etmez')}
             className={inputClass}
           />
         </div>
@@ -148,7 +143,11 @@ export default function TurfFilterBar({
 
       <div className="mt-4 flex items-center justify-between gap-3">
         <div className="text-xs text-gray-500 dark:text-gray-400">
-          {isPending ? 'Updating…' : hasActiveFilters ? 'Filters active' : 'No filters'}
+          {isPending
+            ? t(locale, 'Updating…', 'Güncelleniyor…')
+            : hasActiveFilters
+            ? t(locale, 'Filters active', 'Filtreler aktif')
+            : t(locale, 'No filters', 'Filtre yok')}
         </div>
         <div className="flex gap-2">
           {hasActiveFilters && (
@@ -157,14 +156,14 @@ export default function TurfFilterBar({
               onClick={clearFilters}
               className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
             >
-              Clear
+              {t(locale, 'Clear', 'Temizle')}
             </button>
           )}
           <button
             type="submit"
             className="rounded-lg bg-green-800 px-4 py-2 text-sm font-semibold text-white hover:bg-green-900"
           >
-            Apply filters
+            {t(locale, 'Apply filters', 'Filtreleri uygula')}
           </button>
         </div>
       </div>

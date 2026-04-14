@@ -6,15 +6,18 @@ import { useRouter, usePathname } from "next/navigation";
 import type { Session, AuthChangeEvent } from "@supabase/supabase-js";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { useTheme } from "@/components/ThemeProvider";
+import { t } from "@/lib/locale";
+import { useLocale } from "@/components/LocaleProvider";
 
 function ThemeToggle() {
   const { theme, setTheme } = useTheme()
+  const { locale } = useLocale()
   const isDark = theme === 'dark'
 
   return (
     <button
       onClick={() => setTheme(isDark ? 'light' : 'dark')}
-      title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+      title={isDark ? t(locale, 'Switch to light mode', 'Aydınlık moda geç') : t(locale, 'Switch to dark mode', 'Karanlık moda geç')}
       className="flex items-center gap-1 rounded-lg px-2 py-1.5 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
     >
       <span>{isDark ? '🌙' : '☀️'}</span>
@@ -22,9 +25,38 @@ function ThemeToggle() {
   )
 }
 
+function LocaleSwitch() {
+  const { locale, setLocale, isSwitching } = useLocale()
+
+  return (
+    <div className="flex items-center rounded-lg border border-gray-200 dark:border-gray-700 p-0.5">
+      {(['en', 'tr'] as const).map((option) => {
+        const active = option === locale
+        return (
+          <button
+            key={option}
+            type="button"
+            disabled={isSwitching}
+            onClick={() => setLocale(option)}
+            className={`rounded-md px-2.5 py-1 text-xs font-semibold transition ${
+              active
+                ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900'
+                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+            }`}
+            aria-label={option === 'en' ? 'Switch language to English' : 'Dili Turkce yap'}
+          >
+            {option.toUpperCase()}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
 export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
+  const { locale } = useLocale();
 
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState<string | null>(null);
@@ -153,20 +185,20 @@ export default function Navbar() {
             </Link>
 
             <div className="hidden md:flex items-center gap-5">
-              <Link href="/" className={linkClass("/")}>Home</Link>
-              <Link href="/hali-sahalar" className={linkClass("/hali-sahalar")}>Astroturfs</Link>
-              {email && <Link href="/my-reservations" className={linkClass("/my-reservations")}>My Reservations</Link>}
-              {email && <Link href="/my-applications" className={linkClass("/my-applications")}>My Applications</Link>}
-              <Link href="/teams" className={linkClass("/teams")}>Teams</Link>
-              <Link href="/tournaments" className={linkClass("/tournaments")}>Tournaments</Link>
-              {email && <Link href="/my-team" className={linkClass("/my-team")}>My Team</Link>}
-              {email && isAdmin && <Link href="/admin" className={linkClass("/admin")}>Admin</Link>}
-              {email && isSuperAdmin && <Link href="/admin/applications" className={linkClass("/admin/applications")}>Review Applications</Link>}
+              <Link href="/" className={linkClass("/")}>{t(locale, 'Home', 'Ana Sayfa')}</Link>
+              <Link href="/hali-sahalar" className={linkClass("/hali-sahalar")}>{t(locale, 'Astroturfs', 'Halı Sahalar')}</Link>
+              {email && <Link href="/my-reservations" className={linkClass("/my-reservations")}>{t(locale, 'My Reservations', 'Rezervasyonlarım')}</Link>}
+              {email && <Link href="/my-applications" className={linkClass("/my-applications")}>{t(locale, 'My Applications', 'Başvurularım')}</Link>}
+              <Link href="/teams" className={linkClass("/teams")}>{t(locale, 'Teams', 'Takımlar')}</Link>
+              {email && <Link href="/my-team" className={linkClass("/my-team")}>{t(locale, 'My Team', 'Takımım')}</Link>}
+              {email && isAdmin && <Link href="/admin" className={linkClass("/admin")}>{t(locale, 'Admin', 'Yönetim')}</Link>}
+              {email && isSuperAdmin && <Link href="/admin/applications" className={linkClass("/admin/applications")}>{t(locale, 'Review Applications', 'Başvuruları İncele')}</Link>}
             </div>
           </div>
 
           {/* Right: Theme toggle + Auth area */}
           <div className="hidden md:flex items-center gap-2">
+            <LocaleSwitch />
             <ThemeToggle />
             {loading ? (
               <div className="h-8 w-20 bg-gray-100 dark:bg-gray-800 rounded animate-pulse" />
@@ -177,16 +209,16 @@ export default function Navbar() {
                   onClick={handleLogout}
                   className="text-sm px-3 py-1.5 rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                 >
-                  Log out
+                  {t(locale, 'Log out', 'Cikis yap')}
                 </button>
               </>
             ) : (
               <>
                 <Link href="/login" className="text-sm px-3 py-1.5 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
-                  Log in
+                  {t(locale, 'Log in', 'Giriş yap')}
                 </Link>
                 <Link href="/signup" className="text-sm px-3 py-1.5 rounded-md bg-green-800 text-white hover:bg-green-900 transition-colors">
-                  Sign up
+                  {t(locale, 'Sign up', 'Kayıt ol')}
                 </Link>
               </>
             )}
@@ -194,11 +226,12 @@ export default function Navbar() {
 
           {/* Mobile: theme toggle + hamburger */}
           <div className="md:hidden flex items-center gap-1">
+            <LocaleSwitch />
             <ThemeToggle />
             <button
               className="p-2 text-gray-700 dark:text-gray-300"
               onClick={() => setMenuOpen((v) => !v)}
-              aria-label="Toggle menu"
+              aria-label={t(locale, 'Toggle menu', 'Menuyu ac veya kapat')}
             >
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 {menuOpen ? (
@@ -214,15 +247,14 @@ export default function Navbar() {
         {/* Mobile menu */}
         {menuOpen && (
           <div className="md:hidden pb-3 flex flex-col gap-2 border-t border-green-500/30 pt-3">
-            <Link href="/" className={linkClass("/")}>Home</Link>
-            <Link href="/hali-sahalar" className={linkClass("/hali-sahalar")}>Astroturfs</Link>
-            {email && <Link href="/my-reservations" className={linkClass("/my-reservations")}>My Reservations</Link>}
-            {email && <Link href="/my-applications" className={linkClass("/my-applications")}>My Applications</Link>}
-            <Link href="/teams" className={linkClass("/teams")}>Teams</Link>
-            <Link href="/tournaments" className={linkClass("/tournaments")}>Tournaments</Link>
-            {email && <Link href="/my-team" className={linkClass("/my-team")}>My Team</Link>}
-            {email && isAdmin && <Link href="/admin" className={linkClass("/admin")}>Admin</Link>}
-            {email && isSuperAdmin && <Link href="/admin/applications" className={linkClass("/admin/applications")}>Review Applications</Link>}
+            <Link href="/" className={linkClass("/")}>{t(locale, 'Home', 'Ana Sayfa')}</Link>
+            <Link href="/hali-sahalar" className={linkClass("/hali-sahalar")}>{t(locale, 'Astroturfs', 'Halı Sahalar')}</Link>
+            {email && <Link href="/my-reservations" className={linkClass("/my-reservations")}>{t(locale, 'My Reservations', 'Rezervasyonlarım')}</Link>}
+            {email && <Link href="/my-applications" className={linkClass("/my-applications")}>{t(locale, 'My Applications', 'Başvurularım')}</Link>}
+            <Link href="/teams" className={linkClass("/teams")}>{t(locale, 'Teams', 'Takımlar')}</Link>
+            {email && <Link href="/my-team" className={linkClass("/my-team")}>{t(locale, 'My Team', 'Takımım')}</Link>}
+            {email && isAdmin && <Link href="/admin" className={linkClass("/admin")}>{t(locale, 'Admin', 'Yönetim')}</Link>}
+            {email && isSuperAdmin && <Link href="/admin/applications" className={linkClass("/admin/applications")}>{t(locale, 'Review Applications', 'Başvuruları İncele')}</Link>}
 
             <div className="pt-2 border-t border-gray-100 dark:border-gray-800 mt-2">
               {loading ? (
@@ -234,13 +266,13 @@ export default function Navbar() {
                     onClick={handleLogout}
                     className="text-sm px-3 py-1.5 rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 w-fit"
                   >
-                    Log out
+                    {t(locale, 'Log out', 'Cikis yap')}
                   </button>
                 </div>
               ) : (
                 <div className="flex gap-2">
-                  <Link href="/login" className="text-sm px-3 py-1.5 text-gray-700 dark:text-gray-300">Log in</Link>
-                  <Link href="/signup" className="text-sm px-3 py-1.5 rounded-md bg-gray-900 dark:bg-white text-white dark:text-gray-900">Sign up</Link>
+                  <Link href="/login" className="text-sm px-3 py-1.5 text-gray-700 dark:text-gray-300">{t(locale, 'Log in', 'Giriş yap')}</Link>
+                  <Link href="/signup" className="text-sm px-3 py-1.5 rounded-md bg-gray-900 dark:bg-white text-white dark:text-gray-900">{t(locale, 'Sign up', 'Kayıt ol')}</Link>
                 </div>
               )}
             </div>

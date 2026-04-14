@@ -1,5 +1,7 @@
 import AstroturfCard from '@/components/AstroturfCard'
 import TurfFilterBar from '@/components/TurfFilterBar'
+import { t } from '@/lib/locale'
+import { getRequestLocale } from '@/lib/locale-server'
 import { createSupabaseServerClient } from '@/lib/supabase'
 
 type Astroturf = {
@@ -38,6 +40,7 @@ export default async function ListingPage({
 }: {
   searchParams: Promise<SearchParams>
 }) {
+  const locale = await getRequestLocale()
   const supabase = await createSupabaseServerClient()
   const params = await searchParams
 
@@ -106,13 +109,14 @@ export default async function ListingPage({
     <main className="min-h-screen bg-gray-200 dark:bg-gray-950 px-4 py-10 sm:px-6 sm:py-12">
       <div className="mx-auto max-w-6xl">
         <div className="mb-6">
-          <h1 className="text-3xl font-black tracking-tight text-gray-900 dark:text-white md:text-4xl">Astroturfs</h1>
+          <h1 className="text-3xl font-black tracking-tight text-gray-900 dark:text-white md:text-4xl">{t(locale, 'Astroturfs', 'Halı Sahalar')}</h1>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
-            Browse and book astroturf pitches across the island.
+            {t(locale, 'Browse and book astroturf pitches across the island.', 'Ada genelindeki halı sahaları keşfet ve rezerve et.')}
           </p>
         </div>
 
         <TurfFilterBar
+          key={`${q}|${location}|${params.minPrice || ''}|${params.maxPrice || ''}`}
           locations={locations}
           initialQuery={q}
           initialLocation={location}
@@ -122,15 +126,16 @@ export default async function ListingPage({
 
         {error && (
           <div className="mb-6 rounded-xl bg-red-50 dark:bg-red-900/20 p-4 text-sm text-red-700 dark:text-red-400 ring-1 ring-red-200 dark:ring-red-800">
-            Failed to load astroturfs. Please try again.
+            {t(locale, 'Failed to load astroturfs. Please try again.', 'Halı sahalar yüklenemedi. Lütfen tekrar dene.')}
           </div>
         )}
 
         {!error && (
           <div className="mb-4 flex items-center justify-between">
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              {astroturfs.length} {astroturfs.length === 1 ? 'result' : 'results'}
-              {hasActiveFilters ? ' matching your filters' : ''}
+              {locale === 'tr'
+                ? `${astroturfs.length} sonuç${hasActiveFilters ? ' filtrelerinle eşleşen' : ''}`
+                : `${astroturfs.length} ${astroturfs.length === 1 ? 'result' : 'results'}${hasActiveFilters ? ' matching your filters' : ''}`}
             </p>
           </div>
         )}
@@ -138,18 +143,18 @@ export default async function ListingPage({
         {!error && astroturfs.length > 0 && (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {astroturfs.map((field) => (
-              <AstroturfCard key={field.id} field={field} />
+              <AstroturfCard key={field.id} field={field} locale={locale} />
             ))}
           </div>
         )}
 
         {!error && astroturfs.length === 0 && (
           <div className="rounded-2xl bg-white dark:bg-gray-900 p-8 text-center shadow-sm ring-1 ring-gray-100 dark:ring-gray-800">
-            <p className="text-base font-medium text-gray-900 dark:text-white">No astroturfs found</p>
+            <p className="text-base font-medium text-gray-900 dark:text-white">{t(locale, 'No astroturfs found', 'Halı saha bulunamadı')}</p>
             <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
               {hasActiveFilters
-                ? 'Try adjusting your filters or clearing them to see more results.'
-                : 'There are no astroturfs available right now.'}
+                ? t(locale, 'Try adjusting your filters or clearing them to see more results.', 'Daha fazla sonuç görmek için filtreleri değiştirmeyi veya temizlemeyi dene.')
+                : t(locale, 'There are no astroturfs available right now.', 'Şu anda müsait halı saha yok.')}
             </p>
           </div>
         )}

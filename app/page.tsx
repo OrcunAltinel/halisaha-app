@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import LocationSelector from '@/components/LocationSelector'
 import AstroturfCard from '@/components/AstroturfCard'
+import { t } from '@/lib/locale'
+import { getRequestLocale } from '@/lib/locale-server'
 import { createSupabaseServerClient } from '@/lib/supabase'
 
 
@@ -14,6 +16,7 @@ type Astroturf = {
 }
 
 export default async function HomePage() {
+  const locale = await getRequestLocale()
   const supabase = await createSupabaseServerClient()
   const { data } = await supabase
     .from('astroturf_list_view')
@@ -39,17 +42,29 @@ export default async function HomePage() {
           {/* Eyebrow */}
           <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-green-500/30 bg-green-500/10 px-3 py-1">
             <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
-            <span className="text-xs font-semibold uppercase tracking-widest text-green-400">Cyprus Football</span>
+            <span className="text-xs font-semibold uppercase tracking-widest text-green-400">
+              {t(locale, 'Cyprus Football', 'Kıbrıs Futbolu')}
+            </span>
           </div>
 
           <h1 className="max-w-3xl text-4xl font-black leading-tight tracking-tight md:text-6xl">
-            Find &amp; book the best<br />
-            <span className="text-green-400">astroturf pitches</span><br />
-            in Cyprus
+            {locale === 'tr' ? (
+              <>
+                Kıbrıs&apos;ta en iyi<br />
+                <span className="text-green-400">halı sahaları</span><br />
+                keşfet ve rezerve et
+              </>
+            ) : (
+              <>
+                Find &amp; book the best<br />
+                <span className="text-green-400">astroturf pitches</span><br />
+                in Cyprus
+              </>
+            )}
           </h1>
 
           <p className="mt-5 max-w-xl text-base text-gray-400 md:text-lg">
-            Choose your location, explore nearby halısahas, and reserve your slot in seconds.
+            {t(locale, 'Choose your location, explore nearby halısahas, and reserve your slot in seçonds.', 'Konumunu seç, yakınındaki halı sahaları keşfet ve saniyeler içinde yerini ayırt.')}
           </p>
 
           <div className="mt-8 w-full max-w-xl">
@@ -58,13 +73,13 @@ export default async function HomePage() {
 
           <div className="mt-7 flex flex-wrap gap-3 justify-center">
             <Link href="/hali-sahalar" className="rounded-full border border-white/20 px-4 py-1.5 text-sm text-gray-300 hover:border-green-500 hover:text-green-400 transition-colors">
-              Browse all pitches →
+              {t(locale, 'Browse all pitches →', 'Tüm sahaları gör →')}
             </Link>
             <Link href="/teams" className="rounded-full border border-white/20 px-4 py-1.5 text-sm text-gray-300 hover:border-green-500 hover:text-green-400 transition-colors">
-              View teams →
+              {t(locale, 'View teams →', 'Takımları gör →')}
             </Link>
             <Link href="/list-your-pitch" className="rounded-full border border-white/20 px-4 py-1.5 text-sm text-gray-300 hover:border-green-500 hover:text-green-400 transition-colors">
-              List your pitch →
+              {t(locale, 'List your pitch →', 'Sahanı listele →')}
             </Link>
           </div>
         </div>
@@ -74,21 +89,21 @@ export default async function HomePage() {
         <div className="mx-auto max-w-6xl">
           <div className="mb-8 flex items-center justify-between">
             <h2 className="text-2xl font-black tracking-tight text-gray-900 dark:text-white md:text-3xl">
-              Featured Pitches
+              {t(locale, 'Featured Pitches', 'Öne Çıkan Sahalar')}
             </h2>
             <Link href="/hali-sahalar" className="text-sm font-semibold text-green-600 dark:text-green-400 hover:underline">
-              View all →
+              {t(locale, 'View all →', 'Tümünü gör →')}
             </Link>
           </div>
 
           {astroturfs.length > 0 ? (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {astroturfs.map((field) => (
-                <AstroturfCard key={field.id} field={field} />
+                <AstroturfCard key={field.id} field={field} locale={locale} />
               ))}
             </div>
           ) : (
-            <p className="text-gray-500 dark:text-gray-400">No astroturfs yet</p>
+            <p className="text-gray-500 dark:text-gray-400">{t(locale, 'No astroturfs yet', 'Henüz halı saha yok')}</p>
           )}
         </div>
       </section>

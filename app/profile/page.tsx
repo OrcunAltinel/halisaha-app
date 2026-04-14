@@ -2,6 +2,11 @@ import { redirect } from 'next/navigation'
 import { createSupabaseServerClient } from '@/lib/supabase'
 import ProfileClient from '@/components/ProfileClient'
 
+type TeamMembership = {
+  team_id: string
+  teams: { id: string; name: string } | null
+}
+
 export default async function ProfilePage() {
   const supabase = await createSupabaseServerClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -20,7 +25,7 @@ export default async function ProfilePage() {
     .eq('user_id', user.id)
     .maybeSingle()
 
-  const team = (membership as any)?.teams ?? null
+  const team = (membership as TeamMembership | null)?.teams ?? null
 
   return (
     <ProfileClient

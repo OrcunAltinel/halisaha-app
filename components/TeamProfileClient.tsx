@@ -1,12 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createSupabaseBrowserClient } from '@/lib/supabase-browser'
 import { useToast } from '@/components/ToastProvider'
 import ConfirmModal from '@/components/ConfirmModal'
 import { formatDateLabel, formatTime } from '@/lib/date-helpers'
+import { useLocale } from '@/components/LocaleProvider'
+import { t, translateStatus } from '@/lib/locale'
 
 type Member = {
   user_id: string
@@ -62,8 +63,8 @@ export default function TeamProfileClient({
   currentUserCaptainTeamId,
   currentUserJoinRequestStatus: initialRequestStatus,
 }: Props) {
-  const router = useRouter()
   const { showToast } = useToast()
+  const { locale } = useLocale()
   const [requestStatus, setRequestStatus] = useState(initialRequestStatus)
   const [requestLoading, setRequestLoading] = useState(false)
   const [requestModal, setRequestModal] = useState(false)
@@ -79,24 +80,24 @@ export default function TeamProfileClient({
     setRequestLoading(false)
     if (error) {
       showToast(
-        error.message === 'already_in_a_team' ? 'You are already in a team.' :
-        error.message === 'request_already_pending' ? 'You already have a pending request.' :
+        error.message === 'already_in_a_team' ? t(locale, 'You are already in a team.', 'Zaten bir takımın üyesisin.') :
+        error.message === 'request_already_pending' ? t(locale, 'You already have a pending request.', 'Zaten bekleyen bir talebin var.') :
         error.message,
         'error'
       )
       return
     }
     setRequestStatus('pending')
-    showToast('Join request sent! Waiting for captain approval.', 'success')
+    showToast(t(locale, 'Join request sent! Waiting for captain approval.', 'Katılım talebi gönderildi! Kaptan onayı bekleniyor.'), 'success')
   }
 
   return (
     <>
       {requestModal && (
         <ConfirmModal
-          title={`Request to join ${team.name}?`}
-          message="Your request will be sent to the team captain for approval."
-          confirmLabel="Send request"
+          title={locale === 'tr' ? `${team.name} takımına katılmak istiyor musun?` : `Request to join ${team.name}?`}
+          message={t(locale, 'Your request will be sent to the team captain for approval.', 'Talebin onay için takım kaptanına gönderilecek.')}
+          confirmLabel={t(locale, 'Send request', 'Talep gönder')}
           variant="default"
           loading={requestLoading}
           onConfirm={handleRequest}
@@ -116,7 +117,7 @@ export default function TeamProfileClient({
                   <p className="mt-2 text-gray-600 dark:text-gray-400">{team.description}</p>
                 )}
                 <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                  {members.length} {members.length === 1 ? 'member' : 'members'}
+                  {locale === 'tr' ? `${members.length} üye` : `${members.length} ${members.length === 1 ? 'member' : 'members'}`}
                 </p>
               </div>
 
@@ -126,18 +127,18 @@ export default function TeamProfileClient({
                     href="/my-team"
                     className="rounded-xl bg-gray-900 dark:bg-white px-4 py-2 text-sm font-semibold text-white dark:text-gray-900 hover:opacity-90 transition"
                   >
-                    My Team
+                    {t(locale, 'My Team', 'Takımım')}
                   </Link>
                 )}
 
                 {canRequest && (
                   requestStatus === 'pending' ? (
                     <span className="rounded-xl border border-yellow-300 dark:border-yellow-700 px-4 py-2 text-sm font-semibold text-yellow-700 dark:text-yellow-400">
-                      Request pending
+                      {t(locale, 'Request pending', 'Talep beklemede')}
                     </span>
                   ) : requestStatus === 'rejected' ? (
                     <span className="rounded-xl border border-red-300 dark:border-red-700 px-4 py-2 text-sm font-semibold text-red-600 dark:text-red-400">
-                      Request rejected
+                      {t(locale, 'Request rejected', 'Talep reddedildi')}
                     </span>
                   ) : (
                     <button
@@ -145,7 +146,7 @@ export default function TeamProfileClient({
                       disabled={requestLoading}
                       className="rounded-xl bg-gray-900 dark:bg-white px-4 py-2 text-sm font-semibold text-white dark:text-gray-900 hover:opacity-90 disabled:opacity-50 transition"
                     >
-                      Request to join
+                      {t(locale, 'Request to join', 'Katılım talebi gönder')}
                     </button>
                   )
                 )}
@@ -155,7 +156,7 @@ export default function TeamProfileClient({
                     href={`/teams/${team.id}/challenge`}
                     className="rounded-xl bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700 transition"
                   >
-                    Challenge
+                    {t(locale, 'Challenge', 'Meydan oku')}
                   </Link>
                 )}
               </div>
@@ -164,14 +165,14 @@ export default function TeamProfileClient({
 
           {/* Members */}
           <div className="rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-sm ring-1 ring-gray-100 dark:ring-gray-800">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Members</h2>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">{t(locale, 'Members', 'Üyeler')}</h2>
             <div className="divide-y dark:divide-gray-800">
               {members.map((member) => (
                 <div key={member.user_id} className="flex items-center justify-between py-3">
                   <p className="text-sm text-gray-900 dark:text-white">{member.display_name}</p>
                   {member.user_id === team.captain_id && (
                     <span className="text-xs font-medium text-yellow-600 dark:text-yellow-400">
-                      Captain
+                      {t(locale, 'Captain', 'Kaptan')}
                     </span>
                   )}
                 </div>
@@ -183,7 +184,7 @@ export default function TeamProfileClient({
           {challenges.length > 0 && (
             <div className="rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-sm ring-1 ring-gray-100 dark:ring-gray-800">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                Challenge History
+                {t(locale, 'Challenge History', 'Meydan Okuma Geçmişi')}
               </h2>
               <div className="space-y-3">
                 {challenges.map((c) => (
@@ -193,20 +194,13 @@ export default function TeamProfileClient({
                         {c.challenger_team_name} vs {c.challenged_team_name}
                       </p>
                       <p className="text-gray-500 dark:text-gray-400">
-                        {c.astroturf_name} — {formatDateLabel(c.slot_date)},{' '}
+                        {c.astroturf_name} — {formatDateLabel(c.slot_date, locale)},{' '}
                         {formatTime(c.start_time)} – {formatTime(c.end_time)}
                       </p>
                     </div>
-                    <div className="flex items-center gap-2 w-fit">
-                      {c.status === 'played' && c.challenger_score != null && c.challenged_score != null && (
-                        <span className="rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-3 py-1 text-sm font-bold tabular-nums">
-                          {c.challenger_score} – {c.challenged_score}
-                        </span>
-                      )}
-                      <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusColor(c.status)}`}>
-                        {c.status}
-                      </span>
-                    </div>
+                    <span className={`rounded-full px-3 py-1 text-xs font-semibold w-fit ${statusColor(c.status)}`}>
+                      {translateStatus(locale, c.status)}
+                    </span>
                   </div>
                 ))}
               </div>

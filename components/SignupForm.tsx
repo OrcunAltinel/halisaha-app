@@ -2,9 +2,12 @@
 
 import { useState } from 'react'
 import { createSupabaseBrowserClient } from '@/lib/supabase-browser'
+import { useLocale } from '@/components/LocaleProvider'
+import { t } from '@/lib/locale'
 
 export default function SignupForm() {
   const supabase = createSupabaseBrowserClient()
+  const { locale } = useLocale()
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -18,12 +21,12 @@ export default function SignupForm() {
     setError(null)
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match.')
+      setError(t(locale, 'Passwords do not match.', 'Şifreler eşleşmiyor.'))
       return
     }
 
     if (username.trim().length < 3) {
-      setError('Username must be at least 3 characters.')
+      setError(t(locale, 'Username must be at least 3 characters.', 'Kullanıcı adı en az 3 karakter olmalı.'))
       return
     }
 
@@ -42,7 +45,7 @@ export default function SignupForm() {
     }
 
     if (!available) {
-      setError('That username is already taken.')
+      setError(t(locale, 'That username is already taken.', 'Bu kullanıcı adı zaten alınmış.'))
       setLoading(false)
       return
     }
@@ -71,7 +74,7 @@ export default function SignupForm() {
       if (profileError) {
         setError(
           profileError.message.includes('user_profiles_username_unique')
-            ? 'That username was just taken. Please choose another.'
+            ? t(locale, 'That username was just taken. Please choose another.', 'Bu kullanıcı adı az once alindi. Lütfen başka bir tane seç.')
             : profileError.message
         )
         setLoading(false)
@@ -87,10 +90,10 @@ export default function SignupForm() {
     return (
       <div className="mx-auto max-w-md rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-sm text-center">
         <div className="mb-4 text-4xl">✅</div>
-        <h1 className="mb-2 text-2xl font-bold text-gray-900 dark:text-white">Account created!</h1>
+        <h1 className="mb-2 text-2xl font-bold text-gray-900 dark:text-white">{t(locale, 'Account created!', 'Hesap oluşturuldu!')}</h1>
         <p className="text-gray-600 dark:text-gray-400">
-          Welcome, <strong>{username}</strong>. You can now{' '}
-          <a href="/login" className="underline text-gray-900 dark:text-white">log in</a>.
+          {t(locale, 'Welcome,', 'Hoş geldin,')} <strong>{username}</strong>. {t(locale, 'You can now', 'Artik')} {' '}
+          <a href="/login" className="underline text-gray-900 dark:text-white">{t(locale, 'log in', 'giriş yap')}</a>.
         </p>
       </div>
     )
@@ -101,11 +104,11 @@ export default function SignupForm() {
       onSubmit={handleSignup}
       className="mx-auto max-w-md rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-sm"
     >
-      <h1 className="mb-6 text-2xl font-bold text-gray-900 dark:text-white">Sign up</h1>
+      <h1 className="mb-6 text-2xl font-bold text-gray-900 dark:text-white">{t(locale, 'Sign up', 'Kayıt ol')}</h1>
 
       <div className="mb-4">
         <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-          Username
+          {t(locale, 'Username', 'Kullanıcı adı')}
         </label>
         <input
           type="text"
@@ -114,14 +117,14 @@ export default function SignupForm() {
           minLength={3}
           maxLength={30}
           required
-          placeholder="e.g. streetking99"
+          placeholder={t(locale, 'e.g. streetking99', 'örnek: streetking99')}
           className="w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-3 text-gray-900 dark:text-white outline-none focus:border-green-500 dark:focus:border-green-400 focus:ring-1 focus:ring-green-500"
         />
       </div>
 
       <div className="mb-4">
         <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-          Email
+          {t(locale, 'Email', 'E-posta')}
         </label>
         <input
           type="email"
@@ -134,7 +137,7 @@ export default function SignupForm() {
 
       <div className="mb-4">
         <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-          Password
+          {t(locale, 'Password', 'Şifre')}
         </label>
         <input
           type="password"
@@ -148,7 +151,7 @@ export default function SignupForm() {
 
       <div className="mb-5">
         <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-          Confirm password
+          {t(locale, 'Confirm password', 'Şifreyi doğrula')}
         </label>
         <input
           type="password"
@@ -169,7 +172,7 @@ export default function SignupForm() {
         disabled={loading}
         className="w-full rounded-xl bg-green-800 px-4 py-3 font-semibold text-white hover:bg-green-900 transition-colors disabled:opacity-50"
       >
-        {loading ? 'Creating account…' : 'Sign up'}
+        {loading ? t(locale, 'Creating account…', 'Hesap oluşturuluyor…') : t(locale, 'Sign up', 'Kayıt ol')}
       </button>
     </form>
   )

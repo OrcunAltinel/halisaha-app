@@ -2,9 +2,12 @@
 
 import { useState } from 'react'
 import { createSupabaseBrowserClient } from '@/lib/supabase-browser'
+import { useLocale } from '@/components/LocaleProvider'
+import { t } from '@/lib/locale'
 
 export default function ForgotPasswordForm() {
   const supabase = createSupabaseBrowserClient()
+  const { locale } = useLocale()
   const [email, setEmail] = useState('')
   const [message, setMessage] = useState<{ text: string; isError: boolean } | null>(null)
   const [loading, setLoading] = useState(false)
@@ -33,12 +36,12 @@ export default function ForgotPasswordForm() {
     return (
       <div className="mx-auto max-w-md rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-sm text-center">
         <div className="mb-4 text-4xl">📬</div>
-        <h1 className="mb-2 text-2xl font-bold">Check your email</h1>
+        <h1 className="mb-2 text-2xl font-bold">{t(locale, 'Check your email', 'E-postanı kontrol et')}</h1>
         <p className="text-gray-600 dark:text-gray-400">
-          If <strong>{email}</strong> is registered, you&apos;ll receive a password reset link shortly.
+          <strong>{email}</strong> {t(locale, 'is registered, you&apos;ll receive a password reset link shortly.', 'kayıtlıysa birazdan şifre sıfırlama bağlantısı alacaksın.')}
         </p>
         <a href="/login" className="mt-6 inline-block text-sm text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white">
-          Back to login
+          {t(locale, 'Back to login', 'Giriş ekranına dön')}
         </a>
       </div>
     )
@@ -49,13 +52,13 @@ export default function ForgotPasswordForm() {
       onSubmit={handleSubmit}
       className="mx-auto max-w-md rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-sm"
     >
-      <h1 className="mb-2 text-2xl font-bold">Reset your password</h1>
+      <h1 className="mb-2 text-2xl font-bold">{t(locale, 'Reset your password', 'Şifreni sıfırla')}</h1>
       <p className="mb-6 text-sm text-gray-500 dark:text-gray-400">
-        Enter your email and we&apos;ll send you a link to set a new password.
+        {t(locale, 'Enter your email and we&apos;ll send you a link to set a new password.', 'E-posta adresini gir, sana yeni şifre belirlemen için bir bağlantı gönderelim.')}
       </p>
 
       <div className="mb-4">
-        <label className="mb-2 block text-sm font-medium">Email</label>
+        <label className="mb-2 block text-sm font-medium">{t(locale, 'Email', 'E-posta')}</label>
         <input
           type="email"
           value={email}
@@ -76,12 +79,12 @@ export default function ForgotPasswordForm() {
         disabled={loading}
         className="w-full rounded-xl bg-black dark:bg-white px-4 py-3 text-white dark:text-black"
       >
-        {loading ? 'Sending...' : 'Send reset link'}
+        {loading ? t(locale, 'Sending...', 'Gönderiliyor...') : t(locale, 'Send reset link', 'Sıfırlama bağlantısı gönder')}
       </button>
 
       <p className="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
         <a href="/login" className="hover:text-black dark:hover:text-white">
-          Back to login
+          {t(locale, 'Back to login', 'Giriş ekranına dön')}
         </a>
       </p>
     </form>

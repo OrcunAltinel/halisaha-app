@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useLocale } from '@/components/LocaleProvider'
+import { t } from '@/lib/locale'
 
 type Props = {
   images: string[]
@@ -10,6 +12,7 @@ type Props = {
 export default function TurfImageGallery({ images, alt }: Props) {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
   const [zoomed, setZoomed] = useState(false)
+  const { locale } = useLocale()
 
   const close = useCallback(() => { setLightboxIndex(null); setZoomed(false) }, [])
   const next = useCallback(() => {
@@ -44,7 +47,7 @@ export default function TurfImageGallery({ images, alt }: Props) {
   if (images.length === 0) {
     return (
       <div className="flex aspect-[16/9] items-center justify-center rounded-2xl bg-gray-100 dark:bg-gray-800 text-sm text-gray-400 dark:text-gray-500">
-        No photos available
+        {t(locale, 'No photos available', 'Foto yok')}
       </div>
     )
   }
@@ -70,7 +73,9 @@ export default function TurfImageGallery({ images, alt }: Props) {
           ))}
         </div>
         <p className="mt-2 text-center text-xs text-gray-500 dark:text-gray-400">
-          {images.length} {images.length === 1 ? 'photo' : 'photos'} — swipe to view
+          {locale === 'tr'
+            ? `${images.length} ${images.length === 1 ? 'foto' : 'foto'} — görmek için kaydır`
+            : `${images.length} ${images.length === 1 ? 'photo' : 'photos'} — swipe to view`}
         </p>
       </div>
 
@@ -110,7 +115,7 @@ export default function TurfImageGallery({ images, alt }: Props) {
                     <img src={url} alt={`${alt} - photo ${actualIndex + 1}`} className="h-full w-full object-cover transition group-hover:brightness-95" />
                     {isLastTile && hasMore && (
                       <div className="absolute inset-0 flex items-center justify-center bg-black/50 text-base font-semibold text-white">
-                        +{images.length - 5} more
+                        {locale === 'tr' ? `+${images.length - 5} tane daha` : `+${images.length - 5} more`}
                       </div>
                     )}
                   </button>
@@ -125,7 +130,7 @@ export default function TurfImageGallery({ images, alt }: Props) {
           onClick={() => setLightboxIndex(0)}
           className="mt-3 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
         >
-          View all {images.length} photos →
+          {locale === 'tr' ? `Tüm ${images.length} fotoğraflari gör →` : `View all ${images.length} photos →`}
         </button>
       </div>
 
@@ -141,7 +146,7 @@ export default function TurfImageGallery({ images, alt }: Props) {
             type="button"
             onClick={close}
             className="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white transition hover:bg-white/20"
-            aria-label="Close"
+            aria-label={t(locale, 'Close', 'Kapat')}
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M6 6l12 12M6 18L18 6" />
@@ -154,7 +159,7 @@ export default function TurfImageGallery({ images, alt }: Props) {
                 type="button"
                 onClick={(e) => { e.stopPropagation(); prev() }}
                 className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white transition hover:bg-white/20"
-                aria-label="Previous photo"
+                aria-label={t(locale, 'Previous photo', 'Önceki fotoğraf')}
               >
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M15 18l-6-6 6-6" />
@@ -164,7 +169,7 @@ export default function TurfImageGallery({ images, alt }: Props) {
                 type="button"
                 onClick={(e) => { e.stopPropagation(); next() }}
                 className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white transition hover:bg-white/20"
-                aria-label="Next photo"
+                aria-label={t(locale, 'Next photo', 'Sonraki fotoğraf')}
               >
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M9 6l6 6-6 6" />
@@ -187,7 +192,9 @@ export default function TurfImageGallery({ images, alt }: Props) {
               className={`max-h-[85vh] max-w-full object-contain ${zoomed ? 'cursor-zoom-out' : 'cursor-zoom-in'}`}
             />
             <p className="mt-3 text-center text-sm text-white/70">
-              {lightboxIndex + 1} / {images.length} · double-click to {zoomed ? 'zoom out' : 'zoom in'}
+              {locale === 'tr'
+                ? `${lightboxIndex + 1} / ${images.length} · ${zoomed ? 'uzaklastirmak' : 'yaklastirmak'} için cift tikla`
+                : `${lightboxIndex + 1} / ${images.length} · double-click to ${zoomed ? 'zoom out' : 'zoom in'}`}
             </p>
           </div>
         </div>

@@ -1,3 +1,5 @@
+import { getIntlLocale, type Locale } from '@/lib/locale'
+
 /**
  * "16:00:00" or "16:00:00+03" -> "16:00"
  */
@@ -65,11 +67,11 @@ export function formatTime(t: string | null | undefined): string {
   /**
    * Format "YYYY-MM-DD" to a readable label like "Mon 14 Apr".
    */
-  export function formatDateLabel(dateStr: string): string {
+export function formatDateLabel(dateStr: string, locale: Locale = 'en'): string {
     if (!dateStr) return '-'
     const [y, m, d] = dateStr.split('-').map(Number)
     const date = new Date(y, m - 1, d)
-    return date.toLocaleDateString('en-GB', {
+    return date.toLocaleDateString(getIntlLocale(locale), {
       weekday: 'short',
       day: '2-digit',
       month: 'short',

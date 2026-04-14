@@ -1,7 +1,9 @@
 'use client'
 
-import { useRouter, usePathname, useSearchParams } from 'next/navigation'
-import { useState, useEffect, useTransition } from 'react'
+import { useRouter, usePathname } from 'next/navigation'
+import { useState, useTransition } from 'react'
+import { useLocale } from '@/components/LocaleProvider'
+import { t } from '@/lib/locale'
 
 type Props = {
   initialQuery: string
@@ -10,13 +12,9 @@ type Props = {
 export default function TeamSearchBar({ initialQuery }: Props) {
   const router = useRouter()
   const pathname = usePathname()
-  const searchParams = useSearchParams()
   const [isPending, startTransition] = useTransition()
   const [query, setQuery] = useState(initialQuery)
-
-  useEffect(() => {
-    setQuery(searchParams.get('q') || '')
-  }, [searchParams])
+  const { locale } = useLocale()
 
   function apply(e?: React.FormEvent) {
     e?.preventDefault()
@@ -38,7 +36,7 @@ export default function TeamSearchBar({ initialQuery }: Props) {
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search teams by name…"
+          placeholder={t(locale, 'Search teams by name…', 'Takımlari ada göre ara…')}
           className="w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2.5 pr-10 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-gray-900 dark:focus:border-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-900 dark:focus:ring-gray-400"
         />
         {query && (
@@ -46,7 +44,7 @@ export default function TeamSearchBar({ initialQuery }: Props) {
             type="button"
             onClick={clear}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-            aria-label="Clear search"
+            aria-label={t(locale, 'Clear search', 'Aramayi temizle')}
           >
             ✕
           </button>
@@ -56,7 +54,7 @@ export default function TeamSearchBar({ initialQuery }: Props) {
         type="submit"
         className="rounded-xl bg-gray-900 dark:bg-white px-4 py-2.5 text-sm font-semibold text-white dark:text-gray-900 hover:opacity-90 transition shrink-0"
       >
-        {isPending ? 'Searching…' : 'Search'}
+        {isPending ? t(locale, 'Searching…', 'Aranıyor…') : t(locale, 'Search', 'Ara')}
       </button>
     </form>
   )

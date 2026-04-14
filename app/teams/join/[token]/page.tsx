@@ -1,12 +1,15 @@
 import { notFound, redirect } from 'next/navigation'
 import { createSupabaseServerClient } from '@/lib/supabase'
 import JoinViaInviteClient from '@/components/JoinViaInviteClient'
+import { t } from '@/lib/locale'
+import { getRequestLocale } from '@/lib/locale-server'
 
 export default async function JoinViaInvitePage({
   params,
 }: {
   params: Promise<{ token: string }>
 }) {
+  const locale = await getRequestLocale()
   const { token } = await params
   const supabase = await createSupabaseServerClient()
 
@@ -48,7 +51,7 @@ export default async function JoinViaInvitePage({
       <div className="w-full max-w-md rounded-2xl bg-white dark:bg-gray-900 p-8 shadow-sm ring-1 ring-gray-100 dark:ring-gray-800 text-center">
         <div className="mb-4 text-4xl">⚽</div>
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-          You&apos;re invited to join
+          {t(locale, 'You&apos;re invited to join', 'Seni katılmaya davet ediyoruz')}
         </h1>
         <p className="text-3xl font-bold text-gray-900 dark:text-white mb-2">{team.name}</p>
         {team.description && (
