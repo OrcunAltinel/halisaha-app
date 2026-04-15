@@ -491,8 +491,8 @@ export default function AdminTurfPage() {
         title={t(locale, 'Delete this turf?', 'Bu sahayı sil?')}
         message={t(
           locale,
-          'This will permanently delete the turf and its slots, reservations, reviews, and admin links.',
-          'Bu işlem sahayı ve ona bağlı saatleri, rezervasyonları, yorumları ve yönetici bağlantılarını kalıcı olarak siler.'
+          'This will remove the turf from the app and revoke all admin access to it.',
+          'Bu işlem sahayı uygulamadan kaldırır ve tüm yönetici erişimini iptal eder.'
         )}
         confirmLabel={t(locale, 'Delete turf', 'Sahayı sil')}
         variant="danger"

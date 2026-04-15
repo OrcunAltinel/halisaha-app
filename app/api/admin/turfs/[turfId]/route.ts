@@ -27,22 +27,28 @@ export async function DELETE(
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
-  const deleteSteps = [
-    () => supabase.from('reviews').delete().eq('astroturf_id', turfId),
-    () => supabase.from('reservations').delete().eq('astroturf_id', turfId),
-    () => supabase.from('time_slots').delete().eq('astroturf_id', turfId),
-    () => supabase.from('astroturf_admins').delete().eq('astroturf_id', turfId),
-    () => supabase.from('astroturfs').delete().eq('id', turfId),
-  ]
+  const { error: deactivateError } = await supabase
+    .from('astroturfs')
+    .update({ is_active: false })
+    .eq('id', turfId)
 
-  for (const runStep of deleteSteps) {
-    const { error } = await runStep()
-    if (error) {
-      return NextResponse.json(
-        { error: error.message ?? 'Failed to delete turf' },
-        { status: 400 }
-      )
-    }
+  if (deactivateError) {
+    return NextResponse.json(
+      { error: deactivateError.message ?? 'Failed to deactivate turf' },
+      { status: 400 }
+    )
+  }
+
+  const { error: unlinkError } = await supabase
+    .from('astroturf_admins')
+    .delete()
+    .eq('astroturf_id', turfId)
+
+  if (unlinkError) {
+    return NextResponse.json(
+      { error: unlinkError.message ?? 'Failed to remove admin access' },
+      { status: 400 }
+    )
   }
 
   return NextResponse.json({ ok: true })
