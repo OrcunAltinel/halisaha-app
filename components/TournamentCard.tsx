@@ -1,4 +1,6 @@
 import Link from 'next/link'
+import type { Locale } from '@/lib/locale'
+import { t } from '@/lib/locale'
 
 type Props = {
   tournament: {
@@ -11,6 +13,7 @@ type Props = {
     start_date: string | null
     registration_count: number
   }
+  locale?: Locale
 }
 
 function statusBadgeClass(status: string) {
@@ -19,13 +22,13 @@ function statusBadgeClass(status: string) {
   return 'bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
 }
 
-function statusLabel(status: string) {
-  if (status === 'registration') return 'Registration Open'
-  if (status === 'active') return 'In Progress'
-  return 'Completed'
+function statusLabel(status: string, locale: Locale) {
+  if (status === 'registration') return t(locale, 'Registration Open', 'Kayıt Açık')
+  if (status === 'active') return t(locale, 'In Progress', 'Devam Ediyor')
+  return t(locale, 'Completed', 'Tamamlandı')
 }
 
-export default function TournamentCard({ tournament }: Props) {
+export default function TournamentCard({ tournament, locale = 'en' }: Props) {
   const progress = Math.min(tournament.registration_count / tournament.max_teams, 1)
 
   return (
@@ -35,7 +38,7 @@ export default function TournamentCard({ tournament }: Props) {
           {tournament.name}
         </h3>
         <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${statusBadgeClass(tournament.status)}`}>
-          {statusLabel(tournament.status)}
+          {statusLabel(tournament.status, locale)}
         </span>
       </div>
 
@@ -47,7 +50,7 @@ export default function TournamentCard({ tournament }: Props) {
 
       <div className="mt-4 space-y-1.5">
         <div className="flex items-center justify-between text-sm">
-          <span className="text-gray-500 dark:text-gray-400">Teams registered</span>
+          <span className="text-gray-500 dark:text-gray-400">{t(locale, 'Teams registered', 'Kayıtlı takımlar')}</span>
           <span className="font-semibold text-gray-900 dark:text-white">
             {tournament.registration_count} / {tournament.max_teams}
           </span>
@@ -63,8 +66,8 @@ export default function TournamentCard({ tournament }: Props) {
       <div className="mt-4 flex items-center justify-between">
         {tournament.start_date ? (
           <span className="text-xs text-gray-500 dark:text-gray-400">
-            Starts{' '}
-            {new Date(tournament.start_date).toLocaleDateString('en-GB', {
+            {t(locale, 'Starts', 'Başlangıç')}{' '}
+            {new Date(tournament.start_date).toLocaleDateString(locale === 'tr' ? 'tr-TR' : 'en-GB', {
               day: 'numeric',
               month: 'short',
               year: 'numeric',
@@ -77,7 +80,7 @@ export default function TournamentCard({ tournament }: Props) {
           href={`/tournaments/${tournament.id}`}
           className="rounded-xl bg-green-800 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-900"
         >
-          View tournament
+          {t(locale, 'View tournament', 'Turnuvayı görüntüle')}
         </Link>
       </div>
     </div>

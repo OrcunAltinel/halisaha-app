@@ -1,3 +1,6 @@
+import type { Locale } from '@/lib/locale'
+import { t } from '@/lib/locale'
+
 export type FixtureMatch = {
   id: string
   round: number
@@ -15,13 +18,14 @@ type Props = {
   matches: FixtureMatch[]
   isSuperAdmin?: boolean
   onEnterResult?: (matchId: string) => void
+  locale?: Locale
 }
 
-export default function TournamentFixtures({ matches, isSuperAdmin, onEnterResult }: Props) {
+export default function TournamentFixtures({ matches, isSuperAdmin, onEnterResult, locale = 'en' }: Props) {
   if (matches.length === 0) {
     return (
       <p className="text-sm text-gray-500 dark:text-gray-400">
-        No fixtures yet. Start the tournament to generate fixtures.
+        {t(locale, 'No fixtures yet. Start the tournament to generate fixtures.', 'Henüz fikstür yok. Fikstür oluşturmak için turnuvayı başlat.')}
       </p>
     )
   }
@@ -38,7 +42,7 @@ export default function TournamentFixtures({ matches, isSuperAdmin, onEnterResul
       {rounds.map((round) => (
         <div key={round}>
           <h3 className="mb-3 text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">
-            Round {round}
+            {t(locale, 'Round', 'Tur')} {round}
           </h3>
           <div className="space-y-2">
             {byRound.get(round)!.map((match) => (
@@ -66,7 +70,7 @@ export default function TournamentFixtures({ matches, isSuperAdmin, onEnterResul
 
                 {match.scheduled_date && match.status !== 'played' && (
                   <span className="shrink-0 text-xs text-gray-400 dark:text-gray-500 hidden sm:block">
-                    {new Date(match.scheduled_date).toLocaleDateString('en-GB', {
+                    {new Date(match.scheduled_date).toLocaleDateString(locale === 'tr' ? 'tr-TR' : 'en-GB', {
                       day: 'numeric',
                       month: 'short',
                     })}
@@ -78,7 +82,7 @@ export default function TournamentFixtures({ matches, isSuperAdmin, onEnterResul
                     onClick={() => onEnterResult(match.id)}
                     className="shrink-0 rounded-lg border border-gray-300 dark:border-gray-700 px-3 py-1 text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition"
                   >
-                    Enter result
+                    {t(locale, 'Enter result', 'Sonuç gir')}
                   </button>
                 )}
               </div>

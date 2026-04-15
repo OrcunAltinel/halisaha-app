@@ -10,16 +10,21 @@ type Standing = {
   points: number
 }
 
+import type { Locale } from '@/lib/locale'
+import { t } from '@/lib/locale'
+
 type Props = {
   standings: Standing[]
   currentUserTeamId?: string | null
+  locale?: Locale
 }
 
-export default function TournamentStandings({ standings, currentUserTeamId }: Props) {
+export default function TournamentStandings({ standings, currentUserTeamId, locale = 'en' }: Props) {
+  const tr = locale === 'tr'
   if (standings.length === 0) {
     return (
       <p className="text-sm text-gray-500 dark:text-gray-400">
-        No standings yet. Start the tournament to generate standings.
+        {t(locale, 'No standings yet. Start the tournament to generate standings.', 'Henüz puan durumu yok. Puan durumu oluşturmak için turnuvayı başlat.')}
       </p>
     )
   }
@@ -30,14 +35,14 @@ export default function TournamentStandings({ standings, currentUserTeamId }: Pr
         <thead>
           <tr className="border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-950 text-left">
             <th className="px-4 py-3 font-semibold text-gray-500 dark:text-gray-400 w-8">#</th>
-            <th className="px-4 py-3 font-semibold text-gray-500 dark:text-gray-400">Team</th>
-            <th className="px-3 py-3 text-center font-semibold text-gray-500 dark:text-gray-400">P</th>
-            <th className="px-3 py-3 text-center font-semibold text-gray-500 dark:text-gray-400">W</th>
-            <th className="px-3 py-3 text-center font-semibold text-gray-500 dark:text-gray-400">D</th>
-            <th className="px-3 py-3 text-center font-semibold text-gray-500 dark:text-gray-400">L</th>
-            <th className="px-3 py-3 text-center font-semibold text-gray-500 dark:text-gray-400">GF</th>
-            <th className="px-3 py-3 text-center font-semibold text-gray-500 dark:text-gray-400">GA</th>
-            <th className="px-3 py-3 text-center font-bold text-gray-700 dark:text-gray-300">Pts</th>
+            <th className="px-4 py-3 font-semibold text-gray-500 dark:text-gray-400">{t(locale, 'Team', 'Takım')}</th>
+            <th className="px-3 py-3 text-center font-semibold text-gray-500 dark:text-gray-400">{t(locale, 'P', 'O')}</th>
+            <th className="px-3 py-3 text-center font-semibold text-green-600 dark:text-green-400">{tr ? 'G' : 'W'}</th>
+            <th className="px-3 py-3 text-center font-semibold text-blue-500 dark:text-blue-400">{tr ? 'B' : 'D'}</th>
+            <th className="px-3 py-3 text-center font-semibold text-red-600 dark:text-red-400">{tr ? 'Y' : 'L'}</th>
+            <th className="px-3 py-3 text-center font-semibold text-gray-500 dark:text-gray-400">{t(locale, 'GF', 'AG')}</th>
+            <th className="px-3 py-3 text-center font-semibold text-gray-500 dark:text-gray-400">{t(locale, 'GA', 'YG')}</th>
+            <th className="px-3 py-3 text-center font-bold text-gray-700 dark:text-gray-300">{t(locale, 'Pts', 'Puan')}</th>
           </tr>
         </thead>
         <tbody>
@@ -62,9 +67,9 @@ export default function TournamentStandings({ standings, currentUserTeamId }: Pr
                   )}
                 </td>
                 <td className="px-3 py-3 text-center text-gray-700 dark:text-gray-300">{row.played}</td>
-                <td className="px-3 py-3 text-center text-gray-700 dark:text-gray-300">{row.wins}</td>
-                <td className="px-3 py-3 text-center text-gray-700 dark:text-gray-300">{row.draws}</td>
-                <td className="px-3 py-3 text-center text-gray-700 dark:text-gray-300">{row.losses}</td>
+                <td className="px-3 py-3 text-center font-semibold text-green-600 dark:text-green-400">{row.wins}</td>
+                <td className="px-3 py-3 text-center font-semibold text-blue-500 dark:text-blue-400">{row.draws}</td>
+                <td className="px-3 py-3 text-center font-semibold text-red-600 dark:text-red-400">{row.losses}</td>
                 <td className="px-3 py-3 text-center text-gray-700 dark:text-gray-300">{row.goals_for}</td>
                 <td className="px-3 py-3 text-center text-gray-700 dark:text-gray-300">{row.goals_against}</td>
                 <td className="px-3 py-3 text-center font-bold text-gray-900 dark:text-white">{row.points}</td>

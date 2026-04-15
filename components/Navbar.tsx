@@ -63,6 +63,7 @@ export default function Navbar() {
   const [displayName, setDisplayName] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const [hasApplications, setHasApplications] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -106,12 +107,21 @@ export default function Navbar() {
           } else {
             if (mounted) setIsSuperAdmin((superRows?.length ?? 0) > 0);
           }
+
+          const { data: appRows } = await supabase
+            .from("turf_applications")
+            .select("id")
+            .eq("user_id", session.user.id)
+            .limit(1);
+
+          if (mounted) setHasApplications((appRows?.length ?? 0) > 0);
         } else {
           if (mounted) {
             setEmail(null);
             setDisplayName(null);
             setIsAdmin(false);
             setIsSuperAdmin(false);
+            setHasApplications(false);
           }
         }
       } catch (err) {
@@ -163,6 +173,7 @@ export default function Navbar() {
     setDisplayName(null);
     setIsAdmin(false);
     setIsSuperAdmin(false);
+    setHasApplications(false);
     router.push("/");
     router.refresh();
   }
@@ -188,16 +199,20 @@ export default function Navbar() {
               <Link href="/" className={linkClass("/")}>{t(locale, 'Home', 'Ana Sayfa')}</Link>
               <Link href="/hali-sahalar" className={linkClass("/hali-sahalar")}>{t(locale, 'Astroturfs', 'Halı Sahalar')}</Link>
               {email && <Link href="/my-reservations" className={linkClass("/my-reservations")}>{t(locale, 'My Reservations', 'Rezervasyonlarım')}</Link>}
-              {email && <Link href="/my-applications" className={linkClass("/my-applications")}>{t(locale, 'My Applications', 'Başvurularım')}</Link>}
+              {email && hasApplications && <Link href="/my-applications" className={linkClass("/my-applications")}>{t(locale, 'My Applications', 'Başvurularım')}</Link>}
               <Link href="/teams" className={linkClass("/teams")}>{t(locale, 'Teams', 'Takımlar')}</Link>
               {email && <Link href="/my-team" className={linkClass("/my-team")}>{t(locale, 'My Team', 'Takımım')}</Link>}
+              <Link href="/tournaments" className={linkClass("/tournaments")}>{t(locale, 'Tournaments', 'Turnuvalar')}</Link>
               {email && isAdmin && <Link href="/admin" className={linkClass("/admin")}>{t(locale, 'Admin', 'Yönetim')}</Link>}
               {email && isSuperAdmin && <Link href="/admin/applications" className={linkClass("/admin/applications")}>{t(locale, 'Review Applications', 'Başvuruları İncele')}</Link>}
             </div>
           </div>
 
           {/* Right: Theme toggle + Auth area */}
-          <div className="hidden md:flex items-center gap-2">
+          <div className="hidden md:flex items-center gap-2 ml-4">
+            <Link href="/list-your-pitch" className={linkClass("/list-your-pitch")}>
+              {t(locale, 'List your pitch', 'Sahanızı Listeleyin')}
+            </Link>
             <LocaleSwitch />
             <ThemeToggle />
             {loading ? (
@@ -209,7 +224,7 @@ export default function Navbar() {
                   onClick={handleLogout}
                   className="text-sm px-3 py-1.5 rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                 >
-                  {t(locale, 'Log out', 'Cikis yap')}
+                  {t(locale, 'Log out', 'Çıkış yap')}
                 </button>
               </>
             ) : (
@@ -250,9 +265,10 @@ export default function Navbar() {
             <Link href="/" className={linkClass("/")}>{t(locale, 'Home', 'Ana Sayfa')}</Link>
             <Link href="/hali-sahalar" className={linkClass("/hali-sahalar")}>{t(locale, 'Astroturfs', 'Halı Sahalar')}</Link>
             {email && <Link href="/my-reservations" className={linkClass("/my-reservations")}>{t(locale, 'My Reservations', 'Rezervasyonlarım')}</Link>}
-            {email && <Link href="/my-applications" className={linkClass("/my-applications")}>{t(locale, 'My Applications', 'Başvurularım')}</Link>}
+            {email && hasApplications && <Link href="/my-applications" className={linkClass("/my-applications")}>{t(locale, 'My Applications', 'Başvurularım')}</Link>}
             <Link href="/teams" className={linkClass("/teams")}>{t(locale, 'Teams', 'Takımlar')}</Link>
             {email && <Link href="/my-team" className={linkClass("/my-team")}>{t(locale, 'My Team', 'Takımım')}</Link>}
+            <Link href="/tournaments" className={linkClass("/tournaments")}>{t(locale, 'Tournaments', 'Turnuvalar')}</Link>
             {email && isAdmin && <Link href="/admin" className={linkClass("/admin")}>{t(locale, 'Admin', 'Yönetim')}</Link>}
             {email && isSuperAdmin && <Link href="/admin/applications" className={linkClass("/admin/applications")}>{t(locale, 'Review Applications', 'Başvuruları İncele')}</Link>}
 
@@ -266,13 +282,18 @@ export default function Navbar() {
                     onClick={handleLogout}
                     className="text-sm px-3 py-1.5 rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 w-fit"
                   >
-                    {t(locale, 'Log out', 'Cikis yap')}
+                    {t(locale, 'Log out', 'Çıkış yap')}
                   </button>
                 </div>
               ) : (
-                <div className="flex gap-2">
-                  <Link href="/login" className="text-sm px-3 py-1.5 text-gray-700 dark:text-gray-300">{t(locale, 'Log in', 'Giriş yap')}</Link>
-                  <Link href="/signup" className="text-sm px-3 py-1.5 rounded-md bg-gray-900 dark:bg-white text-white dark:text-gray-900">{t(locale, 'Sign up', 'Kayıt ol')}</Link>
+                <div className="flex flex-col gap-2">
+                  <Link href="/list-your-pitch" className={linkClass("/list-your-pitch")}>
+                    {t(locale, 'List your pitch', 'Sahanızı Listeleyin')}
+                  </Link>
+                  <div className="flex gap-2">
+                    <Link href="/login" className="text-sm px-3 py-1.5 text-gray-700 dark:text-gray-300">{t(locale, 'Log in', 'Giriş yap')}</Link>
+                    <Link href="/signup" className="text-sm px-3 py-1.5 rounded-md bg-gray-900 dark:bg-white text-white dark:text-gray-900">{t(locale, 'Sign up', 'Kayıt ol')}</Link>
+                  </div>
                 </div>
               )}
             </div>

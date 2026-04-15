@@ -247,6 +247,22 @@ export default function MyTeamClient({
     showToast(t(locale, 'Challenge cancelled.', 'Meydan okuma iptal edildi.'))
   }
 
+  // Team record stats (outgoing = team is challenger, incoming = team is challenged)
+  const allPlayedWithResult = [
+    ...outgoing
+      .filter((c) => c.status === 'played' && c.challenger_score != null && c.challenged_score != null)
+      .map((c) => ({ created_at: c.created_at, result: (c.challenger_score! > c.challenged_score! ? 'W' : c.challenger_score! === c.challenged_score! ? 'D' : 'L') as 'W' | 'D' | 'L' })),
+    ...incoming
+      .filter((c) => c.status === 'played' && c.challenged_score != null && c.challenger_score != null)
+      .map((c) => ({ created_at: c.created_at, result: (c.challenged_score! > c.challenger_score! ? 'W' : c.challenged_score! === c.challenger_score! ? 'D' : 'L') as 'W' | 'D' | 'L' })),
+  ].sort((a, b) => b.created_at.localeCompare(a.created_at))
+
+  const teamStats = allPlayedWithResult.reduce(
+    (acc, { result }) => ({ wins: acc.wins + (result === 'W' ? 1 : 0), draws: acc.draws + (result === 'D' ? 1 : 0), losses: acc.losses + (result === 'L' ? 1 : 0) }),
+    { wins: 0, draws: 0, losses: 0 }
+  )
+  const last5 = allPlayedWithResult.slice(0, 5).map(({ result }) => result)
+
   function openResultModal(challengeId: string) {
     setResultModal(challengeId)
     setChallengerScore('')
@@ -365,10 +381,33 @@ export default function MyTeamClient({
           <div className="rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-sm ring-1 ring-gray-100 dark:ring-gray-800">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 flex-wrap">
                   <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{teamName}</h1>
                   {isCaptain && <span className="rounded-full bg-yellow-100 dark:bg-yellow-900/30 px-3 py-1 text-xs font-semibold text-yellow-700 dark:text-yellow-400">{t(locale, 'Captain', 'Kaptan')}</span>}
+                  {last5.length > 0 && (
+                    <div className="flex gap-1">
+                      {last5.map((result, i) => (
+                        <span
+                          key={i}
+                          className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white ${
+                            result === 'W' ? 'bg-green-600' : result === 'D' ? 'bg-blue-500' : 'bg-red-600'
+                          }`}
+                        >
+                          {locale === 'tr' ? { W: 'G', D: 'B', L: 'Y' }[result] : result}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
+                {allPlayedWithResult.length > 0 && (
+                  <p className="mt-1 text-sm font-medium text-gray-500 dark:text-gray-400">
+                    <span className="text-green-600 dark:text-green-400 font-semibold">{teamStats.wins} {t(locale, 'W', 'G')}</span>
+                    <span className="text-gray-400 dark:text-gray-600 mx-1">/</span>
+                    <span className="text-blue-500 dark:text-blue-400 font-semibold">{teamStats.draws} {t(locale, 'D', 'B')}</span>
+                    <span className="text-gray-400 dark:text-gray-600 mx-1">/</span>
+                    <span className="text-red-600 dark:text-red-400 font-semibold">{teamStats.losses} {t(locale, 'L', 'Y')}</span>
+                  </p>
+                )}
                 {teamDescription && <p className="mt-2 text-gray-600 dark:text-gray-400">{teamDescription}</p>}
               </div>
               <div className="flex gap-2 shrink-0">
@@ -525,9 +564,27 @@ export default function MyTeamClient({
                         <p className="text-gray-600 dark:text-gray-400"><span className="font-medium">{t(locale, 'When:', 'Ne zaman:')}</span> {formatDateLabel(c.slot_date, locale)}, {formatTime(c.start_time)} – {formatTime(c.end_time)}</p>
                       </div>
                       <div className="flex items-center gap-3 shrink-0">
-                        <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusColor(c.status)}`}>{translateStatus(locale, c.status)}</span>
-                        {c.status === 'pending' && isCaptain && (
-                          <button onClick={() => setCancelChallengeModal(c.id)} disabled={cancelChallengeLoading} className="text-xs text-red-500 hover:text-red-700 dark:hover:text-red-300 disabled:opacity-50 transition">{t(locale, 'Cancel', 'İptal et')}</button>
+                        {c.status === 'played' ? (
+                          <div className="flex items-center gap-2">
+                            <span className="rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-3 py-1 text-sm font-bold tabular-nums">
+                              {c.challenger_score} – {c.challenged_score}
+                            </span>
+                            <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusColor(c.status)}`}>{translateStatus(locale, c.status)}</span>
+                          </div>
+                        ) : c.status === 'accepted' ? (
+                          <div className="flex items-center gap-2">
+                            <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusColor(c.status)}`}>{translateStatus(locale, c.status)}</span>
+                            {isCaptain && (
+                              <button onClick={() => openResultModal(c.id)} className="rounded-lg border border-gray-300 dark:border-gray-700 px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition">{t(locale, 'Enter result', 'Sonuç gir')}</button>
+                            )}
+                          </div>
+                        ) : (
+                          <>
+                            <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusColor(c.status)}`}>{translateStatus(locale, c.status)}</span>
+                            {c.status === 'pending' && isCaptain && (
+                              <button onClick={() => setCancelChallengeModal(c.id)} disabled={cancelChallengeLoading} className="text-xs text-red-500 hover:text-red-700 dark:hover:text-red-300 disabled:opacity-50 transition">{t(locale, 'Cancel', 'İptal et')}</button>
+                            )}
+                          </>
                         )}
                       </div>
                     </div>

@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { createSupabaseServerClient } from '@/lib/supabase'
 import TournamentCard from '@/components/TournamentCard'
+import { getRequestLocale } from '@/lib/locale-server'
+import { t } from '@/lib/locale'
 
 type TournamentRow = {
   id: string
@@ -14,6 +16,7 @@ type TournamentRow = {
 }
 
 export default async function TournamentsPage() {
+  const locale = await getRequestLocale()
   const supabase = await createSupabaseServerClient()
 
   const { data: { user } } = await supabase.auth.getUser()
@@ -57,10 +60,10 @@ export default async function TournamentsPage() {
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-4xl font-black tracking-tight text-gray-900 dark:text-white">
-              Tournaments
+              {t(locale, 'Tournaments', 'Turnuvalar')}
             </h1>
             <p className="mt-2 text-gray-600 dark:text-gray-400">
-              Sign your team up and compete in organised competitions.
+              {t(locale, 'Sign your team up and compete in organised competitions.', 'Takımınla kayıt ol ve organize turnuvalarda yarış.')}
             </p>
           </div>
           {isSuperAdmin && (
@@ -68,22 +71,22 @@ export default async function TournamentsPage() {
               href="/tournaments/create"
               className="rounded-xl bg-green-800 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-green-900 w-fit"
             >
-              Create tournament
+              {t(locale, 'Create tournament', 'Turnuva oluştur')}
             </Link>
           )}
         </div>
 
         {tournamentsWithCount.length === 0 ? (
           <div className="rounded-2xl bg-white dark:bg-gray-900 p-10 text-center shadow-sm ring-1 ring-gray-100 dark:ring-gray-800">
-            <p className="text-lg font-semibold text-gray-900 dark:text-white">No tournaments yet</p>
+            <p className="text-lg font-semibold text-gray-900 dark:text-white">{t(locale, 'No tournaments yet', 'Henüz turnuva yok')}</p>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              Check back soon — tournaments will appear here when they open for registration.
+              {t(locale, 'Check back soon — tournaments will appear here when they open for registration.', 'Yakında tekrar kontrol et — turnuvalar kayıt açıldığında burada görünecek.')}
             </p>
           </div>
         ) : (
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {tournamentsWithCount.map((t) => (
-              <TournamentCard key={t.id} tournament={t} />
+              <TournamentCard key={t.id} tournament={t} locale={locale} />
             ))}
           </div>
         )}

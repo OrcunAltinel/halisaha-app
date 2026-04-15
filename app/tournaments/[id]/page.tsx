@@ -3,6 +3,8 @@ import Link from 'next/link'
 import { createSupabaseServerClient } from '@/lib/supabase'
 import TournamentClient from './TournamentClient'
 import type { FixtureMatch } from '@/components/TournamentFixtures'
+import { getRequestLocale } from '@/lib/locale-server'
+import { t } from '@/lib/locale'
 
 type Standing = {
   team_id: string
@@ -62,6 +64,7 @@ export default async function TournamentPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
+  const locale = await getRequestLocale()
   const supabase = await createSupabaseServerClient()
 
   const { data: { user } } = await supabase.auth.getUser()
@@ -149,9 +152,9 @@ export default async function TournamentPage({
   }
 
   function statusLabel(status: string) {
-    if (status === 'registration') return 'Registration Open'
-    if (status === 'active') return 'In Progress'
-    return 'Completed'
+    if (status === 'registration') return t(locale, 'Registration Open', 'Kayıt Açık')
+    if (status === 'active') return t(locale, 'In Progress', 'Devam Ediyor')
+    return t(locale, 'Completed', 'Tamamlandı')
   }
 
   function statusClass(status: string) {
@@ -168,7 +171,7 @@ export default async function TournamentPage({
           href="/tournaments"
           className="mb-6 inline-flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors"
         >
-          ← All tournaments
+          ← {t(locale, 'All tournaments', 'Tüm turnuvalar')}
         </Link>
 
         {/* Header */}
@@ -189,22 +192,22 @@ export default async function TournamentPage({
 
           <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm text-gray-500 dark:text-gray-400">
             <span>
-              Format:{' '}
+              {t(locale, 'Format', 'Format')}:{' '}
               <span className="font-semibold text-gray-900 dark:text-white capitalize">
                 {tournament.format.replace('_', ' ')}
               </span>
             </span>
             <span>
-              Teams:{' '}
+              {t(locale, 'Teams', 'Takımlar')}:{' '}
               <span className="font-semibold text-gray-900 dark:text-white">
                 {registrations.length} / {tournament.max_teams}
               </span>
             </span>
             {tournament.registration_deadline && (
               <span>
-                Registration closes:{' '}
+                {t(locale, 'Registration closes', 'Kayıt kapanıyor')}:{' '}
                 <span className="font-semibold text-gray-900 dark:text-white">
-                  {new Date(tournament.registration_deadline).toLocaleDateString('en-GB', {
+                  {new Date(tournament.registration_deadline).toLocaleDateString(locale === 'tr' ? 'tr-TR' : 'en-GB', {
                     day: 'numeric',
                     month: 'short',
                     year: 'numeric',
@@ -214,9 +217,9 @@ export default async function TournamentPage({
             )}
             {tournament.start_date && (
               <span>
-                Starts:{' '}
+                {t(locale, 'Starts', 'Başlangıç')}:{' '}
                 <span className="font-semibold text-gray-900 dark:text-white">
-                  {new Date(tournament.start_date).toLocaleDateString('en-GB', {
+                  {new Date(tournament.start_date).toLocaleDateString(locale === 'tr' ? 'tr-TR' : 'en-GB', {
                     day: 'numeric',
                     month: 'short',
                     year: 'numeric',

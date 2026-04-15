@@ -49,10 +49,10 @@ export default function LoginForm() {
       onSubmit={handleLogin}
       className="mx-auto max-w-md rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-sm"
     >
-      <h1 className="mb-6 text-2xl font-bold">{t(locale, 'Log in', 'Giriş yap')}</h1>
+      <h1 className="mb-6 text-2xl font-bold text-gray-900 dark:text-white">{t(locale, 'Log in', 'Giriş yap')}</h1>
 
       <div className="mb-4">
-        <label className="mb-2 block text-sm font-medium">{t(locale, 'Email', 'E-posta')}</label>
+        <label className="mb-2 block text-sm font-medium text-gray-900 dark:text-white">{t(locale, 'Email', 'E-posta')}</label>
         <input
           type="email"
           value={email}
@@ -63,7 +63,7 @@ export default function LoginForm() {
       </div>
 
       <div className="mb-4">
-        <label className="mb-2 block text-sm font-medium">{t(locale, 'Password', 'Şifre')}</label>
+        <label className="mb-2 block text-sm font-medium text-gray-900 dark:text-white">{t(locale, 'Password', 'Şifre')}</label>
         <input
           type="password"
           value={password}

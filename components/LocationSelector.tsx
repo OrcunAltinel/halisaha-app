@@ -35,7 +35,7 @@ export default function LocationSelector() {
 
         <button
           onClick={handleSearch}
-          className="rounded-xl bg-green-800 px-6 py-3 font-semibold text-white transition hover:bg-green-900"
+          className="rounded-xl bg-green-800 px-6 py-3 font-semibold text-white transition hover:bg-green-900 cursor-pointer"
         >
           {t(locale, 'Search', 'Ara')}
         </button>

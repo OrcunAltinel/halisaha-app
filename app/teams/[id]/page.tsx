@@ -15,6 +15,7 @@ type ChallengeEntry = {
   slot_date: string
   start_time: string
   end_time: string
+  challenger_team_id: string
   challenger_team_name: string
   challenged_team_name: string
   challenger_score: number | null
@@ -109,6 +110,7 @@ export default async function TeamProfilePage({
       slot_date: slot?.slot_date ?? '',
       start_time: slot?.start_time ?? '',
       end_time: slot?.end_time ?? '',
+      challenger_team_id: c.challenger_team_id,
       challenger_team_name: teamNameMap.get(c.challenger_team_id) ?? '',
       challenged_team_name: teamNameMap.get(c.challenged_team_id) ?? '',
       challenger_score: c.challenger_score ?? null,

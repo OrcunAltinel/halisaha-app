@@ -213,7 +213,7 @@ export default function MyReservationsPage() {
       <div className="mx-auto max-w-5xl">
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white">{t(locale, 'My Reservations', 'Rezervasyonlarım')}</h1>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">{t(locale, 'See all the slots you have booked.', 'Ayırttığın tüm saatleri gör.')}</p>
+          <p className="mt-2 text-gray-600 dark:text-gray-400">{t(locale, 'See all the slots you have booked.', 'Ayırttığınız tüm saatleri gör.')}</p>
         </div>
 
         {loading && (
@@ -230,20 +230,20 @@ export default function MyReservationsPage() {
 
         {!loading && !errorMessage && reservations.length === 0 && (
           <div className="rounded-2xl border dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm">
-            <p className="text-gray-700 dark:text-gray-300">{t(locale, 'You do not have any reservations yet.', 'Henüz bir rezervasyonun yok.')}</p>
+            <p className="text-gray-700 dark:text-gray-300">{t(locale, 'You do not have any reservations yet.', 'Henüz bir rezervasyonunuz yok.')}</p>
           </div>
         )}
 
         {!loading && !errorMessage && reservations.length > 0 && (
           <>
             <div className="mb-4 flex flex-wrap gap-2">
-              {tabButton('upcoming', t(locale, 'Upcoming', 'Yaklasan'), upcoming.length)}
+              {tabButton('upcoming', t(locale, 'Upcoming', 'Yaklaşan'), upcoming.length)}
               {tabButton('past', t(locale, 'Past', 'Geçmiş'), past.length)}
             </div>
 
             {visibleList.length === 0 ? (
               <div className="rounded-2xl border dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm">
-                <p className="text-gray-700 dark:text-gray-300">{t(locale, 'Nothing to show here.', 'Burada gösterilecek bir sey yok.')}</p>
+                <p className="text-gray-700 dark:text-gray-300">{t(locale, 'Nothing to show here.', 'Burada gösterilecek bir şey yok.')}</p>
               </div>
             ) : (
               <div className="grid gap-4">

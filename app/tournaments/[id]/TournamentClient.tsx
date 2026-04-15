@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import TournamentStandings from '@/components/TournamentStandings'
 import TournamentFixtures, { type FixtureMatch } from '@/components/TournamentFixtures'
+import { useLocale } from '@/components/LocaleProvider'
+import { t } from '@/lib/locale'
 
 type Standing = {
   team_id: string
@@ -56,6 +58,7 @@ export default function TournamentClient({
   isSuperAdmin,
 }: Props) {
   const router = useRouter()
+  const { locale } = useLocale()
   const [activeTab, setActiveTab] = useState<Tab>('teams')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -175,7 +178,7 @@ export default function TournamentClient({
       {resultModal && resultMatch && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
           <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-xl ring-1 ring-gray-100 dark:ring-gray-800">
-            <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-1">Enter Result</h2>
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-1">{t(locale, 'Enter Result', 'Sonuç Gir')}</h2>
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
               {resultMatch.home_team_name} vs {resultMatch.away_team_name}
             </p>
@@ -219,14 +222,14 @@ export default function TournamentClient({
                 onClick={() => setResultModal(null)}
                 className="flex-1 rounded-xl border border-gray-200 dark:border-gray-700 py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition"
               >
-                Cancel
+                {t(locale, 'Cancel', 'İptal')}
               </button>
               <button
                 onClick={handleEnterResult}
                 disabled={resultLoading}
                 className="flex-1 rounded-xl bg-green-800 py-2.5 text-sm font-semibold text-white hover:bg-green-900 transition disabled:opacity-50"
               >
-                {resultLoading ? 'Saving...' : 'Save Result'}
+                {resultLoading ? t(locale, 'Saving...', 'Kaydediliyor...') : t(locale, 'Save Result', 'Sonucu Kaydet')}
               </button>
             </div>
           </div>
@@ -244,7 +247,7 @@ export default function TournamentClient({
                 disabled={loading}
                 className="rounded-xl border border-red-300 dark:border-red-800 px-5 py-2.5 text-sm font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition disabled:opacity-50"
               >
-                {loading ? 'Withdrawing...' : 'Withdraw team'}
+                {loading ? t(locale, 'Withdrawing...', 'Çekiliyor...') : t(locale, 'Withdraw team', 'Takımı çek')}
               </button>
             ) : (
               <button
@@ -252,7 +255,7 @@ export default function TournamentClient({
                 disabled={loading || isFull}
                 className="rounded-xl bg-green-800 px-5 py-2.5 text-sm font-semibold text-white hover:bg-green-900 transition disabled:opacity-50"
               >
-                {loading ? 'Registering...' : isFull ? 'Tournament full' : 'Register your team'}
+                {loading ? t(locale, 'Registering...', 'Kayıt ediliyor...') : isFull ? t(locale, 'Tournament full', 'Turnuva dolu') : t(locale, 'Register your team', 'Takımını kayıt et')}
               </button>
             )
           )}
@@ -263,9 +266,9 @@ export default function TournamentClient({
               onClick={handleStart}
               disabled={loading || registrations.length < 2}
               className="rounded-xl bg-gray-900 dark:bg-white px-5 py-2.5 text-sm font-semibold text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 transition disabled:opacity-50"
-              title={registrations.length < 2 ? 'Need at least 2 teams' : undefined}
+              title={registrations.length < 2 ? t(locale, 'Need at least 2 teams', 'En az 2 takım gerekli') : undefined}
             >
-              {loading ? 'Starting...' : `Start tournament (${registrations.length} teams)`}
+              {loading ? t(locale, 'Starting...', 'Başlatılıyor...') : t(locale, `Start tournament (${registrations.length} teams)`, `Turnuvayı başlat (${registrations.length} takım)`)}
             </button>
           )}
         </div>
@@ -279,16 +282,16 @@ export default function TournamentClient({
         {/* Tabs */}
         <div className="border-b border-gray-200 dark:border-gray-800 flex gap-0">
           <button onClick={() => setActiveTab('teams')} className={tabClass('teams')}>
-            Teams ({registrations.length})
+            {t(locale, 'Teams', 'Takımlar')} ({registrations.length})
           </button>
           {(tournament.status === 'active' || tournament.status === 'completed') && (
             <button onClick={() => setActiveTab('standings')} className={tabClass('standings')}>
-              Standings
+              {t(locale, 'Standings', 'Puan Durumu')}
             </button>
           )}
           {(tournament.status === 'active' || tournament.status === 'completed') && (
             <button onClick={() => setActiveTab('fixtures')} className={tabClass('fixtures')}>
-              Fixtures
+              {t(locale, 'Fixtures', 'Fikstür')}
             </button>
           )}
         </div>
@@ -298,9 +301,9 @@ export default function TournamentClient({
           <div>
             {registrations.length === 0 ? (
               <div className="rounded-2xl bg-white dark:bg-gray-900 p-8 text-center ring-1 ring-gray-100 dark:ring-gray-800">
-                <p className="font-semibold text-gray-900 dark:text-white">No teams registered yet</p>
+                <p className="font-semibold text-gray-900 dark:text-white">{t(locale, 'No teams registered yet', 'Henüz kayıtlı takım yok')}</p>
                 <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                  Be the first to sign up your team.
+                  {t(locale, 'Be the first to sign up your team.', 'Takımınla ilk kayıt olan ol.')}
                 </p>
               </div>
             ) : (
@@ -321,7 +324,7 @@ export default function TournamentClient({
                       </span>
                       {isMyTeam && (
                         <span className="rounded-full bg-green-100 dark:bg-green-900/30 px-3 py-1 text-xs font-semibold text-green-700 dark:text-green-400">
-                          Your team
+                          {t(locale, 'Your team', 'Senin takımın')}
                         </span>
                       )}
                     </div>
@@ -333,7 +336,7 @@ export default function TournamentClient({
         )}
 
         {activeTab === 'standings' && (
-          <TournamentStandings standings={standings} currentUserTeamId={currentUserTeamId} />
+          <TournamentStandings standings={standings} currentUserTeamId={currentUserTeamId} locale={locale} />
         )}
 
         {activeTab === 'fixtures' && (
@@ -341,6 +344,7 @@ export default function TournamentClient({
             matches={matches}
             isSuperAdmin={isSuperAdmin}
             onEnterResult={openResultModal}
+            locale={locale}
           />
         )}
       </div>

@@ -22,6 +22,7 @@ type ChallengeEntry = {
   slot_date: string
   start_time: string
   end_time: string
+  challenger_team_id: string
   challenger_team_name: string
   challenged_team_name: string
   challenger_score: number | null
@@ -73,6 +74,23 @@ export default function TeamProfileClient({
   const canRequest = currentUserId && !currentUserTeamId && !isOwnTeam
   const canChallenge = currentUserCaptainTeamId && currentUserCaptainTeamId !== team.id
 
+  // Team record stats
+  const playedWithResult = challenges
+    .filter((c) => c.status === 'played' && c.challenger_score != null && c.challenged_score != null)
+    .map((c) => {
+      const isChallenger = c.challenger_team_id === team.id
+      const myScore = isChallenger ? c.challenger_score! : c.challenged_score!
+      const oppScore = isChallenger ? c.challenged_score! : c.challenger_score!
+      const result: 'W' | 'D' | 'L' = myScore > oppScore ? 'W' : myScore === oppScore ? 'D' : 'L'
+      return result
+    })
+
+  const stats = playedWithResult.reduce(
+    (acc, r) => ({ wins: acc.wins + (r === 'W' ? 1 : 0), draws: acc.draws + (r === 'D' ? 1 : 0), losses: acc.losses + (r === 'L' ? 1 : 0) }),
+    { wins: 0, draws: 0, losses: 0 }
+  )
+  const last5 = playedWithResult.slice(0, 5)
+
   async function handleRequest() {
     setRequestModal(false)
     setRequestLoading(true)
@@ -112,7 +130,32 @@ export default function TeamProfileClient({
           <div className="rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-sm ring-1 ring-gray-100 dark:ring-gray-800">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{team.name}</h1>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{team.name}</h1>
+                  {last5.length > 0 && (
+                    <div className="flex gap-1">
+                      {last5.map((result, i) => (
+                        <span
+                          key={i}
+                          className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white ${
+                            result === 'W' ? 'bg-green-600' : result === 'D' ? 'bg-blue-500' : 'bg-red-600'
+                          }`}
+                        >
+                          {locale === 'tr' ? { W: 'G', D: 'B', L: 'Y' }[result] : result}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                {playedWithResult.length > 0 && (
+                  <p className="mt-1 text-sm font-medium text-gray-500 dark:text-gray-400">
+                    <span className="text-green-600 dark:text-green-400 font-semibold">{stats.wins} {t(locale, 'W', 'G')}</span>
+                    <span className="text-gray-400 dark:text-gray-600 mx-1">/</span>
+                    <span className="text-blue-500 dark:text-blue-400 font-semibold">{stats.draws} {t(locale, 'D', 'B')}</span>
+                    <span className="text-gray-400 dark:text-gray-600 mx-1">/</span>
+                    <span className="text-red-600 dark:text-red-400 font-semibold">{stats.losses} {t(locale, 'L', 'Y')}</span>
+                  </p>
+                )}
                 {team.description && (
                   <p className="mt-2 text-gray-600 dark:text-gray-400">{team.description}</p>
                 )}
@@ -198,9 +241,16 @@ export default function TeamProfileClient({
                         {formatTime(c.start_time)} – {formatTime(c.end_time)}
                       </p>
                     </div>
-                    <span className={`rounded-full px-3 py-1 text-xs font-semibold w-fit ${statusColor(c.status)}`}>
-                      {translateStatus(locale, c.status)}
-                    </span>
+                    <div className="flex items-center gap-2 w-fit">
+                      {c.status === 'played' && c.challenger_score != null && c.challenged_score != null && (
+                        <span className="rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-3 py-1 text-sm font-bold tabular-nums">
+                          {c.challenger_score} – {c.challenged_score}
+                        </span>
+                      )}
+                      <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusColor(c.status)}`}>
+                        {translateStatus(locale, c.status)}
+                      </span>
+                    </div>
                   </div>
                 ))}
               </div>
