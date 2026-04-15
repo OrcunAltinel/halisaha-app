@@ -16,6 +16,13 @@ export default function AdminHomePage() {
   const [loading, setLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState('')
 
+  const translateRole = (role: string) => {
+    if (role === 'owner') return t(locale, 'Owner', 'Sahip')
+    if (role === 'manager') return t(locale, 'Manager', 'Yönetici')
+    if (role === 'admin') return t(locale, 'Admin', 'Yönetici')
+    return role
+  }
+
   useEffect(() => {
     const supabase = createSupabaseBrowserClient()
     let mounted = true
@@ -61,7 +68,7 @@ export default function AdminHomePage() {
           <p className="mt-2 text-gray-600 dark:text-gray-400">{t(locale, 'Manage the turfs you own.', 'Sahip olduğun sahaları yönet.')}</p>
         </div>
 
-        {loading && <FootballLoader message={t(locale, 'Loading your pitches…', 'Sahalarin yükleniyor…')} />}
+        {loading && <FootballLoader message={t(locale, 'Loading your pitches…', 'Sahaların yükleniyor…')} />}
 
         {!loading && errorMessage && (
           <div className="rounded-2xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 p-6 shadow-sm">
@@ -71,24 +78,24 @@ export default function AdminHomePage() {
 
         {!loading && !errorMessage && (
           <div className="grid gap-4 md:grid-cols-2">
-            {turfs.map((t) => (
+            {turfs.map((turfAdmin) => (
               <Link
-                key={t.astroturf_id}
-                href={`/admin/${t.astroturf_id}`}
+                key={turfAdmin.astroturf_id}
+                href={`/admin/${turfAdmin.astroturf_id}`}
                 className="rounded-2xl border dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm transition hover:shadow-md"
               >
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                  {t.astroturfs?.name || t(locale, 'Turf', 'Saha')}
+                  {turfAdmin.astroturfs?.name || t(locale, 'Turf', 'Saha')}
                 </h2>
                 <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                  {t.astroturfs?.address || t(locale, 'No address', 'Adres yok')}
+                  {turfAdmin.astroturfs?.address || t(locale, 'No address', 'Adres yok')}
                 </p>
                 <p className="mt-3 text-sm text-gray-800 dark:text-gray-200">
                   <span className="font-semibold">{t(locale, 'Hourly price:', 'Saatlik ücret:')}</span>{' '}
-                  {t.astroturfs?.price_per_hour ?? '-'} TL
+                  {turfAdmin.astroturfs?.price_per_hour ?? '-'} TL
                 </p>
                 <p className="mt-1 text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                  {t(locale, 'Role:', 'Rol:')} {t.role}
+                  {t(locale, 'Role:', 'Rol:')} {translateRole(turfAdmin.role)}
                 </p>
               </Link>
             ))}
