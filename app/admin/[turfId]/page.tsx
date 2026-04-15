@@ -37,6 +37,14 @@ type TurfInfo = {
   price_per_hour: number
 }
 
+type TimeSlotRow = {
+  id: string
+  slot_date: string
+  start_time: string
+  end_time: string
+  is_available: boolean
+}
+
 function shiftDate(dateStr: string, days: number) {
   const date = new Date(`${dateStr}T00:00:00`)
   date.setDate(date.getDate() + days)
@@ -68,6 +76,15 @@ export default function AdminTurfPage() {
   const [todayDate, setTodayDate] = useState('')
   const [selectedReservationId, setSelectedReservationId] = useState<string | null>(null)
   const { showToast } = useToast()
+
+  // Time slots for current calendar week
+  const [timeSlots, setTimeSlots] = useState<TimeSlotRow[]>([])
+
+  // Reserve-slot modal (admin walk-in booking)
+  const [blockModal, setBlockModal] = useState<{ slotId: string; date: string; hour: number } | null>(null)
+  const [customerName, setCustomerName] = useState('')
+  const [blocking, setBlocking] = useState(false)
+  const [blockError, setBlockError] = useState<string | null>(null)
 
   // Price editing
   const [newPrice, setNewPrice] = useState<string>('')
@@ -103,9 +120,28 @@ export default function AdminTurfPage() {
       .maybeSingle()
 
     if (adminError || !adminRow) {
-      setErrorMessage(t(locale, 'You do not have access to this turf.', 'Bu sahaya erişim yetkin yok.'))
-      setLoading(false)
-      return
+      // Not in astroturf_admins — check if super admin and auto-grant access
+      const { data: superRow } = await supabase
+        .from('super_admins')
+        .select('user_id')
+        .eq('user_id', user.id)
+        .maybeSingle()
+
+      if (!superRow) {
+        setErrorMessage(t(locale, 'You do not have access to this turf.', 'Bu sahaya erişim yetkin yok.'))
+        setLoading(false)
+        return
+      }
+
+      const { error: grantError } = await supabase.rpc('super_admin_grant_access', {
+        p_super_admin_user_id: user.id,
+        p_astroturf_id: turfId,
+      })
+      if (grantError) {
+        setErrorMessage(grantError.message)
+        setLoading(false)
+        return
+      }
     }
 
     const { data: turfData, error: turfError } = await supabase
@@ -415,6 +451,17 @@ export default function AdminTurfPage() {
     })
   }, [calendarStart])
 
+  useEffect(() => {
+    if (!turfId || calendarDates.length === 0) return
+    const supabase = createSupabaseBrowserClient()
+    supabase
+      .from('time_slots')
+      .select('id, slot_date, start_time, end_time, is_available')
+      .eq('astroturf_id', turfId)
+      .in('slot_date', calendarDates)
+      .then(({ data }) => setTimeSlots(data ?? []))
+  }, [turfId, calendarDates])
+
   const reservationMap = useMemo(() => {
     const map: Record<string, Record<number, AdminReservation>> = {}
     for (const r of reservations) {
@@ -437,8 +484,23 @@ export default function AdminTurfPage() {
       if (h < min) min = h
       if (h > max) max = h
     }
+    for (const s of timeSlots) {
+      const h = parseInt(s.start_time.split(':')[0], 10)
+      if (h < min) min = h
+      if (h > max) max = h
+    }
     return Array.from({ length: max - min + 1 }, (_, i) => min + i)
-  }, [reservations])
+  }, [reservations, timeSlots])
+
+  const slotMap = useMemo(() => {
+    const map: Record<string, Record<number, TimeSlotRow>> = {}
+    for (const s of timeSlots) {
+      const hour = parseInt(s.start_time.split(':')[0], 10)
+      if (!map[s.slot_date]) map[s.slot_date] = {}
+      map[s.slot_date][hour] = s
+    }
+    return map
+  }, [timeSlots])
 
   const shortDateLabel = (dateStr: string) => {
     const d = new Date(dateStr + 'T00:00:00')
@@ -458,6 +520,42 @@ export default function AdminTurfPage() {
   const changeCalendarWeek = (days: number) => {
     if (!calendarStart) return
     setCalendarStart(shiftDate(calendarStart, days))
+  }
+
+  const refreshTimeSlots = async (dates: string[]) => {
+    if (!turfId || dates.length === 0) return
+    const supabase = createSupabaseBrowserClient()
+    const { data } = await supabase
+      .from('time_slots')
+      .select('id, slot_date, start_time, end_time, is_available')
+      .eq('astroturf_id', turfId)
+      .in('slot_date', dates)
+    setTimeSlots(data ?? [])
+  }
+
+  const handleBlockSlot = async () => {
+    if (!blockModal || !turf || !userId) return
+    setBlocking(true)
+    setBlockError(null)
+    const res = await fetch('/api/admin/block-slot', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        time_slot_id: blockModal.slotId,
+        astroturf_id: turf.id,
+        customer_name: customerName.trim() || null,
+      }),
+    })
+    const json = await res.json()
+    setBlocking(false)
+    if (!res.ok) {
+      setBlockError(json.error ?? t(locale, 'Failed to reserve slot', 'Saat rezerve edilemedi'))
+      return
+    }
+    setBlockModal(null)
+    setCustomerName('')
+    await loadData()
+    await refreshTimeSlots(calendarDates)
   }
 
   return (
@@ -500,6 +598,54 @@ export default function AdminTurfPage() {
         onConfirm={confirmDeleteTurf}
         onClose={() => setModal(null)}
       />
+    )}
+
+    {/* Reserve slot modal (admin walk-in booking) */}
+    {blockModal && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+        <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-xl ring-1 ring-gray-100 dark:ring-gray-800">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-1">
+            {t(locale, 'Reserve this slot', 'Bu saati rezerve et')}
+          </h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-5">
+            {shortDateLabel(blockModal.date)}
+            {' · '}
+            {String(blockModal.hour).padStart(2, '0')}:00 – {String(blockModal.hour + 1).padStart(2, '0')}:00
+          </p>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              {t(locale, 'Customer name', 'Müşteri adı')}
+            </label>
+            <input
+              type="text"
+              value={customerName}
+              onChange={(e) => setCustomerName(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleBlockSlot()}
+              autoFocus
+              placeholder={t(locale, 'e.g. Ali Yılmaz', 'ör. Ali Yılmaz')}
+              className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500"
+            />
+          </div>
+          {blockError && (
+            <p className="mb-3 text-sm text-red-600 dark:text-red-400">{blockError}</p>
+          )}
+          <div className="flex gap-3">
+            <button
+              onClick={() => { setBlockModal(null); setCustomerName(''); setBlockError(null) }}
+              className="flex-1 rounded-xl border border-gray-200 dark:border-gray-700 py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition"
+            >
+              {t(locale, 'Cancel', 'İptal')}
+            </button>
+            <button
+              onClick={handleBlockSlot}
+              disabled={blocking}
+              className="flex-1 rounded-xl bg-green-700 py-2.5 text-sm font-semibold text-white hover:bg-green-800 transition disabled:opacity-50"
+            >
+              {blocking ? t(locale, 'Reserving…', 'Rezerve ediliyor…') : t(locale, 'Confirm reservation', 'Rezervasyonu onayla')}
+            </button>
+          </div>
+        </div>
+      </div>
     )}
     <main className="min-h-screen bg-gray-200 dark:bg-gray-950 px-6 py-10">
       <div className="mx-auto max-w-5xl">
@@ -780,7 +926,7 @@ export default function AdminTurfPage() {
                 </div>
               </div>
 
-              {scheduledReservations.length === 0 ? (
+              {scheduledReservations.length === 0 && timeSlots.length === 0 ? (
                 <div className="rounded-2xl border dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm">
                   <p className="text-gray-700 dark:text-gray-300">
                     {t(locale, 'No processed reservations yet.', 'Henüz işlenmiş rezervasyon yok.')}
@@ -815,30 +961,45 @@ export default function AdminTurfPage() {
                             </td>
                             {calendarDates.map((date) => {
                               const reservation = reservationMap[date]?.[hour]
+                              const slot = slotMap[date]?.[hour]
                               const isSelected = selectedReservationId === reservation?.id
                               const cellStatus = reservation
                                 ? effectiveStatus(reservation.status, reservation.time_slots?.slot_date)
                                 : null
 
-                              const cellColor = !reservation
-                                ? 'cursor-default bg-white hover:bg-gray-50 dark:bg-gray-900 dark:hover:bg-gray-800/50'
-                                : cellStatus === 'confirmed'
-                                  ? `cursor-pointer bg-green-100 text-green-800 hover:brightness-95 dark:bg-green-900/40 dark:text-green-300 ${isSelected ? 'ring-2 ring-inset ring-green-500' : ''}`
-                                  : cellStatus === 'cancelled' || cellStatus === 'rejected'
-                                    ? `cursor-pointer bg-red-100 text-red-600 hover:brightness-95 dark:bg-red-900/30 dark:text-red-400 ${isSelected ? 'ring-2 ring-inset ring-red-400' : ''}`
-                                    : `cursor-pointer bg-gray-200 text-gray-600 hover:brightness-95 dark:bg-gray-700 dark:text-gray-400 ${isSelected ? 'ring-2 ring-inset ring-gray-400' : ''}`
+                              let cellColor: string
+                              let clickHandler: (() => void) | undefined
+
+                              if (reservation) {
+                                if (cellStatus === 'confirmed') {
+                                  cellColor = `cursor-pointer bg-green-100 text-green-800 hover:brightness-95 dark:bg-green-900/40 dark:text-green-300 ${isSelected ? 'ring-2 ring-inset ring-green-500' : ''}`
+                                } else if (cellStatus === 'cancelled' || cellStatus === 'rejected') {
+                                  cellColor = `cursor-pointer bg-red-100 text-red-600 hover:brightness-95 dark:bg-red-900/30 dark:text-red-400 ${isSelected ? 'ring-2 ring-inset ring-red-400' : ''}`
+                                } else {
+                                  cellColor = `cursor-pointer bg-gray-200 text-gray-600 hover:brightness-95 dark:bg-gray-700 dark:text-gray-400 ${isSelected ? 'ring-2 ring-inset ring-gray-400' : ''}`
+                                }
+                                clickHandler = () => setSelectedReservationId(isSelected ? null : reservation.id)
+                              } else if (slot?.is_available) {
+                                cellColor = 'cursor-pointer bg-white dark:bg-gray-900 hover:bg-green-50 dark:hover:bg-green-900/10'
+                                clickHandler = () => setBlockModal({ slotId: slot.id, date, hour })
+                              } else {
+                                cellColor = 'bg-white dark:bg-gray-900'
+                                clickHandler = undefined
+                              }
 
                               return (
                                 <td
                                   key={date}
-                                  onClick={() => reservation && setSelectedReservationId(isSelected ? null : reservation.id)}
+                                  onClick={clickHandler}
                                   className={`border-r px-2 py-1.5 text-center align-middle transition dark:border-gray-800 ${cellColor}`}
                                 >
-                                  {reservation && (
+                                  {reservation ? (
                                     <span className="block truncate text-xs font-semibold leading-tight">
                                       {translateStatus(locale, cellStatus ?? reservation.status)}
                                     </span>
-                                  )}
+                                  ) : slot?.is_available ? (
+                                    <span className="block text-xs text-gray-300 dark:text-gray-600 select-none">+</span>
+                                  ) : null}
                                 </td>
                               )
                             })}
@@ -861,6 +1022,11 @@ export default function AdminTurfPage() {
                           {selectedReservation.total_price} TL ·{' '}
                           {selectedReservation.user_profiles?.username ?? `${selectedReservation.user_id.slice(0, 8)}…`}
                         </p>
+                        {selectedReservation.status === 'confirmed' && selectedReservation.cancellation_reason && (
+                          <p className="text-sm text-gray-700 dark:text-gray-300">
+                            {t(locale, 'Customer', 'Müşteri')}: <span className="font-semibold">{selectedReservation.cancellation_reason}</span>
+                          </p>
+                        )}
                         {selectedReservation.status === 'cancelled' && selectedReservation.cancelled_by && (
                           <p className="text-xs text-gray-500 dark:text-gray-400">
                             {locale === 'tr'

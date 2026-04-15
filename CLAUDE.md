@@ -68,9 +68,33 @@ Three tiers, all enforced at the database level via RLS:
 
 1. **Regular users** — can browse, book, cancel own reservations
 2. **Turf admins** — rows in `astroturf_admins` table; `lib/admin.ts` exposes `getAdminTurfs()` and `isUserAdmin()`
-3. **Super admins** — rows in `super_admins` table; can approve/reject turf applications
+3. **Super admins** — rows in `super_admins` table; can approve/reject turf applications, manage ALL turfs, and create turfs instantly
 
 The Navbar reads role state client-side after mount. Super admin gating in server components queries `super_admins` directly.
+
+#### Super admin page (`/super-admin`)
+
+- Lists every turf on the platform with name, address, price, and active/inactive status
+- "Manage" links to `/admin/[turfId]` — the admin page auto-grants super admin access via `super_admin_grant_access` RPC if not already in `astroturf_admins`
+- "+ Add new turf" form creates a turf instantly (no application review) via `super_admin_create_turf` RPC
+- Purple "Super Admin" button appears in the navbar to the right of Log out, visible only to super admins
+
+#### Supabase SQL functions (in `supabase/`)
+
+All files in `supabase/` must be run manually in the Supabase SQL Editor before the features work:
+
+| File | Functions | Purpose |
+|---|---|---|
+| `supabase/admin_block_slot.sql` | `admin_reserve_slot` | Admin instantly confirms a walk-in reservation for a time slot |
+| `supabase/super_admin.sql` | `super_admin_grant_access`, `super_admin_create_turf` | Super admin access to all turfs + instant turf creation |
+
+#### Admin walk-in booking
+
+Turf admins can click any available (`+`) cell in the weekly reservation calendar to open a "Reserve this slot" modal. They enter the customer's name (stored in `cancellation_reason`), click Confirm, and the slot is instantly marked as confirmed. The customer name shows in the detail panel as "Customer: [name]". The reservation can be cancelled using the standard cancel flow.
+
+## Pending work — remind the user
+
+> **TODO (remind user when relevant):** The turf/pitch profile page is missing **contact information** (phone number, WhatsApp, email) and **photos/images** for each pitch. These should be added to the turf creation form (both the application flow and the super-admin instant-create form at `/super-admin`), stored in the `astroturfs` table, and displayed on the public turf page (`/astroturf/[id]`). The `ImageUploader` component and `TurfImageGallery` component already exist and are ready to be wired up.
 
 ### Data flow for booking
 

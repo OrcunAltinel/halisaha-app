@@ -226,6 +226,14 @@ export default function Navbar() {
                 >
                   {t(locale, 'Log out', 'Çıkış yap')}
                 </button>
+                {isSuperAdmin && (
+                  <Link
+                    href="/super-admin"
+                    className="text-sm px-3 py-1.5 rounded-md bg-purple-700 text-white hover:bg-purple-800 transition-colors font-semibold"
+                  >
+                    {t(locale, 'Super Admin', 'Süper Yönetici')}
+                  </Link>
+                )}
               </>
             ) : (
               <>
@@ -284,6 +292,14 @@ export default function Navbar() {
                   >
                     {t(locale, 'Log out', 'Çıkış yap')}
                   </button>
+                  {isSuperAdmin && (
+                    <Link
+                      href="/super-admin"
+                      className="text-sm px-3 py-1.5 rounded-md bg-purple-700 text-white hover:bg-purple-800 transition-colors font-semibold w-fit"
+                    >
+                      {t(locale, 'Super Admin', 'Süper Yönetici')}
+                    </Link>
+                  )}
                 </div>
               ) : (
                 <div className="flex flex-col gap-2">
