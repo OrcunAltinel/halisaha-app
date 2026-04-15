@@ -28,8 +28,18 @@ type ChallengeRow = {
   created_at: string
   challenger_team_id: string
   challenged_team_id: string
-  time_slots: { slot_date: string | null; start_time: string | null; end_time: string | null } | null
-  astroturfs: { name: string | null } | null
+  challenger_score: number | null
+  challenged_score: number | null
+  time_slots:
+    | { slot_date: string | null; start_time: string | null; end_time: string | null }
+    | { slot_date: string | null; start_time: string | null; end_time: string | null }[]
+    | null
+  astroturfs: { name: string | null } | { name: string | null }[] | null
+}
+
+function firstRelation<T>(value: T | T[] | null): T | null {
+  if (Array.isArray(value)) return value[0] ?? null
+  return value
 }
 
 export default async function TeamProfilePage({
@@ -88,19 +98,24 @@ export default async function TeamProfilePage({
   const teamNameMap = new Map<string, string>()
   for (const t of teamNames ?? []) teamNameMap.set(t.id, t.name)
 
-  const challenges: ChallengeEntry[] = ((challengesData ?? []) as ChallengeRow[]).map((c) => ({
-    id: c.id,
-    status: c.status,
-    astroturf_name: c.astroturfs?.name ?? '',
-    slot_date: c.time_slots?.slot_date ?? '',
-    start_time: c.time_slots?.start_time ?? '',
-    end_time: c.time_slots?.end_time ?? '',
-    challenger_team_name: teamNameMap.get(c.challenger_team_id) ?? '',
-    challenged_team_name: teamNameMap.get(c.challenged_team_id) ?? '',
-    challenger_score: c.challenger_score ?? null,
-    challenged_score: c.challenged_score ?? null,
-    created_at: c.created_at,
-  }))
+  const challenges: ChallengeEntry[] = ((challengesData ?? []) as ChallengeRow[]).map((c) => {
+    const slot = firstRelation(c.time_slots)
+    const astroturf = firstRelation(c.astroturfs)
+
+    return {
+      id: c.id,
+      status: c.status,
+      astroturf_name: astroturf?.name ?? '',
+      slot_date: slot?.slot_date ?? '',
+      start_time: slot?.start_time ?? '',
+      end_time: slot?.end_time ?? '',
+      challenger_team_name: teamNameMap.get(c.challenger_team_id) ?? '',
+      challenged_team_name: teamNameMap.get(c.challenged_team_id) ?? '',
+      challenger_score: c.challenger_score ?? null,
+      challenged_score: c.challenged_score ?? null,
+      created_at: c.created_at,
+    }
+  })
 
   // Current user's team membership + request status
   let currentUserTeamId: string | null = null

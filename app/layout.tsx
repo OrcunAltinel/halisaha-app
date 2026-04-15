@@ -1,6 +1,5 @@
 import './globals.css'
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import ToastProvider from '@/components/ToastProvider'
@@ -8,8 +7,6 @@ import ThemeProvider from '@/components/ThemeProvider'
 import { LocaleProvider } from '@/components/LocaleProvider'
 import { t } from '@/lib/locale'
 import { getRequestLocale } from '@/lib/locale-server'
-
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' })
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getRequestLocale()
@@ -31,7 +28,7 @@ export default async function RootLayout({
   const locale = await getRequestLocale()
 
   return (
-    <html lang={locale} suppressHydrationWarning className={`${inter.variable} bg-gray-200 dark:bg-gray-950`}>
+    <html lang={locale} suppressHydrationWarning className="bg-gray-200 dark:bg-gray-950">
       <body className="bg-gray-200 dark:bg-gray-950 text-black dark:text-white">
         <ThemeProvider>
           <LocaleProvider initialLocale={locale}>

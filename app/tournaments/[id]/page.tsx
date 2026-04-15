@@ -22,6 +22,40 @@ type Registration = {
   registered_at: string
 }
 
+type RegistrationRow = {
+  team_id: string
+  registered_at: string
+  teams: { name: string | null } | { name: string | null }[] | null
+}
+
+type StandingRow = {
+  team_id: string
+  played: number
+  wins: number
+  draws: number
+  losses: number
+  goals_for: number
+  goals_against: number
+  points: number
+  teams: { name: string | null } | { name: string | null }[] | null
+}
+
+type MatchRow = {
+  id: string
+  round: number
+  home_team_id: string
+  away_team_id: string
+  home_score: number | null
+  away_score: number | null
+  status: string
+  scheduled_date: string | null
+}
+
+function getTeamName(teams: { name: string | null } | { name: string | null }[] | null) {
+  if (Array.isArray(teams)) return teams[0]?.name ?? 'Unknown'
+  return teams?.name ?? 'Unknown'
+}
+
 export default async function TournamentPage({
   params,
 }: {
@@ -48,9 +82,9 @@ export default async function TournamentPage({
     .eq('tournament_id', id)
     .order('registered_at', { ascending: true })
 
-  const registrations: Registration[] = (regsData ?? []).map((r: any) => ({
+  const registrations: Registration[] = ((regsData ?? []) as RegistrationRow[]).map((r) => ({
     team_id: r.team_id,
-    team_name: r.teams?.name ?? 'Unknown',
+    team_name: getTeamName(r.teams),
     registered_at: r.registered_at,
   }))
 
@@ -61,9 +95,9 @@ export default async function TournamentPage({
     .eq('tournament_id', id)
     .order('points', { ascending: false })
 
-  const standings: Standing[] = (standingsData ?? []).map((s: any) => ({
+  const standings: Standing[] = ((standingsData ?? []) as StandingRow[]).map((s) => ({
     team_id: s.team_id,
-    team_name: s.teams?.name ?? 'Unknown',
+    team_name: getTeamName(s.teams),
     played: s.played,
     wins: s.wins,
     draws: s.draws,
@@ -85,7 +119,7 @@ export default async function TournamentPage({
   for (const r of registrations) teamNameMap.set(r.team_id, r.team_name)
   for (const s of standings) teamNameMap.set(s.team_id, s.team_name)
 
-  const matches: FixtureMatch[] = (matchesData ?? []).map((m: any) => ({
+  const matches: FixtureMatch[] = ((matchesData ?? []) as MatchRow[]).map((m) => ({
     id: m.id,
     round: m.round,
     home_team_id: m.home_team_id,
@@ -198,7 +232,6 @@ export default async function TournamentPage({
           registrations={registrations}
           standings={standings}
           matches={matches}
-          currentUserId={user?.id ?? null}
           currentUserTeamId={currentUserTeamId}
           isCaptain={isCaptain}
           isSuperAdmin={isSuperAdmin}

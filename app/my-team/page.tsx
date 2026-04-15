@@ -45,8 +45,18 @@ type ChallengeRow = {
   created_at: string
   challenger_team_id: string
   challenged_team_id: string
-  time_slots: { slot_date: string | null; start_time: string | null; end_time: string | null } | null
-  astroturfs: { name: string | null } | null
+  challenger_score: number | null
+  challenged_score: number | null
+  time_slots:
+    | { slot_date: string | null; start_time: string | null; end_time: string | null }
+    | { slot_date: string | null; start_time: string | null; end_time: string | null }[]
+    | null
+  astroturfs: { name: string | null } | { name: string | null }[] | null
+}
+
+function firstRelation<T>(value: T | T[] | null): T | null {
+  if (Array.isArray(value)) return value[0] ?? null
+  return value
 }
 
 export default async function MyTeamPage() {
@@ -133,13 +143,16 @@ export default async function MyTeamPage() {
   const outgoing: ChallengeEntry[] = []
 
   for (const c of (challengesData ?? []) as ChallengeRow[]) {
+    const slot = firstRelation(c.time_slots)
+    const astroturf = firstRelation(c.astroturfs)
+
     const entry: ChallengeEntry = {
       id: c.id,
       status: c.status,
-      astroturf_name: c.astroturfs?.name ?? '',
-      slot_date: c.time_slots?.slot_date ?? '',
-      start_time: c.time_slots?.start_time ?? '',
-      end_time: c.time_slots?.end_time ?? '',
+      astroturf_name: astroturf?.name ?? '',
+      slot_date: slot?.slot_date ?? '',
+      start_time: slot?.start_time ?? '',
+      end_time: slot?.end_time ?? '',
       challenger_team_name: teamNameMap.get(c.challenger_team_id) ?? '',
       challenged_team_name: teamNameMap.get(c.challenged_team_id) ?? '',
       challenger_score: c.challenger_score ?? null,

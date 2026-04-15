@@ -39,7 +39,6 @@ type Props = {
   registrations: Registration[]
   standings: Standing[]
   matches: FixtureMatch[]
-  currentUserId: string | null
   currentUserTeamId: string | null
   isCaptain: boolean
   isSuperAdmin: boolean
@@ -52,7 +51,6 @@ export default function TournamentClient({
   registrations,
   standings,
   matches,
-  currentUserId,
   currentUserTeamId,
   isCaptain,
   isSuperAdmin,
