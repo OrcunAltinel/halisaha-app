@@ -58,7 +58,12 @@ export default function AdminTurfPage() {
   const [loading, setLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState('')
   const [actingId, setActingId] = useState<string | null>(null)
-  const [modal, setModal] = useState<{ type: 'reject' | 'cancel'; reservationId: string } | null>(null)
+  const [deletingTurf, setDeletingTurf] = useState(false)
+  const [modal, setModal] = useState<
+    | { type: 'reject' | 'cancel'; reservationId: string }
+    | { type: 'deleteTurf' }
+    | null
+  >(null)
   const [calendarStart, setCalendarStart] = useState('')
   const [todayDate, setTodayDate] = useState('')
   const [selectedReservationId, setSelectedReservationId] = useState<string | null>(null)
@@ -196,7 +201,7 @@ export default function AdminTurfPage() {
   }
 
   const confirmReject = async () => {
-    if (!modal || !userId) return
+    if (!modal || modal.type !== 'reject' || !userId) return
     const { reservationId } = modal
     const supabase = createSupabaseBrowserClient()
     setActingId(reservationId)
@@ -225,8 +230,12 @@ export default function AdminTurfPage() {
     setModal({ type: 'cancel', reservationId })
   }
 
+  const handleDeleteTurf = () => {
+    setModal({ type: 'deleteTurf' })
+  }
+
   const confirmAdminCancel = async (reason?: string) => {
-    if (!modal || !userId) return
+    if (!modal || modal.type !== 'cancel' || !userId) return
     const { reservationId } = modal
     const supabase = createSupabaseBrowserClient()
     setActingId(reservationId)
@@ -259,6 +268,31 @@ export default function AdminTurfPage() {
     )
     setActingId(null)
     showToast(t(locale, 'Reservation cancelled.', 'Rezervasyon iptal edildi.'))
+  }
+
+  const confirmDeleteTurf = async () => {
+    setDeletingTurf(true)
+
+    const response = await fetch(`/api/admin/turfs/${turfId}`, {
+      method: 'DELETE',
+    })
+
+    const json = (await response.json().catch(() => null)) as { error?: string } | null
+
+    setDeletingTurf(false)
+    setModal(null)
+
+    if (!response.ok) {
+      showToast(
+        json?.error ?? t(locale, 'Failed to delete turf.', 'Saha silinemedi.'),
+        'error'
+      )
+      return
+    }
+
+    showToast(t(locale, 'Turf deleted.', 'Saha silindi.'))
+    router.push('/admin')
+    router.refresh()
   }
 
   const handleSavePrice = async () => {
@@ -452,6 +486,21 @@ export default function AdminTurfPage() {
         onClose={() => setModal(null)}
       />
     )}
+    {modal?.type === 'deleteTurf' && (
+      <ConfirmModal
+        title={t(locale, 'Delete this turf?', 'Bu sahayı sil?')}
+        message={t(
+          locale,
+          'This will permanently delete the turf and its slots, reservations, reviews, and admin links.',
+          'Bu işlem sahayı ve ona bağlı saatleri, rezervasyonları, yorumları ve yönetici bağlantılarını kalıcı olarak siler.'
+        )}
+        confirmLabel={t(locale, 'Delete turf', 'Sahayı sil')}
+        variant="danger"
+        loading={deletingTurf}
+        onConfirm={confirmDeleteTurf}
+        onClose={() => setModal(null)}
+      />
+    )}
     <main className="min-h-screen bg-gray-200 dark:bg-gray-950 px-6 py-10">
       <div className="mx-auto max-w-5xl">
         <Link href="/admin" className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
@@ -473,8 +522,20 @@ export default function AdminTurfPage() {
         {!loading && !errorMessage && turf && (
           <>
             <div className="mt-4 mb-8">
-              <h1 className="text-4xl font-bold text-gray-900 dark:text-white">{turf.name}</h1>
-              <p className="mt-2 text-gray-600 dark:text-gray-400">{turf.address}</p>
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <h1 className="text-4xl font-bold text-gray-900 dark:text-white">{turf.name}</h1>
+                  <p className="mt-2 text-gray-600 dark:text-gray-400">{turf.address}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleDeleteTurf}
+                  disabled={deletingTurf}
+                  className="rounded-xl border border-red-300 px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50 disabled:opacity-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"
+                >
+                  {deletingTurf ? t(locale, 'Deleting...', 'Siliniyor...') : t(locale, 'Delete turf', 'Sahayı sil')}
+                </button>
+              </div>
             </div>
 
             {/* Price settings */}
