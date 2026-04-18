@@ -5,6 +5,8 @@ import Footer from '@/components/Footer'
 import ToastProvider from '@/components/ToastProvider'
 import ThemeProvider from '@/components/ThemeProvider'
 import { LocaleProvider } from '@/components/LocaleProvider'
+import { Analytics } from '@vercel/analytics/next'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 import { t } from '@/lib/locale'
 import { getRequestLocale } from '@/lib/locale-server'
 
@@ -36,6 +38,8 @@ export default async function RootLayout({
               <Navbar />
               {children}
               <Footer />
+              <Analytics />
+              <SpeedInsights />
             </ToastProvider>
           </LocaleProvider>
         </ThemeProvider>
