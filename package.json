@@ -11,8 +11,10 @@
   "dependencies": {
     "@supabase/ssr": "^0.10.2",
     "@supabase/supabase-js": "^2.102.1",
+    "@vercel/analytics": "^2.0.1",
+    "@vercel/speed-insights": "^2.0.0",
     "browser-image-compression": "^2.0.2",
-    "next": "16.2.2",
+    "next": "^16.2.4",
     "react": "19.2.4",
     "react-dom": "19.2.4"
   },
