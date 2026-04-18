@@ -6,7 +6,7 @@ export default async function TermsPage() {
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
-      <h1 className="mb-2 text-4xl font-bold">{t(locale, 'Terms of Service', 'Kullanim Kosullari')}</h1>
+      <h1 className="mb-2 text-4xl font-bold text-gray-900 dark:text-white">{t(locale, 'Terms of Service', 'Kullanim Kosullari')}</h1>
       <p className="mb-10 text-sm text-gray-500 dark:text-gray-400">
         {t(locale, 'Last updated: April 2025', 'Son güncelleme: Nisan 2025')}
       </p>

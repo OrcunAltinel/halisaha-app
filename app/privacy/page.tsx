@@ -6,7 +6,7 @@ export default async function PrivacyPage() {
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
-      <h1 className="mb-2 text-4xl font-bold">{t(locale, 'Privacy Policy', 'Gizlilik Politikasi')}</h1>
+      <h1 className="mb-2 text-4xl font-bold text-gray-900 dark:text-white">{t(locale, 'Privacy Policy', 'Gizlilik Politikasi')}</h1>
       <p className="mb-10 text-sm text-gray-500 dark:text-gray-400">{t(locale, 'Last updated: April 2025', 'Son güncelleme: Nisan 2025')}</p>
 
       <section className="prose prose-gray max-w-none space-y-8 text-gray-700 dark:text-gray-300">
