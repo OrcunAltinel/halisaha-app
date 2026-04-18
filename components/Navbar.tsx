@@ -77,10 +77,10 @@ export default function Navbar() {
 
           const { data: profile } = await supabase
             .from('user_profiles')
-            .select('username')
+            .select('name, surname')
             .eq('user_id', session.user.id)
             .maybeSingle();
-          if (mounted) setDisplayName(profile?.username ?? session.user.email ?? null);
+          if (mounted) setDisplayName(profile?.name ?? session.user.email ?? null);
 
           const { data: adminRows, error: adminError } = await supabase
             .from("astroturf_admins")

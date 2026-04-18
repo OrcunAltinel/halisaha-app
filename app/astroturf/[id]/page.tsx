@@ -32,7 +32,7 @@ type Review = {
   rating: number
   comment: string | null
   created_at: string
-  user_profiles: { username: string | null } | null
+  user_profiles: { name: string | null; surname: string | null } | null
 }
 
 export default async function AstroturfDetailPage({
@@ -80,7 +80,7 @@ export default async function AstroturfDetailPage({
 
   const { data: reviewsData } = await supabase
     .from('reviews')
-    .select('id, rating, comment, created_at, user_profiles(username)')
+    .select('id, rating, comment, created_at, user_profiles(name, surname)')
     .eq('astroturf_id', turf.id)
     .order('created_at', { ascending: false })
 

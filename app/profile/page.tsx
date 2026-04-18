@@ -15,7 +15,7 @@ export default async function ProfilePage() {
 
   const { data: profile } = await supabase
     .from('user_profiles')
-    .select('username')
+    .select('name, surname')
     .eq('user_id', user.id)
     .maybeSingle()
 
@@ -31,7 +31,8 @@ export default async function ProfilePage() {
     <ProfileClient
       userId={user.id}
       currentEmail={user.email ?? ''}
-      currentUsername={profile?.username ?? null}
+      currentName={profile?.name ?? null}
+      currentSurname={profile?.surname ?? null}
       team={team}
       joinedAt={user.created_at}
     />

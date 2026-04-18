@@ -27,7 +27,7 @@ type AdminReservation = {
   cancelled_by: string | null
   cancellation_reason: string | null
   time_slots: { slot_date: string; start_time: string; end_time: string } | null
-  user_profiles: { username: string | null } | null
+  user_profiles: { name: string | null; surname: string | null } | null
 }
 
 type TurfInfo = {
@@ -191,18 +191,18 @@ export default function AdminTurfPage() {
     const uniqueUserIds = [...new Set(rows.map((r) => r.user_id))]
     const { data: profilesData } = await supabase
       .from('user_profiles')
-      .select('user_id, username')
+      .select('user_id, name, surname')
       .in('user_id', uniqueUserIds)
 
-    const usernameMap: Record<string, string | null> = {}
+    const profileMap: Record<string, { name: string | null; surname: string | null }> = {}
     for (const p of profilesData ?? []) {
-      usernameMap[p.user_id] = p.username
+      profileMap[p.user_id] = { name: p.name, surname: p.surname }
     }
 
     setReservations(
       rows.map((r) => ({
         ...r,
-        user_profiles: { username: usernameMap[r.user_id] ?? null },
+        user_profiles: profileMap[r.user_id] ?? { name: null, surname: null },
       }))
     )
     setLoading(false)
@@ -1162,7 +1162,9 @@ export default function AdminTurfPage() {
                         </p>
                         <p className="text-gray-600 dark:text-gray-400">
                           {selectedReservation.total_price} TL ·{' '}
-                          {selectedReservation.user_profiles?.username ?? `${selectedReservation.user_id.slice(0, 8)}…`}
+                          {selectedReservation.user_profiles?.name
+                            ? `${selectedReservation.user_profiles.name} ${selectedReservation.user_profiles.surname ?? ''}`.trim()
+                            : `${selectedReservation.user_id.slice(0, 8)}…`}
                         </p>
                         {selectedReservation.status === 'confirmed' && selectedReservation.cancellation_reason && (
                           <p className="text-sm text-gray-700 dark:text-gray-300">

@@ -6,7 +6,7 @@ type Review = {
   rating: number
   comment: string | null
   created_at: string
-  user_profiles: { username: string | null } | null
+  user_profiles: { name: string | null; surname: string | null } | null
 }
 
 type Props = {
@@ -50,7 +50,9 @@ export default function ReviewsList({ reviews, locale }: Props) {
       {/* List */}
       <div className="space-y-4">
         {reviews.map((review) => {
-          const displayName = review.user_profiles?.username ?? t(locale, 'Anonymous', 'Anonim')
+          const displayName = review.user_profiles?.name
+            ? `${review.user_profiles.name} ${review.user_profiles.surname ?? ''}`.trim()
+            : t(locale, 'Anonymous', 'Anonim')
           const date = new Date(review.created_at).toLocaleDateString(getIntlLocale(locale), {
             day: 'numeric',
             month: 'short',
