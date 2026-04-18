@@ -86,6 +86,7 @@ All files in `supabase/` must be run manually in the Supabase SQL Editor before 
 | File | Functions | Purpose |
 |---|---|---|
 | `supabase/admin_block_slot.sql` | `admin_reserve_slot` | Admin instantly confirms a walk-in reservation for a time slot |
+| `supabase/admin_relocate_reservation.sql` | `admin_relocate_reservation` | Admin moves a confirmed reservation to a different available time slot |
 | `supabase/super_admin.sql` | `super_admin_grant_access`, `super_admin_create_turf` | Super admin access to all turfs + instant turf creation |
 
 #### Admin walk-in booking

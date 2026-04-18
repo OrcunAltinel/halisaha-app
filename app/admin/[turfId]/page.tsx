@@ -86,6 +86,15 @@ export default function AdminTurfPage() {
   const [blocking, setBlocking] = useState(false)
   const [blockError, setBlockError] = useState<string | null>(null)
 
+  // Relocate reservation modal
+  const [relocateModal, setRelocateModal] = useState<{ reservationId: string } | null>(null)
+  const [relocateDate, setRelocateDate] = useState('')
+  const [relocateSlots, setRelocateSlots] = useState<TimeSlotRow[]>([])
+  const [relocateSelectedSlot, setRelocateSelectedSlot] = useState<string | null>(null)
+  const [relocateLoading, setRelocateLoading] = useState(false)
+  const [relocateSlotsLoading, setRelocateSlotsLoading] = useState(false)
+  const [relocateError, setRelocateError] = useState<string | null>(null)
+
   // Price editing
   const [newPrice, setNewPrice] = useState<string>('')
   const [savingPrice, setSavingPrice] = useState(false)
@@ -558,6 +567,61 @@ export default function AdminTurfPage() {
     await refreshTimeSlots(calendarDates)
   }
 
+  const openRelocateModal = (reservationId: string) => {
+    setRelocateModal({ reservationId })
+    setRelocateDate('')
+    setRelocateSlots([])
+    setRelocateSelectedSlot(null)
+    setRelocateError(null)
+  }
+
+  const fetchRelocateSlots = async (date: string) => {
+    if (!turfId) return
+    setRelocateDate(date)
+    setRelocateSelectedSlot(null)
+    setRelocateError(null)
+    if (!date) { setRelocateSlots([]); return }
+
+    const supabase = createSupabaseBrowserClient()
+    setRelocateSlotsLoading(true)
+    const { data, error } = await supabase
+      .from('time_slots')
+      .select('id, slot_date, start_time, end_time, is_available')
+      .eq('astroturf_id', turfId)
+      .eq('slot_date', date)
+      .eq('is_available', true)
+      .order('start_time', { ascending: true })
+    setRelocateSlotsLoading(false)
+    if (error) { setRelocateError(error.message); return }
+    setRelocateSlots(data ?? [])
+  }
+
+  const handleRelocate = async () => {
+    if (!relocateModal || !relocateSelectedSlot || !userId) return
+    const supabase = createSupabaseBrowserClient()
+    setRelocateLoading(true)
+    setRelocateError(null)
+
+    const { error } = await supabase.rpc('admin_relocate_reservation', {
+      p_reservation_id: relocateModal.reservationId,
+      p_new_time_slot_id: relocateSelectedSlot,
+      p_admin_user_id: userId,
+    })
+
+    setRelocateLoading(false)
+
+    if (error) {
+      setRelocateError(error.message)
+      return
+    }
+
+    setRelocateModal(null)
+    setSelectedReservationId(null)
+    showToast(t(locale, 'Reservation relocated.', 'Rezervasyon taşındı.'))
+    await loadData()
+    await refreshTimeSlots(calendarDates)
+  }
+
   return (
     <>
     {modal?.type === 'reject' && (
@@ -647,6 +711,84 @@ export default function AdminTurfPage() {
         </div>
       </div>
     )}
+    {/* Relocate reservation modal */}
+    {relocateModal && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+        <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-xl ring-1 ring-gray-100 dark:ring-gray-800">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-1">
+            {t(locale, 'Relocate reservation', 'Rezervasyonu taşı')}
+          </h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-5">
+            {t(locale, 'Pick a new date and available time slot.', 'Yeni bir tarih ve müsait saat seç.')}
+          </p>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              {t(locale, 'New date', 'Yeni tarih')}
+            </label>
+            <input
+              type="date"
+              value={relocateDate}
+              onChange={(e) => fetchRelocateSlots(e.target.value)}
+              className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500"
+            />
+          </div>
+
+          {relocateDate && (
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                {t(locale, 'Available slots', 'Müsait saatler')}
+              </label>
+              {relocateSlotsLoading ? (
+                <p className="text-sm text-gray-400">{t(locale, 'Loading…', 'Yükleniyor…')}</p>
+              ) : relocateSlots.length === 0 ? (
+                <p className="text-sm text-gray-400">{t(locale, 'No available slots on this date.', 'Bu tarihte müsait saat yok.')}</p>
+              ) : (
+                <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto">
+                  {relocateSlots.map((slot) => (
+                    <button
+                      key={slot.id}
+                      type="button"
+                      onClick={() => setRelocateSelectedSlot(slot.id === relocateSelectedSlot ? null : slot.id)}
+                      className={`rounded-xl border px-3 py-2 text-sm font-medium transition ${
+                        relocateSelectedSlot === slot.id
+                          ? 'border-green-500 bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400 dark:border-green-600'
+                          : 'border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
+                      }`}
+                    >
+                      {formatTime(slot.start_time)}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {relocateError && (
+            <p className="mb-3 text-sm text-red-600 dark:text-red-400">{relocateError}</p>
+          )}
+
+          <div className="flex gap-3">
+            <button
+              onClick={() => setRelocateModal(null)}
+              className="flex-1 rounded-xl border border-gray-200 dark:border-gray-700 py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition"
+            >
+              {t(locale, 'Cancel', 'İptal')}
+            </button>
+            <button
+              onClick={handleRelocate}
+              disabled={!relocateSelectedSlot || relocateLoading}
+              className="flex-1 rounded-xl bg-blue-600 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition disabled:opacity-50"
+            >
+              {relocateLoading
+                ? t(locale, 'Moving…', 'Taşınıyor…')
+                : t(locale, 'Relocate', 'Taşı')}
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+
     <main className="min-h-screen bg-gray-200 dark:bg-gray-950 px-6 py-10">
       <div className="mx-auto max-w-5xl">
         <Link href="/admin" className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
@@ -1049,15 +1191,23 @@ export default function AdminTurfPage() {
                         </span>
                         {selectedReservation.status === 'confirmed' &&
                           dateBucket(selectedReservation.time_slots?.slot_date) !== 'past' && (
-                            <button
-                              onClick={() => handleAdminCancel(selectedReservation.id)}
-                              disabled={actingId === selectedReservation.id}
-                              className="rounded-xl border border-red-300 px-4 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"
-                            >
-                              {actingId === selectedReservation.id
-                                ? '...'
-                                : t(locale, 'Cancel reservation', 'Rezervasyonu iptal et')}
-                            </button>
+                            <>
+                              <button
+                                onClick={() => openRelocateModal(selectedReservation.id)}
+                                className="rounded-xl border border-blue-300 px-4 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-400 dark:hover:bg-blue-900/20"
+                              >
+                                {t(locale, 'Relocate', 'Taşı')}
+                              </button>
+                              <button
+                                onClick={() => handleAdminCancel(selectedReservation.id)}
+                                disabled={actingId === selectedReservation.id}
+                                className="rounded-xl border border-red-300 px-4 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"
+                              >
+                                {actingId === selectedReservation.id
+                                  ? '...'
+                                  : t(locale, 'Cancel reservation', 'Rezervasyonu iptal et')}
+                              </button>
+                            </>
                           )}
                         <button
                           onClick={() => setSelectedReservationId(null)}
