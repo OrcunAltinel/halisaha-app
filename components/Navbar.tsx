@@ -86,7 +86,10 @@ export default function Navbar() {
             .select("name, surname")
             .eq("user_id", session.user.id)
             .maybeSingle();
-          if (mounted) setDisplayName(profile?.name ?? session.user.email ?? null);
+          const fullName = profile
+            ? [profile.name, profile.surname].filter(Boolean).join(' ')
+            : null;
+          if (mounted) setDisplayName(fullName ?? session.user.email ?? null);
 
           const { data: adminRows, error: adminError } = await supabase
             .from("astroturf_admins")

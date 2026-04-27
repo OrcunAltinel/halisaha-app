@@ -27,7 +27,7 @@ type AdminReservation = {
   cancelled_by: string | null
   cancellation_reason: string | null
   time_slots: { slot_date: string; start_time: string; end_time: string } | null
-  user_profiles: { name: string | null; surname: string | null } | null
+  user_profiles: { name: string | null; surname: string | null; phone: string | null } | null
 }
 
 type TurfInfo = {
@@ -191,12 +191,12 @@ export default function AdminTurfPage() {
     const uniqueUserIds = [...new Set(rows.map((r) => r.user_id))]
     const { data: profilesData } = await supabase
       .from('user_profiles')
-      .select('user_id, name, surname')
+      .select('user_id, name, surname, phone')
       .in('user_id', uniqueUserIds)
 
-    const profileMap: Record<string, { name: string | null; surname: string | null }> = {}
+    const profileMap: Record<string, { name: string | null; surname: string | null; phone: string | null }> = {}
     for (const p of profilesData ?? []) {
-      profileMap[p.user_id] = { name: p.name, surname: p.surname }
+      profileMap[p.user_id] = { name: p.name, surname: p.surname, phone: p.phone ?? null }
     }
 
     setReservations(
@@ -985,8 +985,22 @@ export default function AdminTurfPage() {
                               <span className="font-semibold">{t(locale, 'Price:', 'Ücret:')}</span>{' '}
                               {r.total_price} TL
                             </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
-                              {locale === 'tr' ? `Kullanıcı: ${r.user_id.slice(0, 8)}...` : `User: ${r.user_id.slice(0, 8)}...`}
+                            <p>
+                              <span className="font-semibold">{t(locale, 'Customer:', 'Müşteri:')}</span>{' '}
+                              {r.user_profiles?.name
+                                ? `${r.user_profiles.name} ${r.user_profiles.surname ?? ''}`.trim()
+                                : <span className="text-gray-400 dark:text-gray-500">{t(locale, 'No name set', 'İsim girilmemiş')}</span>}
+                            </p>
+                            {r.user_profiles?.phone && (
+                              <p>
+                                <span className="font-semibold">{t(locale, 'Phone:', 'Telefon:')}</span>{' '}
+                                {r.user_profiles.phone}
+                              </p>
+                            )}
+                            <p className="text-xs text-gray-400 dark:text-gray-500">
+                              {t(locale, 'Ref.', 'Ref.')} #{r.id.slice(0, 8).toUpperCase()}
+                              {' · '}
+                              {new Date(r.created_at).toLocaleString(locale === 'tr' ? 'tr-TR' : 'en-GB')}
                             </p>
                           </div>
                         </div>
@@ -1152,25 +1166,54 @@ export default function AdminTurfPage() {
                   </div>
 
                   {selectedReservation && (
-                    <div className="flex flex-col gap-3 border-t px-5 py-4 dark:border-gray-800 sm:flex-row sm:items-start sm:justify-between">
-                      <div className="space-y-1 text-sm text-gray-800 dark:text-gray-200">
+                    <div className="flex flex-col gap-4 border-t px-5 py-4 dark:border-gray-800 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="space-y-1.5 text-sm text-gray-800 dark:text-gray-200">
                         <p className="text-base font-semibold">
                           {formatDateLabel(selectedReservation.time_slots?.slot_date || '', locale)}
                           {' · '}
                           {formatTime(selectedReservation.time_slots?.start_time)} –{' '}
                           {formatTime(selectedReservation.time_slots?.end_time)}
                         </p>
-                        <p className="text-gray-600 dark:text-gray-400">
-                          {selectedReservation.total_price} TL ·{' '}
+
+                        {/* Customer info */}
+                        <p>
+                          <span className="font-semibold">{t(locale, 'Customer:', 'Müşteri:')}</span>{' '}
                           {selectedReservation.user_profiles?.name
                             ? `${selectedReservation.user_profiles.name} ${selectedReservation.user_profiles.surname ?? ''}`.trim()
-                            : `${selectedReservation.user_id.slice(0, 8)}…`}
+                            : <span className="text-gray-400">{t(locale, 'No name set', 'İsim girilmemiş')}</span>}
                         </p>
-                        {selectedReservation.status === 'confirmed' && selectedReservation.cancellation_reason && (
-                          <p className="text-sm text-gray-700 dark:text-gray-300">
-                            {t(locale, 'Customer', 'Müşteri')}: <span className="font-semibold">{selectedReservation.cancellation_reason}</span>
+                        {selectedReservation.user_profiles?.phone && (
+                          <p>
+                            <span className="font-semibold">{t(locale, 'Phone:', 'Telefon:')}</span>{' '}
+                            {selectedReservation.user_profiles.phone}
                           </p>
                         )}
+
+                        {/* Walk-in customer name stored in cancellation_reason */}
+                        {selectedReservation.status === 'confirmed' && selectedReservation.cancellation_reason && !selectedReservation.user_profiles?.name && (
+                          <p>
+                            {t(locale, 'Walk-in customer', 'Kapıdan müşteri')}: <span className="font-semibold">{selectedReservation.cancellation_reason}</span>
+                          </p>
+                        )}
+
+                        <p>
+                          <span className="font-semibold">{t(locale, 'Price:', 'Ücret:')}</span>{' '}
+                          ₺{selectedReservation.total_price}
+                        </p>
+
+                        <p>
+                          <span className="font-semibold">{t(locale, 'Payment:', 'Ödeme:')}</span>{' '}
+                          <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-semibold ${
+                            selectedReservation.payment_status === 'paid'
+                              ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                              : selectedReservation.payment_status === 'refunded'
+                              ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                              : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+                          }`}>
+                            {selectedReservation.payment_status}
+                          </span>
+                        </p>
+
                         {selectedReservation.status === 'cancelled' && selectedReservation.cancelled_by && (
                           <p className="text-xs text-gray-500 dark:text-gray-400">
                             {locale === 'tr'
@@ -1179,6 +1222,12 @@ export default function AdminTurfPage() {
                             {selectedReservation.cancellation_reason ? ` — "${selectedReservation.cancellation_reason}"` : ''}
                           </p>
                         )}
+
+                        <p className="text-xs text-gray-400 dark:text-gray-500">
+                          {t(locale, 'Ref.', 'Ref.')} #{selectedReservation.id.slice(0, 8).toUpperCase()}
+                          {' · '}
+                          {new Date(selectedReservation.created_at).toLocaleString(locale === 'tr' ? 'tr-TR' : 'en-GB')}
+                        </p>
                       </div>
                       <div className="flex items-center gap-2">
                         <span

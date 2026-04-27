@@ -10,6 +10,7 @@ export default function SignupForm() {
   const { locale } = useLocale()
   const [name, setName] = useState('')
   const [surname, setSurname] = useState('')
+  const [phone, setPhone] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -36,6 +37,12 @@ export default function SignupForm() {
       return
     }
 
+    const digits = phone.replace(/\D/g, '')
+    if (digits.length < 10) {
+      setError(t(locale, 'Enter a valid phone number.', 'Gecerli bir telefon numarasi girin.'))
+      return
+    }
+
     setLoading(true)
 
     // Create account
@@ -57,7 +64,7 @@ export default function SignupForm() {
     if (data.user) {
       const { error: profileError } = await supabase
         .from('user_profiles')
-        .insert({ user_id: data.user.id, name: name.trim(), surname: surname.trim() })
+        .insert({ user_id: data.user.id, name: name.trim(), surname: surname.trim(), phone: phone.trim() })
 
       if (profileError) {
         setError(profileError.message)
@@ -121,6 +128,20 @@ export default function SignupForm() {
             className="w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-3 text-gray-900 dark:text-white outline-none focus:border-green-500 dark:focus:border-green-400 focus:ring-1 focus:ring-green-500"
           />
         </div>
+      </div>
+
+      <div className="mb-4">
+        <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+          {t(locale, 'Phone number', 'Telefon numarasi')}
+        </label>
+        <input
+          type="tel"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          required
+          placeholder={t(locale, 'e.g. 05xx xxx xx xx', 'orn. 05xx xxx xx xx')}
+          className="w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-3 text-gray-900 dark:text-white outline-none focus:border-green-500 dark:focus:border-green-400 focus:ring-1 focus:ring-green-500"
+        />
       </div>
 
       <div className="mb-4">

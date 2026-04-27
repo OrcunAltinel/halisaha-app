@@ -18,6 +18,8 @@ type Props = {
   astroturfId: string
   pricePerHour: number
   slots: TimeSlot[]
+  turfName: string
+  turfAddress: string
 }
 
 const DAYS_TO_SHOW = 14
@@ -37,7 +39,7 @@ function buildDateStrip(days: number) {
   return result
 }
 
-export default function TurfCalendar({ astroturfId, pricePerHour, slots }: Props) {
+export default function TurfCalendar({ astroturfId, pricePerHour, slots, turfName, turfAddress }: Props) {
   const today = todayStr()
   const { locale } = useLocale()
   const [selectedDate, setSelectedDate] = useState<string>(today)
@@ -175,6 +177,11 @@ export default function TurfCalendar({ astroturfId, pricePerHour, slots }: Props
                   astroturfId={astroturfId}
                   totalPrice={pricePerHour}
                   isAvailable={slot.is_available}
+                  turfName={turfName}
+                  turfAddress={turfAddress}
+                  slotDate={slot.slot_date}
+                  startTime={slot.start_time}
+                  endTime={slot.end_time}
                 />
               </div>
             ))}

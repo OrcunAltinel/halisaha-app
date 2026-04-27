@@ -145,6 +145,8 @@ export default async function AstroturfDetailPage({
             astroturfId={turf.id}
             pricePerHour={turf.price_per_hour}
             slots={slots}
+            turfName={turf.name}
+            turfAddress={turf.address}
           />
         </div>
 

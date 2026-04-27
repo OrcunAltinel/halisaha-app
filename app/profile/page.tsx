@@ -15,7 +15,7 @@ export default async function ProfilePage() {
 
   const { data: profile } = await supabase
     .from('user_profiles')
-    .select('name, surname')
+    .select('name, surname, phone')
     .eq('user_id', user.id)
     .maybeSingle()
 
@@ -33,6 +33,7 @@ export default async function ProfilePage() {
       currentEmail={user.email ?? ''}
       currentName={profile?.name ?? null}
       currentSurname={profile?.surname ?? null}
+      currentPhone={profile?.phone ?? null}
       team={team}
       joinedAt={user.created_at}
     />

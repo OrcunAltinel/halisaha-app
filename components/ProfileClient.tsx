@@ -13,6 +13,7 @@ type Props = {
   currentEmail: string
   currentName: string | null
   currentSurname: string | null
+  currentPhone: string | null
   team: { id: string; name: string } | null
   joinedAt: string
 }
@@ -52,12 +53,17 @@ export default function ProfileClient({
   currentEmail,
   currentName,
   currentSurname,
+  currentPhone,
   team,
   joinedAt,
 }: Props) {
   const router = useRouter()
   const { showToast } = useToast()
   const { locale } = useLocale()
+
+  // Phone
+  const [phone, setPhone] = useState(currentPhone ?? '')
+  const [phoneLoading, setPhoneLoading] = useState(false)
 
   // Email
   const [newEmail, setNewEmail] = useState('')
@@ -68,6 +74,29 @@ export default function ProfileClient({
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [passwordLoading, setPasswordLoading] = useState(false)
+
+  async function handlePhoneSave(e: React.FormEvent) {
+    e.preventDefault()
+    const trimmed = phone.trim()
+    const digits = trimmed.replace(/\D/g, '')
+    if (digits.length < 10) {
+      showToast(t(locale, 'Enter a valid phone number.', 'Gecerli bir telefon numarasi girin.'), 'error')
+      return
+    }
+    setPhoneLoading(true)
+
+    const { error } = await supabase
+      .from('user_profiles')
+      .upsert({ user_id: userId, phone: trimmed }, { onConflict: 'user_id' })
+
+    setPhoneLoading(false)
+    if (error) {
+      showToast(error.message, 'error')
+      return
+    }
+    showToast(t(locale, 'Phone number saved!', 'Telefon numarasi kaydedildi!'), 'success')
+    router.refresh()
+  }
 
   async function handleEmailSave(e: React.FormEvent) {
     e.preventDefault()
@@ -143,6 +172,33 @@ export default function ProfileClient({
             {locale === 'tr' ? `${memberSince} tarihinden beri uye` : `Member since ${memberSince}`}
           </p>
         </div>
+
+        {/* Phone */}
+        <Section title={t(locale, 'Phone number', 'Telefon numarasi')}>
+          {currentPhone && (
+            <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
+              {t(locale, 'Current:', 'Mevcut:')} <span className="font-medium text-gray-900 dark:text-white">{currentPhone}</span>
+            </p>
+          )}
+          <form onSubmit={handlePhoneSave}>
+            <Field label={currentPhone ? t(locale, 'Update phone number', 'Telefon numarasini guncelle') : t(locale, 'Add phone number', 'Telefon numarasi ekle')}>
+              <input
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder={t(locale, 'e.g. 05xx xxx xx xx', 'orn. 05xx xxx xx xx')}
+                className={inputClass}
+              />
+            </Field>
+            <button
+              type="submit"
+              disabled={phoneLoading || !phone.trim()}
+              className={saveBtn(phoneLoading)}
+            >
+              {phoneLoading ? t(locale, 'Saving...', 'Kaydediliyor...') : t(locale, 'Save phone number', 'Telefon numarasini kaydet')}
+            </button>
+          </form>
+        </Section>
 
         {/* Email */}
         <Section title={t(locale, 'Email address', 'E-posta adresi')}>
