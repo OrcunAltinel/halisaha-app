@@ -516,6 +516,22 @@ export default function AdminTurfPage() {
     return d.toLocaleDateString(getIntlLocale(locale), { weekday: 'short', day: 'numeric', month: 'short' })
   }
 
+  const [searchQuery, setSearchQuery] = useState('')
+
+  const searchResults = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase()
+    if (!q) return []
+    return reservations.filter((r) => {
+      const refId = r.id.slice(0, 8).toLowerCase()
+      const fullId = r.id.toLowerCase()
+      const name = `${r.user_profiles?.name ?? ''} ${r.user_profiles?.surname ?? ''}`.trim().toLowerCase()
+      const phone = (r.user_profiles?.phone ?? '').toLowerCase()
+      const walkinName = (r.cancellation_reason ?? '').toLowerCase()
+      const date = (r.time_slots?.slot_date ?? '').toLowerCase()
+      return refId.includes(q) || fullId.includes(q) || name.includes(q) || phone.includes(q) || walkinName.includes(q) || date.includes(q)
+    })
+  }, [reservations, searchQuery])
+
   const scheduledReservations = useMemo(
     () => reservations.filter((r) => r.status !== 'pending' && r.time_slots?.slot_date),
     [reservations]
@@ -825,6 +841,159 @@ export default function AdminTurfPage() {
                 </button>
               </div>
             </div>
+
+            {/* Search */}
+            <section className="mb-10 rounded-2xl border dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+                {t(locale, 'Search Reservations', 'Rezervasyon Ara')}
+              </h2>
+              <div className="relative">
+                <svg
+                  className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"
+                  width="16" height="16" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                >
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder={t(
+                    locale,
+                    'Search by name, phone, or reservation ID…',
+                    'İsim, telefon veya rezervasyon numarasıyla ara…'
+                  )}
+                  className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 pl-10 pr-10 py-2.5 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+
+              {searchQuery.trim() && (
+                <div className="mt-4">
+                  {searchResults.length === 0 ? (
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {t(locale, 'No reservations found.', 'Rezervasyon bulunamadı.')}
+                    </p>
+                  ) : (
+                    <>
+                      <p className="mb-3 text-sm text-gray-500 dark:text-gray-400">
+                        {locale === 'tr'
+                          ? `${searchResults.length} sonuç bulundu`
+                          : `${searchResults.length} result${searchResults.length !== 1 ? 's' : ''} found`}
+                      </p>
+                      <div className="grid gap-4">
+                        {searchResults.map((r) => {
+                          const effStatus = effectiveStatus(r.status, r.time_slots?.slot_date)
+                          const isPastPending = r.status === 'pending' && dateBucket(r.time_slots?.slot_date) === 'past'
+                          const customerName =
+                            r.user_profiles?.name
+                              ? `${r.user_profiles.name} ${r.user_profiles.surname ?? ''}`.trim()
+                              : r.status === 'confirmed' && r.cancellation_reason
+                              ? `${r.cancellation_reason} (${t(locale, 'walk-in', 'kapıdan')})`
+                              : null
+                          return (
+                            <div
+                              key={r.id}
+                              className={`rounded-2xl border bg-white dark:bg-gray-900 p-5 shadow-sm ${
+                                isPastPending
+                                  ? 'border-orange-300 dark:border-orange-800'
+                                  : 'dark:border-gray-800'
+                              }`}
+                            >
+                              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                                <div className="space-y-1 text-sm text-gray-800 dark:text-gray-200">
+                                  <p className="font-semibold text-base">
+                                    {formatDateLabel(r.time_slots?.slot_date || '', locale)}
+                                    {' · '}
+                                    {formatTime(r.time_slots?.start_time)} – {formatTime(r.time_slots?.end_time)}
+                                  </p>
+                                  <p>
+                                    <span className="font-semibold">{t(locale, 'Customer:', 'Müşteri:')}</span>{' '}
+                                    {customerName ?? (
+                                      <span className="text-gray-400 dark:text-gray-500">
+                                        {t(locale, 'No name set', 'İsim girilmemiş')}
+                                      </span>
+                                    )}
+                                  </p>
+                                  {r.user_profiles?.phone && (
+                                    <p>
+                                      <span className="font-semibold">{t(locale, 'Phone:', 'Telefon:')}</span>{' '}
+                                      {r.user_profiles.phone}
+                                    </p>
+                                  )}
+                                  <p>
+                                    <span className="font-semibold">{t(locale, 'Price:', 'Ücret:')}</span>{' '}
+                                    ₺{r.total_price}
+                                  </p>
+                                  <p className="text-xs text-gray-400 dark:text-gray-500">
+                                    {t(locale, 'Ref.', 'Ref.')} #{r.id.slice(0, 8).toUpperCase()}
+                                    {' · '}
+                                    {new Date(r.created_at).toLocaleString(locale === 'tr' ? 'tr-TR' : 'en-GB')}
+                                  </p>
+                                </div>
+
+                                <div className="flex flex-col items-end gap-2">
+                                  <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusColor(effStatus)}`}>
+                                    {translateStatus(locale, effStatus)}
+                                  </span>
+                                  <div className="flex flex-wrap gap-2 justify-end">
+                                    {r.status === 'pending' && (
+                                      <>
+                                        <button
+                                          onClick={() => handleApprove(r.id)}
+                                          disabled={actingId === r.id}
+                                          className="rounded-xl bg-green-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-green-700 disabled:opacity-50"
+                                        >
+                                          {actingId === r.id ? '…' : t(locale, 'Approve', 'Onayla')}
+                                        </button>
+                                        <button
+                                          onClick={() => handleReject(r.id)}
+                                          disabled={actingId === r.id}
+                                          className="rounded-xl border border-red-300 dark:border-red-800 px-4 py-1.5 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50"
+                                        >
+                                          {t(locale, 'Reject', 'Reddet')}
+                                        </button>
+                                      </>
+                                    )}
+                                    {r.status === 'confirmed' && dateBucket(r.time_slots?.slot_date) !== 'past' && (
+                                      <>
+                                        <button
+                                          onClick={() => openRelocateModal(r.id)}
+                                          className="rounded-xl border border-blue-300 px-4 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-400 dark:hover:bg-blue-900/20"
+                                        >
+                                          {t(locale, 'Relocate', 'Taşı')}
+                                        </button>
+                                        <button
+                                          onClick={() => handleAdminCancel(r.id)}
+                                          disabled={actingId === r.id}
+                                          className="rounded-xl border border-red-300 px-4 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"
+                                        >
+                                          {actingId === r.id ? '…' : t(locale, 'Cancel', 'İptal et')}
+                                        </button>
+                                      </>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+            </section>
 
             {/* Price settings */}
             <section className="mb-10 rounded-2xl border dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm">
